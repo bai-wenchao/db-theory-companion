@@ -1,99 +1,808 @@
-\chapter{Adversarial Constructions: How Lower Bounds Get Built}
+\chapter{Adversarial Constructions}
+\setcounter{section}{-1}   % sections start at 5.0 (see main.tex comment)
+\label{ch:adv}
 
-An upper bound is a promise; an impossibility result is the proof that no better promise exists. The second kind of theorem is not derived from the first --- it is \emph{built}. To show that no algorithm, language, or sketch in a model can do better, the author must construct the world in which every allowable procedure fails: a pair of instances, a hard distribution, a stream of updates engineered so that succeeding is impossible and failing is provable. That engineered world is the \emph{adversary}, the workhorse of impossibility. In our corpus the tool is used by 21 of 228 tagged papers, and it owns the survey's signature pairing: 13 of those papers prove an upper bound \emph{and} its matching adversarial lower bound in the same article. The pairing is no accident --- the upper bound tells you what the adversary must force; the adversary certifies that the upper bound is the end of the line.
+\begin{objectives}
+\item Recognize the four targets of an impossibility result: cost, expressivity, output size, update scope.
+\item Build the three plants: an instance pair, a hard distribution, a witness object.
+\item Match the pattern to the target; import adversaries via reductions when direct planting fails.
+\item Dissect a lower-bound section: model, family, indistinguishability, contradiction.
+\end{objectives}
 
-\section{The Tool: Anatomy of an Adversarial Argument}
+An upper bound is a promise; an impossibility result is the proof that no better promise exists.
+The second kind of theorem is not derived from the first --- it is \emph{built}. To show that no
+algorithm, language, or index in a model can do better, the author constructs the world in which
+every allowable procedure fails: a pair of instances that look identical, a distribution of
+inputs hiding a secret, a stream of updates engineered so that staying correct is provably
+expensive, a witness object so large that merely reporting it exceeds the budget. That engineered
+world is the \emph{adversary}, and building it is a craft with a small number of recurring
+patterns. In the SIGMOD'26 corpus the tool is used by 21 tagged papers, and it owns the survey's
+signature pairing: in 13 of them the same article proves an upper bound \emph{and} the
+adversarial lower bound that matches it. The pairing is no accident --- the upper bound tells you
+what the adversary must force; the adversary certifies that the upper bound is the end of the
+line.
 
-Strip away the domain vocabulary and adversarial arguments share a three-part skeleton.
+This chapter presents the basic patterns and the standard exemplars first;
+Section~\ref{sec:adv-advanced} adds the advanced regimes (adversaries against computational
+indistinguishability and against structural properties) as extension reading.
 
-\paragraph{The world: an instance family.}
-Fix the model of computation or observation --- the rows of a linear sketch, a stream of tuple inserts and deletes, the syntax of an algebra, a class of colored graphs. Inside that model, design the instance family: often two planted instances $I_0$ and $I_1$, or, via Yao's minimax principle~\cite{adversarial-construction-bg1}, a single hard input distribution against which the best deterministic procedure is analyzed.
+\section{The tool: adversarial constructions}
+\label{sec:adv-tool}
 
-\paragraph{Forced behavior or information blindness.}
-Argue that \emph{every} procedure in the model is constrained on the family, for one of two reasons. \emph{Information blindness}: the observation available to the algorithm (a sketch, a transcript, a vector of walk counts) simply does not contain the bit that distinguishes the instances. \emph{Forced behavior}: the model's own syntax caps a resource --- e.g.\ an expression of size $\ell$ can multiply tuple multiplicities by at most $2^{\ell}$ --- and the adversary exhibits an instance whose correct answer exceeds every cap.
+The problem class is uniform across applications. There is a \emph{model} $\mathcal{M}$ --- an
+observation interface (queries into a graph, a stream seen once, a sketch, the syntax of an
+algebra), a class of permitted procedures, and a cost measure (queries, time, space, edges,
+update work) --- and a task $f$ with a required accuracy. The deliverable is a theorem of the
+form ``no procedure in $\mathcal{M}$ achieves $f$ within resource $R$,'' and its proof always
+exhibits an explicit counter-world: the adversary. What varies from paper to paper is only
+\emph{what all procedures are forced to share} --- an identical observation, an identical
+data-structure state, a bounded growth ceiling, or an output that is simply too large --- and
+that invariant is the organizing question of this chapter.
 
-\paragraph{The two-instance indistinguishability pattern.}
-The decisive move: instances $I_0$ and $I_1$ produce identical observations yet demand different answers, so any output is wrong on one of them.
+\begin{remarkbox}[Notation]
+``Adversary'' always means a construction fixed \emph{before} the algorithm's coins: an instance
+pair, an input distribution, or an update sequence. A lower bound of $\Omega(g(n))$ is a
+statement about every procedure in the model; a \emph{conditional} lower bound holds under a
+stated conjecture. $\Phi$ denotes an aspect ratio (largest over smallest nonzero distance),
+$\lambda$ a doubling dimension, $\delta_G$ the degeneracy of a graph $G$.
+\end{remarkbox}
 
-\begin{center}
+\subsection{The basic patterns}
+\label{sec:adv-patterns}
+
+Every adversarial argument in the corpus is one of five patterns, stated here in their bare
+forms. The first is the atom from which the others are assembled.
+
+\begin{definition}[Observation model and transcripts]\label{def:adv-transcript}
+An \emph{observation model} assigns to each instance $I$ and each (possibly randomized)
+algorithm $\mathcal{A}$ the \emph{transcript} $\tau_{\mathcal{A}}(I)$: the complete record of
+what $\mathcal{A}$ observes on $I$, including its own coins. Instances $I_0, I_1$ are
+\emph{indistinguishable}, written $\tau(I_0) \equiv \tau(I_1)$, if for every procedure permitted
+by the model the distributions of $\tau_{\mathcal{A}}(I_0)$ and $\tau_{\mathcal{A}}(I_1)$
+coincide.
+\end{definition}
+
+\begin{proposition}[Two-instance lower bound]\label{prop:adv-indist}
+Let $f$ be a task solved with tolerance $\theta$ (the answer must fall within $\theta$ of
+$f(I)$). If there exist instances $I_0, I_1$ with $\tau(I_0) \equiv \tau(I_1)$ but
+$|f(I_0) - f(I_1)| > 2\theta$, then no algorithm in the model solves $f$. \eop
+\end{proposition}
+
+\begin{proof}
+On the shared observation, the algorithm's output distribution is the same for both instances.
+Whatever value $v$ it emits with positive probability, $v$ cannot simultaneously lie within
+$\theta$ of $f(I_0)$ and within $\theta$ of $f(I_1)$; hence on one of the two instances the
+algorithm errs with positive probability.
+\end{proof}
+
+\begin{widefigure}[t]
+\centering
 \begin{tikzpicture}[scale=0.95, every node/.style={font=\small}]
-  \node[draw, rounded corners, inner sep=4pt] (I0) at (0,1.15) {instance $I_0$};
-  \node[draw, rounded corners, inner sep=4pt] (I1) at (0,0) {instance $I_1$};
-  \node[draw, rounded corners, inner sep=5pt, fill=black!7] (A) at (3,0.58) {any algorithm $\mathcal{A}$};
-  \node[align=left, anchor=west] (T) at (4.75,0.58) {identical transcript\\$\tau(I_0)=\tau(I_1)$};
+  \node[draw=black!60, rounded corners, inner sep=4pt] (I0) at (0,1.2) {instance $I_0$};
+  \node[draw=black!60, rounded corners, inner sep=4pt] (I1) at (0,0) {instance $I_1$};
+  \node[draw=black!60, rounded corners, inner sep=5pt, fill=black!7]
+    (A) at (3.1,0.6) {any algorithm $\mathcal{A}$};
+  \node[align=left, anchor=west]
+    (T) at (5.0,0.6) {identical transcripts\\$\tau(I_0) \equiv \tau(I_1)$};
   \draw[->] (I0) -- (A);
   \draw[->] (I1) -- (A);
   \draw[->] (A) -- (T);
-  \node[align=center] at (2.6,-0.95) {yet the correct answers differ: $f(I_0)\neq f(I_1)$,\\ so $\mathcal{A}$ must fail on one of them};
+  \node[align=center] at (3.4,-0.85)
+    {yet the correct answers differ: $|f(I_0)-f(I_1)| > 2\theta$,\\
+     so $\mathcal{A}$ must fail on one of them};
 \end{tikzpicture}
-\end{center}
+\caption{The two-instance pattern: the adversary plants instances that every procedure in the
+model must observe identically, while the demanded answers differ by more than the tolerance.
+Dynamic settings (Section~\ref{sec:adv-bicore}) use the same picture with $I_0, I_1$ two
+futures of an update stream and $\tau$ the data structure's state.}
+\label{fig:adv-twoinstance}
+\end{widefigure}
 
-\paragraph{Imported adversaries: reductions and communication complexity.}
-When no direct planting suffices, the adversary is imported. A conditional lower bound is an adversary-as-reduction: an effective procedure converts instances of a believed-hard problem ($k$-clique, OuMv, SETH) into instances or update sequences of yours, so any fast algorithm would refute the conjecture --- the dominant pattern for dynamic graph and query problems~\cite{adversarial-construction-bg5}. Communication complexity hands out prefabricated two-player adversaries --- index, set-disjointness, gap-Hamming --- whose transcripts are information-blind by construction~\cite{adversarial-construction-bg2}; sketching lower bounds in databases have ridden this route since the frequency-moment bound~\cite{adversarial-construction-bg3}. And when the object under attack is a \emph{language} rather than a cost, the adversary is a witness object, from Moon--Moser's triangle graph~\cite{adversarial-construction-bg4} to the counterexamples that have measured relational completeness since Codd~\cite{adversarial-construction-bg6}.
+\sidenote{The tolerance in Proposition~\ref{prop:adv-indist} is where approximation parameters
+enter: planting instances whose answers differ by just over $2\theta$ is exactly how
+$\varepsilon$'s in lower bounds are beaten --- the gap must exceed the promised accuracy, not
+merely be nonzero.}
 
-\section{Exemplars from the Corpus}
+Randomized algorithms do not escape the pattern --- they route it through a distribution.
+\emph{Yao's minimax principle} \citep{adversarial-construction-bg1} says that derandomizing the
+\emph{input}, not the algorithm, loses nothing:
 
-\subsection{Walk-Equivalent Graph Pairs and GNN Expressiveness}
-
-MPLang is a matrix-programming language capturing GNN-style computation over embedded graphs; its affine fragment A-MPLang omits activation functions. What can the affine fragment even see?
-
-\begin{corollary}
-The following are equivalent for pointed $d$-embedded graphs $(G_1,\gamma_1,v_1)$ and $(G_2,\gamma_2,v_2)$:
-\begin{enumerate}
-  \item $e(G_1,\gamma_1)(v_1) = e(G_2,\gamma_2)(v_2)$ for every A-MPLang expression $e$ of $A^{+}$-depth $n$ over $d$-embeddings;
-  \item $((A^{+})^{i}\,1)(G_1,\gamma_1)(v_1) = ((A^{+})^{i}\,1)(G_2,\gamma_2)(v_2)$ and $((A^{+})^{i}P_j)(G_1,\gamma_1)(v_1) = ((A^{+})^{i}P_j)(G_2,\gamma_2)(v_2)$ for all $i \in [n]$ and $j \in [d]$.
-\end{enumerate}
-The condition in the second item defines $(G_1,v_1,\gamma_1)$ and $(G_2,v_2,\gamma_2)$ being \emph{$n$-walk equivalent}.
-\end{corollary}
-
-A normal-form theorem shows every affine expression of depth $n$ is a fixed polynomial in the walk-count features of item 2, so any two graphs agreeing on those counts are indistinguishable to the entire fragment --- the textbook two-instance pattern, with walk statistics as the shared transcript. A single walk-equivalent pair that disagrees on the target query kills the fragment, and red--blue symmetric trees (with induction on expression shape) extend the witnessing to separate activation-function classes: any $\Sigma$-MPLang expression must stay symmetric exactly where a ReLU threshold can break symmetry. \cite{sigmod26-004}\pods{}
-
-\subsection{Sketching Dimension for $\ell_2$ Sampling}
-
-A linear $\ell_2$-sampling sketch observes $Sv$ and must output coordinate $i$ with probability roughly $v_i^2/\lVert v\rVert_2^2$. How many rows must $S$ have, and how many bits store $Sv$?
-
-\begin{theorem}
-An $(\epsilon,\delta)$-$\ell_2$-sampler with frequency estimation requires a sketching dimension of at least $\Omega\bigl(\tfrac{1}{\epsilon}\log^2 n + \tfrac{2}{\epsilon}\log n\bigr)$. Moreover, storing such a sketch for vectors with poly$(n)$-sized entries requires $\Omega\bigl((\log^3 n + \tfrac{2}{\epsilon}\log^2 n)/\epsilon\bigr)$ bits.
+\begin{theorem}[Yao's minimax principle]\label{thm:adv-yao}
+For any cost function $\operatorname{cost}(\mathcal{A}, x) \ge 0$,
+\[
+\min_{\text{randomized } \mathcal{R}}\;\; \max_{x}\;
+  \mathbb{E}\bigl[\operatorname{cost}(\mathcal{R}, x)\bigr]
+\;\ge\;
+\max_{\text{distributions } \mathcal{D}}\;\; \min_{\text{deterministic } \mathcal{A}}\;
+  \mathbb{E}_{x \sim \mathcal{D}}\bigl[\operatorname{cost}(\mathcal{A}, x)\bigr]. \eopm
+\]
 \end{theorem}
 
-The adversary is a planted distribution made rigorous by Yao's principle: $m$ short Gaussian spikes sit on isotropic background noise, so each row of the sketch observes a location mixture $X \sim N(v_I, I_d)$ with $I$ uniform and $\lVert v_i\rVert \le 10\ln m$. The paper's Lemma 2 bounds recovery of $I$ from $X$ by $2m^{-1/2}$ --- the spikes are information-blind to any decoder --- and a payout-game argument converts failed identification into sampling error. \cite{sigmod26-241}\pods{}
+\begin{proof}
+Fix any $\mathcal{D}$ and any randomized $\mathcal{R}$. Averaging over the coins of
+$\mathcal{R}$ first,
+$\mathbb{E}_{x\sim\mathcal{D}}\mathbb{E}[\operatorname{cost}(\mathcal{R},x)]
+= \mathbb{E}_{\text{coins}}\,\mathbb{E}_{x\sim\mathcal{D}}
+[\operatorname{cost}(\mathcal{A}_{\text{coins}},x)]
+\ge \min_{\mathcal{A}} \mathbb{E}_{x\sim\mathcal{D}}[\operatorname{cost}(\mathcal{A},x)]$.
+The left side is at most $\max_x \mathbb{E}[\operatorname{cost}(\mathcal{R},x)]$; minimize over
+$\mathcal{R}$, then maximize over $\mathcal{D}$.
+\end{proof}
 
-\subsection{Conditional Lower Bounds for Dynamic Query Maintenance}
+So against a randomized algorithm one exhibits a \emph{hard distribution} and analyzes the best
+deterministic procedure against it --- which is why so many lower bounds in the corpus are
+phrased as ``draw the input from $\Sigma$; any estimator with $T$ queries fails'' (the pattern
+of Section~\ref{sec:adv-ppr}).
 
-A dynamic algorithm maintains the answers to a fixed conjunctive query $Q$ under single-tuple inserts and deletes, with amortized update time and enumeration delay. Which maintenance times are achievable without blowing up the update cost?
+The next two patterns need no planting at all: the adversary \emph{is} an object.
 
-\begin{theorem}
-Assuming the combinatorial $k$-clique conjecture, no dynamic combinatorial algorithm can maintain $Q$ with amortized update time $O(|D|^{(k-1)/k-\epsilon})$ and support constant-delay enumeration, for any constant $\epsilon > 0$.
-\end{theorem}
+\begin{proposition}[Witness counting]\label{prop:adv-output}
+If some instance $I$ of size $n$ has an output set $\operatorname{Out}(I)$ with
+$|\operatorname{Out}(I)| \ge g(n)$, and a correct algorithm must report every element of
+$\operatorname{Out}(I)$, then every correct algorithm takes $\Omega(g(n))$ time. \eop
+\end{proposition}
 
-Here the adversary is imported: a reduction encodes $k$-cycle detection (via color-coding hash families) and OuMv tensor products into an update sequence on the database, so a faster maintenance algorithm would solve the conjecture-hard problem. The reduction \emph{is} the adversary --- it generates the stream adaptively, and indistinguishability is inherited from the source problem rather than planted directly. \cite{sigmod26-244}\pods{}
+\begin{proof}
+The algorithm must write $g(n)$ distinct answers; writing is a lower bound on running time.
+\end{proof}
 
-\subsection{Expressiveness: Relational Algebra Without Division}
+The classical witness is Moon--Moser's \citep{adversarial-construction-bg4}: a graph on $n$
+vertices with $3^{n/3}$ maximal cliques, each of which an enumerator must output. The pattern
+reappears with a defect budget in Section~\ref{sec:adv-defclique}, where the witness is
+generalized to $k$-defective cliques and certifies an enumeration algorithm as worst-case
+optimal.
 
-On $\mathbb{K}$-databases every tuple carries a semiring value, and the paper asks which fragments of calculus and algebra still coincide in the spirit of Codd's theorem~\cite{adversarial-construction-bg6}. One operation resists every expression.
+When the object under attack is a \emph{language} rather than a cost, the shared invariant is a
+growth ceiling: everything expressible in the model is small in some measure, and the target
+operation is not.
 
-\begin{theorem}
-There is no expression of basic relational algebra $\mathrm{BRA}$ that defines the division operation $\div$ on $\mathbb{N}$-databases.
-\end{theorem}
+\begin{proposition}[Growth ceiling]\label{prop:adv-ceiling}
+Let $\mu \ge 0$ be a measure on instances such that every expression of the model with
+description length $\ell$, applied to inputs of size $n$, produces outputs with
+$\mu \le n^{O(\ell)} \cdot c^{\ell}$ for a constant $c$ of the model. If the target operation
+$T$ has, for every fixed $\ell$, an input $I$ with $\mu(T(I)) > n^{O(\ell)} \cdot c^{\ell}$
+(for instance $\mu(T(I)) = 2^{|I|}$), then no expression of the model defines $T$. \eop
+\end{proposition}
 
-This is forced behavior by a counting ceiling: structural induction shows every $\mathrm{BRA}$ expression $E$ on inputs of size $n$ has support at most $n^{\ell(E)}$ and multiplicities at most $p_E(n)\cdot 2^{\ell(E)}$ --- single-exponential growth in expression size. The adversary is one $2^n$-multiplicity division instance, which outruns the budget of every fixed expression; no pair of instances is needed, only growth rates. \cite{sigmod26-290}
+\begin{proof}
+Any candidate defining expression has some fixed length $\ell$; pick $n$ large enough that the
+demanded $\mu$-value exceeds its ceiling $n^{O(\ell)} c^{\ell}$, which exists because $2^n$
+outgrows every polynomial in $n$ times a constant. The expression's output is then too small
+in $\mu$ to equal $T(I)$.
+\end{proof}
 
-\subsection{Output-Sensitive Witness Graphs for Defective Cliques}
+\sidenote{The corpus instance: on $\mathbb{N}$-databases, every expression of basic relational
+algebra produces multiplicities at most polynomial in the input size times a factor exponential
+only in the expression's own length, while division demands multiplicities $2^n$ --- so
+division is inexpressible \citep{sigmod26-290}. Expressivity counterexamples of this kind go
+back to Codd \citep{adversarial-construction-bg6}. No pair of instances is needed; growth rates
+alone separate.}
 
-A $k$-defective clique is a vertex set missing at most $k$ edges; enumeration algorithms are judged by search space relative to output. How large must the output itself be in the worst case?
+Finally, when no direct planting suffices, the adversary is \emph{imported}: a reduction
+converts instances of a believed-hard problem into instances of yours.
 
-\begin{theorem}
-The worst-case output size of maximal $k$-defective clique enumeration is $\Omega(3^{n/3}\cdot n^{k})$ when $k$ is a constant.
-\end{theorem}
+\begin{proposition}[Reduction transfer]\label{prop:adv-reduction}
+Suppose instances of a problem $H$, conjectured to require $T_H(n)$ time, map in
+$o(T_H(n))$ time to instances of $P$ of size at most $s(n)$. Then any algorithm for $P$
+running in $T(n)$ time with $T(s(n)) = o(T_H(n))$ refutes the conjecture; equivalently, $P$
+requires $\Omega\bigl(T_H(s^{-1}(n))\bigr)$ time under the conjecture. \eop
+\end{proposition}
 
-The adversary is a Moon--Moser-style witness graph~\cite{adversarial-construction-bg4}: disjoint triangles already force an independent three-way choice per block ($3^{n/3}$ maximal cliques), and each of the $k$ units of permitted defect contributes another polynomial factor of choices. The construction bounds \emph{every} enumeration algorithm --- the output itself is that large --- and thereby certifies the paper's worst-case-optimal search space as tight. \cite{sigmod26-306}
+\begin{proof}
+Compose the reduction with the algorithm: an instance of $H$ of size $n$ becomes an instance of
+$P$ of size $\le s(n)$, solved in $T(s(n)) + o(T_H(n)) = o(T_H(n))$ time, contradicting the
+conjecture.
+\end{proof}
+
+The conjecture is usually a fine-grained one --- combinatorial $k$-clique, OuMv
+\citep{adversarial-construction-bg5}, SETH --- and the reduction is itself an adaptive
+adversary: it manufactures the update stream, and indistinguishability is inherited from the
+source problem rather than planted directly. When the source is a communication problem
+instead, the two-instance pattern arrives prefabricated: index, set-disjointness, and
+gap-Hamming transcripts are information-blind by construction
+\citep{adversarial-construction-bg2}, the route by which sketching lower bounds entered
+databases with the frequency-moment bound \citep{adversarial-construction-bg3}.
+
+\subsection{How to choose the pattern}
+\label{sec:adv-choose}
+
+The selection is mechanical once two questions are answered. \emph{First, what is the resource
+under attack?} If it is running time or query complexity, ask whether the model restricts
+observation (a sketch, a query interface, one pass over a stream): it does $\to$ plant two
+instances or a hard distribution; it does not (arbitrary computation allowed) $\to$ import
+hardness via a reduction, since nothing else stops an unrestricted algorithm. If the resource
+is the \emph{output}, use a witness object. If it is \emph{expressivity}, use a growth ceiling
+or a symmetry. If it is \emph{update work} in a dynamic setting, the shared observation is the
+data structure's state and the instances are futures of the update stream.
+\emph{Second, is the algorithm randomized?} Then Yao
+(Theorem~\ref{thm:adv-yao}) converts your task to exhibiting one hard distribution and beating
+the best deterministic procedure on it.
 
 \begin{reachbox}{When to Build an Adversary}
-\begin{itemize}
-  \item You have (or plan) an upper bound and need to certify optimality: aim the adversary at exactly the resource your algorithm touches --- this is the 13-paper pairing, not a coincidence.
-  \item The question is ``can \emph{any} method in this model do better'' or ``is this language expressive enough'', not ``is my implementation correct''.
-  \item Recipe: fix the observation model; find what all procedures must share (a transcript, a growth ceiling, a symmetry); plant two instances that share it but demand different answers; or import the pair from a conjecture-hard problem via a reduction, or from communication complexity.
-  \item Against randomized algorithms, invoke Yao's principle first and design a hard \emph{distribution}; the analysis then runs against deterministic procedures.
-  \item If every two-instance attempt fails, take the hint: perhaps the model is sufficient. Try the matching upper bound before fighting the lower bound.
-\end{itemize}
+Reach whenever the deliverable is a no-better-is-possible statement --- certifying an algorithm
+worst-case optimal, showing an index's edge budget cannot shrink, separating a language
+fragment, proving an update operation cannot stay local --- or when planning an upper bound and
+needing to know what the adversary will force. Then run the recipe:
+\begin{enumerate}
+\item Fix the model precisely: what procedures may observe, what they must output, the
+  tolerance $\theta$, the cost measure. Sloppy models make sloppy impossibilities.
+\item Identify what \emph{all} procedures must share: a transcript, a state, a growth ceiling,
+  an output set. This shared object is where the adversary lives.
+\item Plant the two instances (Proposition~\ref{prop:adv-indist}), a hard distribution
+  (Theorem~\ref{thm:adv-yao}), a witness object
+  (Proposition~\ref{prop:adv-output}), or a ceiling-breaking instance
+  (Proposition~\ref{prop:adv-ceiling}); if nothing plants, import via a reduction
+  (Proposition~\ref{prop:adv-reduction}).
+\item Tune the parameters so the shared observation is exactly identical (not merely similar)
+  while the demanded answers differ by more than $2\theta$; verify no adaptive strategy can
+  break the symmetry.
+\item If every two-instance attempt fails, take the hint: the matching upper bound may simply
+  exist. Try to prove it before fighting the lower bound further.
+\end{enumerate}
 \end{reachbox}
+
+\section{Defective clique enumeration: the output as adversary}
+\label{sec:adv-defclique}
+
+The exemplar is a SIGMOD'26 paper on relaxed clique computation \citep{sigmod26-306}. Exact
+cliques are famously brittle: one absent edge destroys one, so real communities --- friendship
+groups, protein complexes, fraud rings --- are better modeled by \emph{defective} cliques,
+vertex sets that miss at most $k$ edges for a small budget $k$. The paper studies enumerating
+all \emph{maximal} $k$-defective cliques and searching for large ones, the way a graph engine
+would when $k$-hop tolerance matters. Its design question is classical branch-and-bound
+craft --- how to pivot, how to prune --- but its headline is a worst-case optimality guarantee:
+the search tree has at most $O(3^{n/3}\cdot n^k)$ nodes for constant $k$, and this is optimal
+because no algorithm can beat the size of the output it must produce. The adversary here is not
+a pair of instances at all: it is a single witness graph, generalized from Moon--Moser's, whose
+maximal defective cliques are so numerous that enumerating them dominates any analysis. The
+paper complements the witness with degeneracy-aware bounds that make the algorithm practical on
+sparse graphs.
+
+\paragraph{Problem.}
+Given a graph $G=(V,E)$ with $n$ vertices and an integer $k \ge 0$, a vertex subset
+$S \subseteq V$ is a \emph{$k$-defective clique} if $G[S]$ misses at most $k$ edges, i.e.\ has
+at least $\binom{|S|}{2} - k$ edges. $S$ is \emph{maximal} if no superset is $k$-defective. The
+task is to enumerate all maximal $k$-defective cliques; the cost measure is the number of
+search-tree nodes (and total time) of any branching algorithm, judged against
+$\max_G |\operatorname{Out}(G)|$, the worst-case output size.
+
+\sidenote{Every $k$-defective clique of size $q$ contains a clique of size $q-k$ --- delete one
+endpoint of each missing edge. So the defective budget interpolates between clique enumeration
+($k=0$, Moon--Moser territory) and densest-subgraph-style relaxation.}
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Worst-case optimal enumeration, combining the search-space and output-size
+theorems of the paper]\label{thm:adv-defclique}
+For constant $k$, the worst-case output size of maximal $k$-defective clique enumeration is
+$\Omega(3^{n/3}\cdot n^k)$: there is a graph on $n$ vertices with that many maximal
+$k$-defective cliques. The paper's branching algorithm enumerates them all with a search tree
+of $O(3^{n/3}\cdot n^k)$ nodes in $O(m\cdot 3^{n/3}\cdot n^k)$ time, and its degeneracy-aware
+variant runs in $O\bigl(n\cdot 3^{\delta_G/3}\cdot \delta_G^{O(k)}\bigr)$ time. \eop
+\end{theorem}
+
+\paragraph{How the adversary is built.}
+The witness is the \emph{Moon--Moser graph} $M_n$: the complete $(n/3)$-partite graph whose
+parts have size $3$ (equivalently, the complement of $n/3$ disjoint triangles)
+\citep{adversarial-construction-bg4}. The $k=0$ case is the classical count --- one vertex per
+part gives $3^{n/3}$ maximal cliques --- and the defective budget $k$ multiplies the harvest by
+a polynomial factor:
+
+\begin{lemma}[Witness count for defective cliques; output lemma of the paper, notation
+cleaned]\label{lem:adv-mmcount}
+For $n$ a multiple of $3$ with $n/3 \ge k$, the Moon--Moser graph $M_n$ contains at least
+$3^{n/3}\cdot\binom{n/3}{k} = \Omega(3^{n/3}\cdot n^k)$ maximal $k$-defective cliques. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Choose $k$ of the $n/3$ parts; inside each chosen part keep \emph{both} endpoints of one of its
+$3$ vertex pairs (one missing edge), and in every unchosen part keep a single vertex. The
+resulting set misses exactly $k$ edges --- one per chosen part --- and is maximal because the
+only addable vertices are the third vertices of chosen parts, each of which would create a
+second missing edge in its part. Counting the choices gives
+$\binom{n/3}{k}\cdot 3^{k} \cdot 3^{\,n/3-k}$ distinct maximal $k$-defective cliques. (Full
+proof in Section~\ref{sec:adv-appendix}.)
+\end{proof}
+
+Every maximal $k$-defective clique must appear in the enumeration, so
+Proposition~\ref{prop:adv-output} converts the witness count into the time lower bound of
+Theorem~\ref{thm:adv-defclique} --- and the algorithm's $O(3^{n/3} n^k)$ search tree matches it,
+with no gap. The upper-bound side then does the delicate work: a pivoting rule for defective
+cliques (every maximal solution through a partial set must touch the non-neighborhood of a
+pivot) and a branching-vector induction showing the tree size never exceeds the output bound,
+which is where the $n^k$ factor is earned rather than assumed.
+
+\paragraph{What it buys.}
+The engine gets a certificate that its enumeration cost is a property of the problem, not of
+the algorithm: no competitor can be asymptotically faster at worst case. The degeneracy-aware
+bound turns the same analysis into a practical promise --- on sparse real graphs the exponent
+collapses from $n/3$ to $\delta_G/3$ --- and the witness graph itself becomes the natural
+stress test for any implementation claiming output sensitivity.
+
+\section{Proximity graphs: point sets that force edges}
+\label{sec:adv-proxgraph}
+
+The exemplar is a SIGMOD'26 paper on proximity graphs for similarity search
+\citep{sigmod26-349}. Vector-database indexes increasingly build a \emph{proximity graph} over
+the point set and answer nearest-neighbor queries by greedy navigation: from any start point,
+repeatedly hop to the out-neighbor closest to the query, and stop when no neighbor is closer.
+The paper asks the quantitative question behind every such index: how many \emph{edges} must a
+graph carry so that greedy navigation always lands on a $(1+\varepsilon)$-approximate nearest
+neighbor? It answers both directions. Positively, in $d$-dimensional Euclidean space a
+$(1+\varepsilon)$-proximity graph with $O((1/\varepsilon)^{\lambda}\cdot n)$ edges --- linear in
+$n$ --- exists and can be built in near-linear time with high probability, where $\lambda$ is
+the doubling dimension. Negatively, in general doubling metrics no such sparsity is possible:
+there are point sets on which \emph{any} $(1+\varepsilon)$-proximity graph, no matter how much
+query time it is allowed, must carry nearly $n\log\Phi$ edges, where $\Phi$ is the aspect ratio
+of the point set. The lower bound is the paper's separation theorem: it shows the Euclidean
+assumption is not cosmetic --- drop it and the edge budget necessarily blows up by a factor
+$\log\Phi$.
+
+\paragraph{Problem.}
+Let $P$ be $n$ points in a metric space with aspect ratio $\Phi$ (largest over smallest nonzero
+pairwise distance) and doubling dimension $\lambda$. A directed graph $G$ on $P$ is a
+\emph{$(1+\varepsilon)$-proximity graph} ($(1+\varepsilon)$-PG) if, for every query point $q$
+and every start vertex, greedy navigation --- hop to the out-neighbor nearest to $q$ ---
+terminates at a $(1+\varepsilon)$-approximate nearest neighbor of $q$ in $P$. The task is to
+bound the minimum number of edges of a $(1+\varepsilon)$-PG over $P$; a ``2-PG'' is the case
+$(1+\varepsilon)=2$.
+
+\sidenote{\emph{Doubling dimension} $\lambda$: every ball of radius $2r$ is coverable by
+$2^{\lambda}$ balls of radius $r$; it is the standard notion of intrinsic dimension for metric
+indexes. Navigability and $(1+\varepsilon)$-PG-hood are equivalent in the paper's formulation,
+so the bound is about graphs, not about any particular search procedure.}
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Size lower bound, Statement 1 of the paper's lower-bound theorem, notation
+cleaned]\label{thm:adv-proxlb}
+For any powers of two $n \ge 2$ and $\Phi$ with $n^2 \le \Phi \le 2^n$, there is a set $P$ of
+$\Theta(n)$ points with aspect ratio $\Phi$, in a metric space of doubling dimension $1$, such
+that any 2-PG for $P$ must have $\Omega(n\log\Phi)$ edges, regardless of the query time
+allowed. \eop
+\end{theorem}
+
+A companion statement extends the bound to a range of $\varepsilon$: with $n = s^d\cdot t$
+points, doubling dimension at most $\log(1+2^d)$ and $\varepsilon = 1/(2s)$, any
+$(1+\varepsilon)$-PG needs $\Omega(s^d\cdot n)$ edges --- again independent of query time.
+
+\paragraph{How the adversary is built.}
+The adversary is a planted point set in a tree-like metric --- doubling dimension $1$ is the
+regime where every ball splits into two half-radius balls, and the construction exploits
+exactly that binary hierarchy across the $\log\Phi$ distance scales spanned by the aspect
+ratio. The mechanism is \emph{scale separation}: the two-instance pattern of
+Proposition~\ref{prop:adv-indist} applied once per distance scale. The witness spans
+$\log\Phi$ scales, and a navigable graph must support greedy descent through every one of
+them: at each scale the construction places groups of points whose relevant distances sit at
+that scale, while an edge that could serve one scale cannot serve another because consecutive
+scales differ by more than the stretch factor. The necessity counting runs per scale and
+yields a linear edge count for each; summing over the $\log\Phi$ scales gives
+$\Omega(n\log\Phi)$ (the paper's proof develops the counting in detail; we sketch the
+architecture). Two features make the bound robust. First, it is
+\emph{non-geometric}: the witness metric is a hierarchy, not a point set in any
+$\mathbb{R}^d$, which is precisely why it does not contradict the Euclidean upper bound ---
+the separation between general doubling metrics and Euclidean space is the theorem's point.
+Second, the counted quantity is a property of the \emph{object} (the edge set of any graph
+that is navigable at all), not of a procedure's cost, which is what the ``regardless of the
+query time allowed'' clause buys: no amount of walk-length tolerance dodges an edge count. The
+generalization is honest work, as the paper notes: for $\varepsilon$-dependence
+(Statement 2), the hard input extends a classical query-time lower-bound witness for
+approximate nearest-neighbor data structures, but lifting a query-time witness to a
+\emph{size} witness demands new ideas, since the adversary must now defeat graphs that may be
+arbitrarily dense in the wrong places.
+
+\paragraph{What it buys.}
+For index builders the theorem is a floor: on skewed-distance data (large aspect ratio), a
+proximity-graph index with near-linear edges simply does not exist in general metrics, so
+practitioners either exploit Euclidean structure or pay $\log\Phi$. The upper bound's linear-in-$n$
+Euclidean graph with near-linear construction closes the design space from above, and the pair
+of results together tells system designers exactly which assumption --- doubling dimension plus
+geometry versus doubling dimension alone --- their edge budget depends on.
+
+\section{Bi-core maintenance: an update pair that lies in wait}
+\label{sec:adv-bicore}
+
+The exemplar is a SIGMOD'26 paper on maintaining bipartite cores \citep{sigmod26-179}.
+Bipartite graphs model user--item, author--paper, and customer--product relations, and their
+\emph{bi-cores} are the standard cohesion notion: the $(\alpha,\beta)$-core is the largest
+subgraph in which every vertex on the left has degree at least $\beta$ and every vertex on the
+right at least $\alpha$. When edges arrive and depart, a system wants to maintain all bi-core
+memberships without recomputing from scratch. The paper's first contribution is an asymmetry
+theorem explaining why this is hard in one direction only: under the model of
+\emph{locally persistent} algorithms --- the model prior maintenance algorithms implicitly
+operate in, where an update is processed by examining local structure around the affected
+edge --- handling \emph{deletions} is bounded (work proportional to what actually changes),
+while handling \emph{insertions} is unbounded. Its second contribution is a family of
+order-based algorithms that exploit the asymmetry: a maintained vertex order with
+``lack values'' gives necessary conditions pruning which vertices can possibly change, taming
+insertion in practice.
+
+\paragraph{Problem.}
+Let $G = (V_1, V_2, E)$ be a bipartite graph; for a pair $(\alpha,\beta)$, the
+\emph{$(\alpha,\beta)$-core} is the maximal subgraph where every $v \in V_1$ has degree
+$\ge \beta$ and every $v \in V_2$ has degree $\ge \alpha$; each vertex belongs to a set of
+\emph{c-pairs}. Under single-edge insertions and deletions, maintain all c-pairs. An update
+algorithm is \emph{locally persistent} (LP) if its processing of an update is confined to the
+persistent local information around the affected vertices; it is \emph{bounded} if its cost per
+update is a function of the true change set $\Delta R$ alone --- in particular $O(1)$ on
+updates that change no core membership.
+
+\sidenote{The LP model abstracts what deployed maintenance algorithms actually do: identify
+candidate c-pairs near the edge, expand a candidate set, and update --- never recomputing
+globally. ``Unbounded'' then means: there are updates where the algorithm must do
+$\omega(|\Delta R|)$ work, i.e.\ where local examination cannot certify that nothing changed.}
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Insertion--deletion asymmetry, Theorems~3.1--3.3 of the paper]
+\label{thm:adv-bicore}
+(i) Given a bipartite graph $G$ and all its bi-cores, updating them after inserting an edge
+$(u,v)$ is \emph{unbounded} under the model of locally persistent algorithms: some updates
+force $\omega(1)$ work while the true change set is empty.
+(ii) Updating the bi-cores after deleting an edge $(u,v)$ is \emph{bounded}, in time
+$O\bigl(|\textsf{CHANGED}| + |N_1(\textsf{CHANGED})|\bigr)$ for the natural deletion procedure.
+\eop
+\end{theorem}
+
+\paragraph{How the adversary is built.}
+The adversary is the two-instance pattern wearing dynamic clothes
+(Figure~\ref{fig:adv-twoinstance}): the shared observation is the fully processed state of
+$G$, and the two instances are its two futures. The construction is distilled in the paper's
+workhorse lemma.
+
+\begin{lemma}[The two-update trap, proof of Theorem~3.1 of the paper, notation cleaned]
+\label{lem:adv-twowupdates}
+There is a bipartite graph $G$ with $n$ vertices and two single-edge insertions
+$\Delta G_1, \Delta G_2$ such that: (i) for each of $\Delta G_1$ and $\Delta G_2$ alone the true
+change set $\Delta R$ is empty; (ii) applied in sequence, $|\Delta R| = \Omega(n)$. Hence any
+LP algorithm that is bounded spends $O(1)$ on either update alone, yet any algorithm that
+maintains correctness must spend $\Omega(\ell)$ work across the two updates for a non-constant
+$\ell$ --- a contradiction. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Build $G$ so that each insertion is individually harmless --- neither moves any vertex across
+a core threshold by itself --- but the two jointly push a cascade of $\Omega(n)$ vertices over
+their thresholds. A bounded LP algorithm must return in $O(1)$ time after the first update
+(since $\Delta R = \emptyset$ certifies there is nothing to do), leaving its local state
+unprepared; when the second update arrives, correctness forces the full cascade to be
+processed, which cannot be charged to either update's change set. (The paper's complete
+construction appears in its extended version.)
+\end{proof}
+
+The trap is exactly Proposition~\ref{prop:adv-indist} with $\tau$ = the algorithm's internal
+state after processing $G$: the two futures $\Delta G_1$ and $\Delta G_2$ are locally
+indistinguishable (each looks like a no-op), so the algorithm must behave identically on both
+--- but the demanded maintenance work differs, and one of the two futures punishes it.
+
+\paragraph{What it buys.}
+The theorem tells core-maintenance systems that insertion cannot be both local and
+worst-case bounded --- explaining the observed bottleneck (long BFS expansions) in prior
+algorithms, which the paper measures at dominating proportions of update time. The fix it
+motivates is the order-based design: since boundedness is impossible in general, prune with
+necessary conditions (an update can cascade only along monotone paths in a maintained order,
+and only through vertices whose ``lack values'' hit zero), reducing practical insertion cost
+to $O\bigl(|N_1(\textsf{AFF})| \cdot |N_2(\textsf{AFF})|\bigr)$ over the actually affected
+sets.
+
+\section{Personalized PageRank: hard distributions with hidden splits}
+\label{sec:adv-ppr}
+
+The exemplar is a PODS'26 paper on single-source personalized PageRank \citep{sigmod26-166}\pods.
+Personalized PageRank (PPR) asks where a random surfer who teleports back to a source $s$ with
+probability $\alpha$ at every step will land: the score $\pi(s,t)$ powers recommendation,
+ranking, and graph mining over large graphs, and systems from web search to graph databases
+estimate it millions of times a day. The single-source task estimates the whole vector
+$\pi(s,\cdot)$ at once, with two standard accuracies --- relative error for the coordinates
+above a threshold $\delta$, or additive error $\varepsilon$ --- and cost measured in
+\emph{queries}: the paper works in the arc-centric model, where the algorithm may ask for the
+$k$-th in- or out-edge of any node but cannot see the adjacency list wholesale. The paper is
+the corpus's pairing exhibit in its purest form: it gives an algorithm, DistWalks, answering
+relative-error queries in
+$O\bigl(\min\{\log n/\delta,\; m + n\log n\log(m\delta/n)\}\bigr)$ expected queries --- the
+first bound linear in $m$ for dense graphs --- and then proves matching lower bounds showing
+that, up to logarithmic factors, nothing better exists in this model. Both directions rest on
+the same adversary: a family of graphs whose useful information hides in a random classification
+that a sublinear number of queries cannot recover.
+
+\paragraph{Problem.}
+Fix a directed graph $G$ (multigraphs allowed), source $s$, decay $\alpha$. The PPR value
+$\pi(s,t)$ is the probability that an $\alpha$-decay random walk from $s$ (it stops at each
+step with probability $\alpha$) ends at $t$. The \emph{SSPPR-R} task: given error
+$c \in (0,\tfrac12)$, failure probability $p_f$, and threshold $\delta$, output estimates
+$\hat{\pi}(s,\cdot)$ such that with probability at least $1-p_f$,
+$|\hat{\pi}(s,t) - \pi(s,t)| \le c\cdot\pi(s,t)$ for every $t$ with $\pi(s,t) \ge \delta$.
+The algorithm accesses $G$ through arc-centric queries (the $k$-th in- or out-edge of a named
+node); the cost is the expected number of queries. The lower bound may choose any node count
+$n_0$, edge count $m_0 \in [n_0, O(n_0^2)]$, and threshold $\delta_0 \in (0,1)$.
+
+\sidenote{DistWalks itself is a concentration showcase --- Monte-Carlo discovery with Chernoff
+bounds and martingale error control --- but its \emph{optimality} is an adversarial
+construction; the two tool families meet in this paper, and Chapter~\ref{ch:conc} develops the
+former. Here we dissect the latter.}
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Query lower bound for SSPPR-R, Theorem~1.6 of the paper, notation cleaned;
+upper bound Theorem~1.4 of the paper]\label{thm:adv-pprlb}
+For every $n_0$, every $\delta_0 \in (0,1)$ and every $m_0 \in \Omega(n_0) \cap O(n_0^2)$, any
+algorithm solving SSPPR-R with constant error $c$ and constant failure probability $p_f$
+requires $\Omega\bigl(\min\{m_0,\; \log(1/\delta_0)/\delta_0\}\bigr)$ expected queries on
+graphs with $n_0$ nodes and $m_0$ edges and threshold $\delta_0$. DistWalks answers in
+$O\bigl(\min\{\log n/\delta,\; m + n\log n\log(m\delta/n)\}\bigr)$ expected queries ---
+matching up to logarithmic factors. \eop
+\end{theorem}
+
+Two sibling bounds complete the picture: additive-error estimation requires
+$\Omega(\min\{1/\varepsilon_0^2,\, m_0\})$ queries, and the single-target version
+$\Omega(\min\{m_0,\, n_0\log n_0/\delta_0\})$ --- the latter by reversing every edge of the
+hard family, since an arc-centric algorithm cannot tell a graph from its reverse.
+
+\paragraph{How the adversary is applied.}
+The construction runs Yao's principle (Theorem~\ref{thm:adv-yao}) through a \emph{hidden
+split}. The template graph $U(n,D,d)$ has a source $s$ feeding a middle layer $Y$ that points
+into a target layer $X$ split into two equal classes $X_1, X_2$: by the template, every node of
+$X_1$ receives $D$ of its in-edges from the $Y$-layer, every node of $X_2$ only $D-d$. The PPR
+values separate exactly at the resolution the task demands --- a calculation gives
+$\pi(s,x_1) = \tfrac{1-\alpha}{2}\cdot\tfrac{D}{(2D-d)n}$ and
+$\pi(s,x_2) = \tfrac{1-\alpha}{2}\cdot\tfrac{D-d}{(2D-d)n}$, a ratio $\tfrac{D-d}{D}$ --- so an
+estimate within relative error $c$ \emph{classifies every node} of $X$: whoever can estimate
+PPR can recover the hidden split. Everything else about the graph is drawn uniformly at random:
+the distribution $\Sigma(n,D,d)$ puts a uniform prior on the split and uniform bijections on
+all half-edge connections, and an \emph{$r$-padding} (extra edges into dummy node sets) lets
+the family be made dense without revealing edges, so the bound covers sparse and dense
+regimes alike. The argument then has two moves.
+
+\emph{Move 1 (reduction):} an SSPPR-R algorithm using
+$o(\min\{m_0, \log(1/\delta_0)/\delta_0\})$ queries yields, after post-processing its PPR
+estimates, a split-recovery procedure using at most $\gamma n D$ arc-centric queries with
+average success at least $1 - 2p_f$ (Lemma~4.4 of the paper; the parameters satisfy
+$n(r+D) = \Theta(\min\{m_0, \log(1/\delta_0)/\delta_0\})$, so sublinear in the budget means
+$o(nD)$).
+
+\emph{Move 2 (indistinguishability):} the split cannot be recovered from $o(nD)$ queries ---
+the workhorse lemma.
+
+\begin{lemma}[Switched-split indistinguishability; Lemma~4.6 of the paper, notation cleaned]
+\label{lem:adv-switch}
+For a sufficiently small constant $\gamma$, after any $T \le \gamma n D$ arc-centric query
+answers about $U \sim \Sigma(n,D,d)$ there are $\Omega(n^2)$ \emph{switched splits} ---
+splits obtained from the true one by trading the classes of one node of $X_1$ and one node of
+$X_2$ --- whose likelihood given the answers is within a factor $n^{1-\varepsilon}$
+(of a constant $\varepsilon > 0$) of the true split's likelihood. Consequently every split has
+posterior probability less than $1/n$: no procedure outputs the true split with useful
+probability. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Each revealed edge adjacent to a switched node shifts the conditional density by at most
+$1 + O(d/D)$ (the $X_1$ versus $X_2$ in-degree discrepancy); all other edges contribute an
+exact factor $1$ by the symmetry of the uniform bijections. Few nodes have many revealed edges
+(``traversal is hard''), so the product over a switched pair's revealed edges is at most
+$(1+O(d/D))^{O(\gamma D)} \le e^{O(\gamma d)} \le n^{1-\varepsilon}$ using $d \le \log n$.
+With $\Omega(n^2)$ switched splits each nearly as likely as the truth and a uniform prior,
+Bayes crushes the posterior of any single split below $1/n$. (Full proof in
+Section~\ref{sec:adv-appendix}.)
+\end{proof}
+
+Moves 1 and 2 contradict for large $n$ ($1 - 2p_f$ versus $1/n$), so the assumed fast
+SSPPR-R algorithm cannot exist. The two ``hard'' intuitions the paper names ---
+\emph{traversal is hard} (sublinear queries leave most nodes' in-edges almost entirely unseen)
+and \emph{random walk is hard} (what is unseen is uniformly random, so it carries no class
+information) --- are exactly the two-instance pattern sharpened into a likelihood ratio.
+
+\paragraph{What it buys.}
+The pairing certifies DistWalks as the end of the line for PPR query complexity in the
+arc-centric model, up to logarithmic factors --- a systems-relevant answer, since it tells
+engines that the observed cost of PPR service is intrinsic, not an artifact of any
+implementation. The construction pattern transfers broadly: any system that must estimate
+many values from partially revealed graph structure (adjacency-list services, crawl-based
+analysis, API-rate-limited settings) inherits the same hidden-classification adversary.
+
+\section{Advanced usage and further reading}
+\label{sec:adv-advanced}
+
+Everything so far plants instances that are \emph{exactly} indistinguishable, counts objects,
+or imports conjectures. Two advanced regimes relax the pattern in different directions: the
+indistinguishability becomes \emph{computational} (assumed, not exact), and the adversary
+attacks a \emph{property} of a design rather than a cost. Each is sketched through one corpus
+exemplar.
+
+\subsection{Computational adversaries: indistinguishability by assumption}
+\label{sec:adv-comp}
+
+Proposition~\ref{prop:adv-indist} needs transcript distributions that coincide exactly. The
+cryptographic weakening asks only that no \emph{efficient} procedure tell the instances apart
+--- and then the two-instance pattern survives with efficient adversaries.
+
+\begin{proposition}[Computational two-instance lower bound]\label{prop:adv-comp}
+If instances $I_0, I_1$ are indistinguishable to all polynomial-time procedures (no efficient
+test separates them with non-negligible advantage) but $f(I_0)$ and $f(I_1)$ differ beyond the
+tolerance, then no efficient algorithm computes $f$: an efficient correct algorithm would
+itself be a distinguisher. \eop
+\end{proposition}
+
+\begin{proof}
+Run the supposed algorithm for $f$ on both instances; its answers, which must be accurate,
+separate $I_0$ from $I_1$ --- contradicting indistinguishability.
+\end{proof}
+
+\paragraph{Undetectable DP backdoors \citep{sigmod26-123}.}
+The exemplar is a SIGMOD'26 security paper asking whether a malicious vendor can backdoor a
+differentially private system without anyone noticing. The \emph{Gaussian pancake mechanism}
+(GPM) replaces the Gaussian mechanism's isotropic noise by noise that is Gaussian except for
+periodic density spikes --- ``pancakes'' --- concentrated along a secret direction $w$: noise
+drawn from the hCLWE distribution. To any polynomial-time auditor without the key $w$, GPM's
+outputs are indistinguishable from an honest Gaussian mechanism, because distinguishing hCLWE
+from Gaussian is hard under lattice assumptions (SIVP or GapSVP versus quantum computation);
+that is Proposition~\ref{prop:adv-comp} with $I_0, I_1$ the two noise distributions, and the
+reduction to hCLWE is the imported adversary. Yet with the key, the mechanism is grossly
+non-private: privacy loss $\varepsilon \in \Theta(1/\beta^2)$ --- exceeding $10^4$ in practical
+regimes --- because neighboring databases shift the pancake alignment along $w$, and the
+density ratio between aligned and misaligned peaks is enormous. The paper is the two-instance
+pattern \emph{weaponized}: the adversary constructs the indistinguishable pair and profits
+from the gap only it can see. Its defensive value is symmetric --- knowing the construction
+tells auditors what assumptions they must break or refuse to trust.
+
+\subsection{Adversaries against properties, not costs}
+\label{sec:adv-wrecks}
+
+A lower bound certifies optimality; a \emph{counterexample wreck} certifies that a design
+principle is unachievable. The smallest adversaries in the corpus are single small graphs that
+kill a hoped-for structural property of an objective --- monotonicity, submodularity, the
+absence of free riders --- and thereby redirect algorithm design. The exemplar is the
+SIGMOD'26 community-search paper LMSC \citep{sigmod26-150}: its objective, local sketch
+modularity $\mathrm{LSM}(G,C,\tau) = l_C\,/\,(o_C\cdot|C|^{\tau})$ (internal over external
+weight with a size penalty), is shown by explicit clique constructions to be
+\emph{non-monotone} and \emph{non-submodular} --- so no greedy algorithm carries approximation
+guarantees, and the paper's chain-based relaxation is the response. The same paper's
+NP-hardness (a Set-Cover reduction) and its free-rider threshold --- LSM provably resists
+query-independent free riders once $\tau > \log_{1+1/h}\!\bigl(h(h-1)/2\bigr)$ for size bound
+$h$ --- show the two regimes coexisting: an imported adversary for the complexity statement, a
+witness graph of a handful of vertices for the property statements. When your target is a
+property rather than a cost, the recipe of Section~\ref{sec:adv-choose} shrinks to: write the
+property as an inequality between two small instances, and search for the smallest graph that
+violates it.
+
+\subsection{Further reading}
+
+\begin{itemize}
+\item Yao \citep{adversarial-construction-bg1} --- the minimax principle turning randomized
+  lower bounds into hard distributions; one page, endlessly reused.
+\item Kushilevitz and Nisan \citep{adversarial-construction-bg2} --- the two-player adversary
+  catalog (index, set-disjointness, gap-Hamming) from which communication-complexity lower
+  bounds are imported.
+\item Alon, Matias, and Szegedy \citep{adversarial-construction-bg3} --- where sketching lower
+  bounds began; the two-instance pattern in stream form.
+\item Moon and Moser \citep{adversarial-construction-bg4} --- the $3^{n/3}$ witness and its
+  descendants in enumeration optimality.
+\item Henzinger, Krinninger, Nanongkai, and Saranurak \citep{adversarial-construction-bg5} ---
+  the OuMv conjecture and the reduction-transfer pattern for dynamic problems.
+\item Codd \citep{adversarial-construction-bg6} --- the original expressivity question;
+  counterexamples measuring relational languages ever since.
+\end{itemize}
+
+\begin{recap}
+\item \textbf{What the tool is.} Adversarial constructions prove that no better promise exists:
+  a counter-world (instance pair, hard distribution, witness object, ceiling-breaking input,
+  or imported reduction) in which every procedure permitted by the model fails or pays.
+\item \textbf{Which pattern when.} Observation-restricted model $\to$ plant two instances with
+  identical transcripts (Proposition~\ref{prop:adv-indist}); randomized algorithms $\to$ harden
+  into a distribution via Yao (Theorem~\ref{thm:adv-yao}); cost is the output itself $\to$
+  witness counting (Proposition~\ref{prop:adv-output}); target is expressivity $\to$ growth
+  ceiling (Proposition~\ref{prop:adv-ceiling}); unrestricted computation $\to$ import a
+  conjecture (Proposition~\ref{prop:adv-reduction}); dynamic setting $\to$ two futures of an
+  update stream sharing a data-structure state.
+\item \textbf{Why it works.} Everything the algorithm does is a function of what it observes;
+  two worlds with identical observations but different demands break every algorithm at once.
+  The craft is making ``identical'' exact --- or computational
+  (Proposition~\ref{prop:adv-comp}) --- while the demanded answers differ beyond tolerance.
+\item \textbf{What the corpus showed.} Defective-clique enumeration
+  (Section~\ref{sec:adv-defclique}): a Moon--Moser witness generalized by a defect budget,
+  certifying worst-case optimality. Proximity graphs (Section~\ref{sec:adv-proxgraph}): a
+  tree-like point set forcing $\Omega(n\log\Phi)$ edges regardless of query time, separating
+  Euclidean from general doubling metrics. Bi-core maintenance
+  (Section~\ref{sec:adv-bicore}): a two-update trap making insertion unbounded for locally
+  persistent algorithms while deletion stays bounded. Personalized PageRank
+  (Section~\ref{sec:adv-ppr}): a hidden split under a uniform distribution, with likelihood
+  ratios over switched splits matching the upper bound up to logarithms --- the corpus's
+  signature upper/lower pairing.
+\item \textbf{Advanced usage.} Computational indistinguishability turns the two-instance
+  pattern into an assumption-backed weapon (the DP backdoor of
+  Section~\ref{sec:adv-comp}); counterexample wrecks attack properties of designs rather than
+  costs (Section~\ref{sec:adv-wrecks}). Deferred proofs live in the
+  Appendix (Section~\ref{sec:adv-appendix}).
+\end{recap}
+
+\section{Appendix}
+\label{sec:adv-appendix}
+
+Proofs omitted from the main text are collected here.
+
+\subsubsection*{Proof of Lemma~\ref{lem:adv-mmcount} (Moon--Moser witness count)}
+{\itshape Statement (recalled).} For $n$ a multiple of $3$ with $n/3 \ge k$, the Moon--Moser
+graph $M_n$ (complete $(n/3)$-partite graph, parts of size $3$) contains at least
+$3^{n/3}\binom{n/3}{k} = \Omega(3^{n/3} n^k)$ maximal $k$-defective cliques.\eop
+
+\begin{proof}
+Write $T_1,\dots,T_{n/3}$ for the parts of $M_n$: vertices in different parts are adjacent;
+the $3$ pairs inside a part are non-edges. A set $S \subseteq V$ is $k$-defective exactly when
+at most $k$ of the non-edges of $M_n$ lie inside $S$. Construct $S$ as follows: choose a set
+$K$ of $k$ parts ($\binom{n/3}{k}$ choices); in each part of $K$ keep both endpoints of one of
+its $3$ vertex pairs ($3$ choices each, the kept pair being one missing edge); in each of the
+remaining $n/3-k$ parts keep one vertex ($3$ choices each). Then $S$ contains exactly the $k$
+non-edges contributed by the parts of $K$ and no others, so $G[S]$ misses exactly $k$ edges:
+$S$ is $k$-defective. It is maximal: the only vertices outside $S$ are the third vertices of
+parts in $K$, and adding any such vertex $v$ creates a second non-edge inside $v$'s part
+($v$ is non-adjacent to both kept vertices of that part), so $S \cup \{v\}$ misses $k+1$
+edges and is not $k$-defective. Distinct choices yield distinct sets $S$ (the parts of $K$ are
+exactly those contributing two vertices), so the number of maximal $k$-defective cliques is at
+least
+\[
+\binom{n/3}{k}\cdot 3^{k}\cdot 3^{\,n/3-k}
+\;=\; \binom{n/3}{k}\cdot 3^{n/3}
+\;=\; \Omega\bigl(3^{n/3}\cdot n^{k}\bigr),
+\]
+where the last step uses $\binom{n/3}{k} = \Omega(n^k)$ for constant $k$. Since every maximal
+$k$-defective clique of $M_n$ must be output, Proposition~\ref{prop:adv-output} converts the
+count into the enumeration time lower bound of Theorem~\ref{thm:adv-defclique}.
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:adv-switch} (switched-split bound)}
+{\itshape Statement (recalled).} For small enough constant $\gamma$, after any
+$T \le \gamma n D$ arc-centric query answers about $U \sim \Sigma(n,D,d)$ there are
+$\Omega(n^2)$ switched splits with likelihood within a factor $n^{1-\varepsilon}$ of the true
+split's, and every split has posterior probability below $1/n$.\eop
+
+\begin{proof}
+Work in the template family of Section~\ref{sec:adv-ppr}: nodes of $X_1$ receive $D$ in-edges
+from the $Y$-layer, nodes of $X_2$ receive $D-d$; the split and all half-edge bijections are
+uniform. Let $e_1,\dots,e_T$, $T \le \gamma n D$, be the revealed edges and
+$\mathrm{SP}$ the true split. \emph{Step 1 (traversal is hard).} Each revealed edge is
+incident to at most one node of $X$, so the $T$ edges touch at most $\gamma n D$ in-edge
+slots of $X$; by averaging, at least half the nodes of $X$ are incident to at most $2\gamma D$
+revealed edges, and because the split is uniform and independent of what queries reveal, both
+$X_1$ and $X_2$ contribute $\Omega(n)$ such low-incidence nodes: fix $X_1' \subseteq X_1$,
+$X_2' \subseteq X_2$ with $|X_1'|, |X_2'| \ge c n$ and every $x \in X_1' \cup X_2'$ incident
+to at most $2\gamma D$ revealed edges. \emph{Step 2 (likelihood ratio per switched pair).}
+Fix $x_{i_1} \in X_1'$, $x_{i_2} \in X_2'$ and let $\mathrm{SP}'$ be the switched split. By
+Bayes with a uniform prior and the chain rule,
+\[
+\frac{\Pr[e_1,\dots,e_T \mid \mathrm{SP}]}{\Pr[e_1,\dots,e_T \mid \mathrm{SP}']}
+\;=\; \prod_{t=1}^{T}
+\frac{\Pr[e_t \mid \mathrm{SP}, e_1,\dots,e_{t-1}]}
+     {\Pr[e_t \mid \mathrm{SP}', e_1,\dots,e_{t-1}]}.
+\]
+For a revealed edge $e_t$ not adjacent to $x_{i_1}$ or $x_{i_2}$, the conditional laws under
+the two splits coincide --- the uniform bijections are symmetric in the classes --- and the
+factor is exactly $1$. For an edge adjacent to a switched node, the discrepancy between the
+$X_1$ in-degree $D$ and the $X_2$ in-degree $D-d$ changes the conditional density of seeing
+that particular edge by at most $\tfrac{D}{D-d} = 1 + O(d/D)$. At most $2 \cdot 2\gamma D$
+factors differ from $1$, so
+\[
+\frac{\Pr[e_1,\dots,e_T \mid \mathrm{SP}]}{\Pr[e_1,\dots,e_T \mid \mathrm{SP}']}
+\;\le\; \Bigl(1 + O\bigl(\tfrac{d}{D}\bigr)\Bigr)^{O(\gamma D)}
+\;\le\; e^{O(\gamma d)}
+\;\le\; n^{1-\varepsilon},
+\]
+using $d \le \log n$ and choosing $\gamma$ a sufficiently small constant (with
+$\varepsilon \in (0,1)$ a constant not depending on $n$). \emph{Step 3 (posterior crash).}
+The $|X_1'||X_2'| = \Omega(n^2)$ switched splits are distinct and uniform under the prior, so
+Bayes gives
+\[
+\Pr[\mathrm{SP} \mid e_1,\dots,e_T]
+\;=\; \frac{\Pr[e_1,\dots,e_T \mid \mathrm{SP}]}
+        {\sum_{\mathrm{SP}''}\Pr[e_1,\dots,e_T \mid \mathrm{SP}'']}
+\;\le\; \frac{\Pr[e_1,\dots,e_T \mid \mathrm{SP}]}
+        {\Omega(n^2)\cdot \Pr[e_1,\dots,e_T \mid \mathrm{SP}]\,/\,n^{1-\varepsilon}}
+\;<\; \frac{1}{n}.
+\]
+The same bound applies to every candidate split --- each is the ``true'' split of some draw,
+or dominates an analogous family of switched alternatives --- so any decoder's success
+probability is below $1/n$. (Constants follow the paper's appendix; the multigraph templates
+are lifted to simple graphs by the paper's 2-lift, which the arc-centric interface cannot
+distinguish.)
+\end{proof}
+
+\bibliographystyle{plainnat}
+\bibliography{chapters/adversarial-construction-all}
