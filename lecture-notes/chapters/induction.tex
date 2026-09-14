@@ -1,98 +1,755 @@
-\chapter{Induction and Invariants}
+\chapter{Induction}
+\setcounter{section}{-1}   % sections start at 3.0 (see main.tex comment)
+\label{ch:ind}
 
-Induction is the workhorse that never gets top billing. In our tagged SIGMOD'26 corpus, 36 of 228 papers use it (the \#3 tool overall); the pairing \emph{correctness}~$\times$~\emph{induction}, with 29 papers, is the single most frequent property--tool co-occurrence in the survey, and induction also powers the \emph{upper-bound} pairing in 21 papers. The characteristic shape is not one grand named theorem but thousands of small, unnamed invariants --- half-page lemmas saying that one more elimination step, recursive call, or rewrite keeps a component consistent. Induction is thus the instrument of \emph{component} correctness: each cache, rewrite rule, or decomposition step is verified locally, and the global guarantee is assembled from the local ones.
+\begin{objectives}
+\item Recognize the three substrates: execution steps, recursive structure, measures.
+\item State an invariant, close base and step cases, audit every operation.
+\item Strengthen an invariant that will not close; pair it with a measure for costs.
+\item Dissect a paper's proof: induction variable, invariant, step case, payoff.
+\end{objectives}
 
-\section{The Tool: Induction on What?}
+Induction turns a claim about an unbounded process --- millions of cache fills, node
+eliminations, rewrite steps, recursive calls --- into two finite checks: the claim holds
+at the start, and one more step cannot break it. For a systems paper this is the
+instrument of \emph{component} correctness. No grand named theorem is involved; the
+corpus pattern is thousands of small, unnamed invariants --- half-page lemmas asserting
+that one more elimination step, recursive call, or rewrite keeps a data structure
+consistent --- with each cache, rule, or decomposition step verified locally and the
+global guarantee assembled from the local ones. Induction is also the standard
+scaffolding for complexity proofs: the same step-by-step argument that certifies what a
+component computes carries the per-step cost accounting that becomes a running-time
+bound.
 
-Every inductive argument in the corpus answers two questions: what do we induct on, and what is preserved at each step?
+In the SIGMOD'26 corpus, 36 tagged papers lean on induction --- the third most-used
+tool, behind reductions and concentration inequalities --- spanning graph analytics,
+join processing, entity resolution, and query optimization. The pairing
+\emph{correctness}~$\times$~\emph{induction}, with 29 papers, is the single most
+frequent property--tool co-occurrence of the survey, and induction also powers 21
+papers tagged \emph{upper-bound}: the invariant proves the algorithm right, the
+accompanying decreasing measure proves it fast. This chapter develops the three
+substrates and the craft first; Section~\ref{sec:ind-advanced} adds strengthened and
+nested invariants and two harder exemplars.
 
-\paragraph{Induction on what?} Three substrates dominate.
+\section{The tool: induction and invariants}
+\label{sec:ind-tool}
 
-\begin{enumerate}
-\item \textbf{Execution steps.} An algorithm induces a sequence of states $s_0, s_1, \dots, s_t$, one per operation (a function call, an elimination, a rewrite). One proves a state predicate $I$ --- the \emph{invariant} --- by induction on $i$: $I(s_0)$ holds, and each operation preserves $I$, so $I$ holds in every reachable state and implies the specification at final states. This is the inductive-assertion method of Floyd~\cite{induction-bg1} and Hoare~\cite{induction-bg2}, the loop-invariant discipline of algorithms texts~\cite{induction-bg4}, and Manna--Pnueli \emph{safety} reasoning: nothing bad ever becomes true~\cite{induction-bg3}.
-\item \textbf{Structural recursion.} The object is built recursively --- a tree decomposition, an elimination forest, a recursive pseudo-tree, a hierarchy --- and the property is proved on the whole from the property on the parts. The database workhorse is \emph{leaf-peeling}: remove a leaf bag or leaf vertex, apply the induction hypothesis to the smaller object, then extend by one step.
-\item \textbf{A natural-number measure.} Strong induction on a quantity that strictly decreases: the number of eliminated nodes, the number of bags, or the length of a rewrite sequence; structural induction is routinely converted into this form by choosing a measure~\cite{induction-bg5}.
-\end{enumerate}
+The problem class is uniform across applications. A component evolves by discrete local
+steps --- an algorithm executes operations, an elimination pipeline removes one node, a
+rewrite system fires one rule, a recursive evaluator makes one call --- and the claim we
+need is global: \emph{every} answer produced is correct, \emph{every} intermediate
+structure stays within its budget, \emph{no} reachable configuration drifts. The number
+of configurations is astronomically larger than the code, so the claim cannot be
+checked state by state. What induction delivers is a predicate $I$ on single
+configurations --- the \emph{invariant} --- with two provable properties: it holds
+initially, and each single step preserves it. Those two finite checks certify the
+unbounded behavior. Every inductive argument in the corpus is an instance of this
+shape, differing only in \emph{what the steps are}: states of a run, pieces of a
+recursively built object, or values of a decreasing counter.
 
-\begin{example}[Invariant preservation]
-Given a set of states $\Sigma$, an initial state $s_0$, and a set of operations $\Gamma$, a predicate $I \subseteq \Sigma$ is an \emph{invariant} if (i) $I(s_0)$ holds, and (ii) whenever $I(s)$ holds and $s'$ results from applying an operation of $\Gamma$ to $s$, then $I(s')$ holds. By induction on the number of executed operations, every reachable state satisfies $I$; any property implied by $I$ at final states is therefore guaranteed.
-\end{example}
+\begin{remarkbox}[Notation]
+$I$ always denotes the predicate being propagated (the invariant); $\Gamma$ the set of
+operations; $m\colon\mathcal{C}\to\mathbb{N}$ a measure. \emph{Leaf-peeling} is the
+default move on tree-shaped objects: remove a leaf, invoke the hypothesis on the
+smaller object, extend by one step.
+\end{remarkbox}
 
-\begin{center}
-\begin{tikzpicture}
-\node (s0) at (0,0)   {$s_0$};
-\node (s1) at (1.7,0) {$s_1$};
-\node (d)  at (3.4,0) {$\cdots$};
-\node (st) at (5.1,0) {$s_t$};
-\draw[->] (s0) -- node[above]{$\mathit{op}_1$} (s1);
-\draw[->] (s1) -- node[above]{$\mathit{op}_2$} (d);
-\draw[->] (d)  -- node[above]{$\mathit{op}_t$} (st);
-\node at (0,-0.5)   {$I(s_0)$};
-\node at (1.7,-0.5) {$I(s_1)$};
-\node at (3.4,-0.5) {$\cdots$};
-\node at (5.1,-0.5) {$I(s_t)$};
-\end{tikzpicture}\\[2pt]
-{\small Base case $I(s_0)$; every operation preserves $I$; hence $I$ holds at every step, and $I(s_t)$ implies the specification.}
-\end{center}
+\subsection{The three substrates}
+\label{sec:ind-ladder}
 
-\paragraph{Structural versus strong induction.} Structural induction follows the formation rules of a data structure ($P$ on the immediate substructures yields $P$ on the structure); strong induction on the naturals assumes $P(j)$ for all $j < k$ to derive $P(k)$. The two are interderivable via a measure such as the number of bags of a decomposition; one picks whichever form makes the step case a purely local check.
+\emph{Substrate 1: execution steps.} The component is imperative: it induces a sequence
+of states $s_0, s_1, \dots, s_t$, one per operation. This is the inductive-assertion
+method of Floyd \citep{induction-bg1} and Hoare \citep{induction-bg2}, the
+loop-invariant discipline of algorithms texts \citep{induction-bg4}, and Manna--Pnueli
+\emph{safety} reasoning --- nothing bad ever becomes true \citep{induction-bg3}.
 
-\section{Exemplars from the Corpus}
-
-\paragraph{Induction on elimination steps.}
-Exact resistance-distance computation on graphs of small treewidth eliminates the nodes of a tree decomposition one at a time, updating a pseudo-inverse matrix that must retain a precise block shape \cite{sigmod26-307}.
-
-\begin{lemma}[Elimination state]
-Let $G$ be a graph with Laplacian $L$, and let $U_1 \subseteq U_2 \subseteq V$ be sets of nodes. After the elimination of the nodes of $U_2 \setminus U_1$, the state matrix satisfies
-\[
-S_{|U_2 \setminus U_1|} \;=\;
-\begin{pmatrix} L^{-1}_{U_1 U_1} & 0 \\ 0 & 0 \end{pmatrix}.
-\]
-\end{lemma}
-
-The induction variable is the number of eliminated nodes, and the induction hypothesis is stated as an explicit invariant of the state: after eliminating $k$ nodes (base case $S_0 = L^{-1}_{U_2 U_2}$), all rows and columns of eliminated nodes are zero, and the block on the surviving nodes is exactly the Schur complement of the remaining nodes \cite{sigmod26-307}.
-
-\paragraph{Induction on the run, and on bags.}
-Charting which space--time exponent pairs are feasible for sum--product queries requires algorithms that evaluate a query along a recursive pseudo-tree (RPT) with per-vertex caches \cite{sigmod26-371}.
-
-\begin{lemma}[Cache invariant]
-Let $\mathcal{T}$ be a recursive pseudo-tree (RPT) of the sum--product query $Q$, and let $A$ be an arbitrary vertex of $\mathcal{T}$. Then, during the execution of the algorithm, the function call $\mathrm{solve}(A, \mathbf{x})$ returns the answer to the subquery of $Q$ at $A$, restricted to the part of the partial assignment $\mathbf{x}$ that is over the variables of $A$; furthermore, after the subsequent $\mathrm{fillCache}$ call, the cache $M_A$ holds exactly this value.
-\end{lemma}
-
-The induction is over the sequence of function calls of a run: the invariant is that every completed $\mathrm{solve}$/$\mathrm{fillCache}$ pair leaves $M_A$ storing precisely the restricted subquery answer. The companion plan-dominance proof is structural, proceeding by induction on the number of bags of a tree decomposition: peel a leaf bag, eliminate the variables in that bag but not in its parent's, and apply the hypothesis to the smaller decomposition \cite{sigmod26-371}.
-
-\paragraph{Induction on rewrite sequences.}
-A unifying algorithm for hierarchical queries computes full symbolic provenance once and transports it to any target algebra by a homomorphism; its correctness rests on a two-rule elimination procedure on the query itself \cite{sigmod26-264}.
-
-\begin{proposition}[Elimination procedure for hierarchical queries]
-A query $Q$ is hierarchical if and only if the following elimination procedure transforms $Q$ into a query with a single nullary atom, i.e.\ of the form \texttt{Q() :- R()}. Repeatedly apply one of the following two rules, until neither rule applies:
-\begin{itemize}
-\item[\textup{(Rule 1)}] Eliminate a ``private'' variable: find a variable $Y \in \mathrm{vars}(Q)$ that occurs in only one atom $R(\mathbf{X})$ in $Q$, and replace $R(\mathbf{X})$ with $R'(\mathbf{X} \setminus \{Y\})$, where $R'$ is a new relation symbol.
-\item[\textup{(Rule 2)}] Eliminate a ``duplicate atom'': find two distinct atoms $R_1(\mathbf{X})$, $R_2(\mathbf{X})$ over the same variables $\mathbf{X}$ and replace the two by a single atom.
-\end{itemize}
-\end{proposition}
-
-The induction variable is the length of the rewrite sequence, and the invariant holds in both directions: a hierarchical query not yet of the form \texttt{Q() :- R()} always admits Rule 1 or Rule 2 and stays hierarchical, while either rule applied to a non-hierarchical query leaves it non-hierarchical. The same stepwise induction carries the provenance theorem --- after each rule application, the output is the $\varphi$-image of the symbolically annotated one \cite{sigmod26-264}.
-
-\paragraph{Bottom-up induction over the query tree.}
-Do regular-path atoms make acyclic conjunctive queries harder to evaluate than relational ones? For combinatorial algorithms the answer is no, and the guarantee is quantitative \cite{sigmod26-011}\pods.
-
-\begin{theorem}[Acyclic CRPQ evaluation]
-Let $Q$ be any acyclic CRPQ, and $G$ be an input edge-labeled graph of size $N$. Then $Q$ over $G$ can be answered in time
-\[
-O\bigl(N + N \cdot \mathrm{OUT}^{\,1 - 1/\max(\textsf{fn-fhtw}(Q),\,2)} + \mathrm{OUT}\bigr)
-\]
-in data complexity, where $\mathrm{OUT}$ is the output size and \textsf{fn-fhtw}$(Q)$ is the free-connex fractional hypertree width of $Q$.
+\begin{theorem}[Invariant preservation]\label{thm:ind-invariant}
+Let $s_0$ be an initial state and $\Gamma$ a set of operations on states. Suppose the
+predicate $I$ satisfies (i) $I(s_0)$, and (ii) $I(s) \Rightarrow I(\operatorname{op}(s))$
+for every $\operatorname{op} \in \Gamma$. Then $I(s)$ holds for every state $s$
+reachable from $s_0$ by a finite sequence of operations; consequently, any
+specification $P$ implied by $I$ ($I \Rightarrow P$) holds at every reachable state. \eop
 \end{theorem}
 
-Correctness and runtime are proved together by bottom-up induction over the acyclic structure of $Q$ (reduced first to bound-connected components and free-leaf CRPQs): the invariant at each subtree is that the partial evaluation materializes exactly the answers of the subquery rooted there, with heavy/light splitting keeping every intermediate within the budget $\Delta = \mathrm{OUT}^{1-1/\ell}$ \cite{sigmod26-011}\pods.
+\begin{proof}
+Induction on the length $t$ of the run $s_0 \to s_1 \to \dots \to s_t$. The base case
+$t=0$ is (i). For the step, $s_t = \operatorname{op}(s_{t-1})$ for some operation, and
+(ii) propagates $I(s_{t-1})$ to $I(s_t)$.
+\end{proof}
 
-\begin{reachbox}{When to reach for induction}
-\begin{itemize}
-\item A component has state evolving by local steps and the claim is ``nothing drifts'' --- caches, elimination pipelines, rewrite rules. The property is a safety property: prove an invariant over the state, not a formula about the final value.
-\item Choose the induction variable first: execution steps for imperative components; the recursive structure (tree decomposition, pseudo-tree, hierarchy) for recursive ones. Leaf-peeling is the default move on trees.
-\item Make the invariant strong enough to imply the specification. If the step case will not close, strengthen it (add the block shape, the cache contents, hierarchality) --- strengthening is the normal iteration of the method, not a failure.
-\item Pair the invariant with a strictly decreasing measure (bags, nodes, or rule applications left) to obtain termination and runtime bounds --- this is how induction also powers the \emph{upper-bound} pairing (21 papers).
-\item Audit the step case over \emph{every} operation, and check the trivial base cases (empty input, single bag, zero eliminations): one missed case silently breaks the entire argument.
-\end{itemize}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\node (s0) at (0,0)   {$s_0$};
+\node (s1) at (1.6,0) {$s_1$};
+\node (d)  at (3.2,0) {$\cdots$};
+\node (st) at (4.8,0) {$s_t$};
+\draw[->] (s0) -- node[above,font=\scriptsize]{$\operatorname{op}_1$} (s1);
+\draw[->] (s1) -- node[above,font=\scriptsize]{$\operatorname{op}_2$} (d);
+\draw[->] (d)  -- node[above,font=\scriptsize]{$\operatorname{op}_t$} (st);
+\node at (0,-0.55)   {$I(s_0)$};
+\node at (1.6,-0.55) {$I(s_1)$};
+\node at (3.2,-0.55) {$\cdots$};
+\node at (4.8,-0.55) {$I(s_t)$};
+\end{tikzpicture}
+\caption{An invariant travels down every run: $I$ holds at $s_0$, each operation
+preserves $I$, so $I$ holds at every reachable state --- and $I$ implies the
+specification.}
+\label{fig:ind-chain}
+\end{figure}
+
+\emph{Substrate 2: structural recursion.} The object is built recursively --- a tree
+decomposition, an elimination forest, a recursive pseudo-tree, a relational expression
+--- and the property is proved on the whole from the property on the parts. The
+database workhorse is leaf-peeling: remove a leaf bag or leaf vertex, apply the
+hypothesis to the smaller object, then extend by one step.
+
+\begin{proposition}[Structural induction]\label{prop:ind-structural}
+Let $\mathcal{C}$ be a class of objects generated from atoms by formation rules. If a
+property $P$ holds for every atom, and each formation rule maps ingredients satisfying
+$P$ to a result satisfying $P$, then every object of $\mathcal{C}$ satisfies $P$. In
+particular, on trees it suffices to prove $P$ for leaves and to prove that a node whose
+children's subtrees satisfy $P$ satisfies $P$ itself.
+\end{proposition}
+
+\begin{proof}
+Induction on the number of formation steps used to build the object. Atoms use zero
+steps. For a composite object, each immediate ingredient is built with fewer steps, so
+the hypothesis gives $P$ on the ingredients, and the preservation assumption lifts $P$
+to the composite. The leaf-peeling form is the same argument read from the root
+downwards.
+\end{proof}
+
+\emph{Substrate 3: a decreasing measure.} Many arguments are phrased not over runs or
+recursions but over a quantity that strictly decreases --- nodes left to eliminate, bags
+left to peel, rewrite steps remaining. Structural induction is routinely converted into
+this form by choosing a measure \citep{induction-bg5}, and the classical
+least-counterexample principle closes both:
+
+\begin{lemma}[Strong induction]\label{lem:ind-strong}
+Let $m\colon\mathcal{C}\to\mathbb{N}$ be a measure. Suppose that for every object $X$,
+if $P(X')$ holds for all $X'$ with $m(X') < m(X)$, then $P(X)$. Then $P(X)$ holds for
+every object $X$. \eop
+\end{lemma}
+
+\begin{proof}
+If not, the set of counterexamples has an $m$-minimal element $X^{*}$ (the natural
+numbers are well-ordered). Every $X'$ with $m(X') < m(X^{*})$ satisfies $P$, so the
+hypothesis yields $P(X^{*})$ --- a contradiction.
+\end{proof}
+
+\sidenote{The measure earns a second salary: since each step decreases $m$ by at least
+one, the component terminates in at most $m(s_0)$ steps, and attaching a per-step cost
+to the induction turns the correctness proof into a running-time proof. This is how the
+same argument underwrites both the \emph{correctness} pairing (29 papers) and the
+\emph{upper-bound} pairing (21 papers) of this chapter's corpus.}
+
+\subsection{How to choose a substrate}
+\label{sec:ind-choose}
+
+The selection is mechanical once one question is answered: \emph{what does one step
+look like?} If the component is an explicit state machine --- a sweep with a stack, an
+incrementally maintained index --- take execution steps and a state invariant
+(Substrate 1). If the object of study is recursively defined and the claim is about the
+finished object --- decompositions, pseudo-trees, expressions --- take structural
+induction, leaf-peeling by default (Substrate 2). If the argument is really about a
+process with no convenient state --- an elimination order, a rewrite sequence, a
+peeling procedure --- phrase it as strong induction on the natural measure
+(Substrate 3). All three are the same lemma in different clothes; pick the clothing
+that makes the step case a purely local check.
+
+\begin{reachbox}{When to Reach for Induction}
+Reach whenever a component has state evolving by local steps and the claim is
+``nothing drifts'' --- caches, elimination pipelines, rewrite rules, recursive
+evaluators --- or whenever a guarantee must hold for \emph{all} inputs of unbounded
+size. Then run the recipe:
+\begin{enumerate}
+\item Name the substrate and fix the induction variable precisely: the step index $i$
+  of a run, the subtree rooted at a node $A$, the number of bags/nodes/rules left.
+\item Write the invariant $I$ as a property of \emph{one} state or \emph{one} subtree,
+  strong enough to imply the specification at final states (or at the whole object) and
+  concrete enough to check in one step. Audit the step case over \emph{every} operation
+  --- and the trivial base cases (empty input, single bag, zero eliminations): one
+  missed case silently breaks the entire argument.
+\item If the step case will not close, \emph{strengthen} $I$: carry more information
+  (the exact block shape, the exact cache contents, both directions of an
+  equivalence). Strengthening is the normal iteration of the method, not a failure ---
+  see Proposition~\ref{prop:ind-strengthen}.
+\item Pair $I$ with a strictly decreasing measure to obtain termination and per-step
+  cost accounting --- the same induction then yields the time/space bound, not just
+  correctness.
+\end{enumerate}
 \end{reachbox}
+
+\section{Resistance-distance labels on small-treewidth graphs}
+\label{sec:ind-resistance}
+
+The exemplar is a SIGMOD'26 paper on exact graph analytics over small-treewidth graphs
+\citep{sigmod26-307}. Resistance distance --- the effective resistance between two
+nodes when the graph is viewed as an electrical network --- is a workhorse similarity
+measure in graph databases: link prediction, recommendation, and graph-feature
+extraction all use it because it averages over \emph{all} paths between two nodes, not
+just the shortest one. Computing it exactly requires the pseudo-inverse of the graph
+Laplacian, a matrix inversion that does not scale to large graphs, which is why
+practitioners settle for approximations. The paper observes that on graphs of small
+treewidth --- road networks, hierarchies, many social and biological networks ---
+Gaussian elimination ordered along a tree decomposition factors the computation
+\emph{once}, so that afterwards every pair query is answered from two small labels
+alone. Its headline results: an index built in $O(n \cdot d_{\max} \cdot h_G^{2})$
+time, labels of total size $O(n \cdot h_G)$, and \emph{exact} single-pair queries in
+$O(h_G)$, where $h_G$ is the height of the tree decomposition and $d_{\max}$ the
+maximum degree. The correctness of the elimination pipeline is where induction enters.
+
+\paragraph{Problem.}
+Let $G = (V,E)$ be a graph with $n$ nodes, Laplacian $L = D - A$, and
+$r(s,t) = (\mathbf{e}_s - \mathbf{e}_t)^{\!\top} L^{+} (\mathbf{e}_s - \mathbf{e}_t)$
+the resistance distance, where $L^{+}$ is the Moore--Penrose pseudo-inverse. The input
+includes a tree decomposition of $G$ of height $h_G$ (the maximum number of bags on a
+root-to-leaf path). The task is to preprocess $G$ into one label $\ell(v)$ per node so
+that any query $r(s,t)$ is answered exactly from $\ell(s)$ and $\ell(t)$ alone, with
+preprocessing, label size, and query time parameterized by $n$, $d_{\max}$, and $h_G$.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Labelling scheme, complexity lemmas of the paper]\label{thm:ind-resistance}
+Given $G$ and a tree decomposition of height $h_G$, the index construction computes
+labels of total size $O(n \cdot h_G)$ in time $O(n \cdot d_{\max} \cdot h_G^{2})$, and
+any single-pair query $r(s,t)$ is answered \emph{exactly} in $O(h_G)$ time from the two
+labels; a single-source query over all $t$ costs $O(n \cdot h_G)$. \eop
+\end{theorem}
+
+\sidenote{Why exactness is plausible here: on a tree decomposition, eliminating a node
+interacts only with its bag, so the inverse Laplacian factors into per-path pieces ---
+the random-walk interpretation (resistance is a commute time) then reconstructs
+$r(s,t)$ from the pieces on the two root paths, via cut properties: a vertex cut of
+$s,t$ zeroes the cross terms.}
+
+\paragraph{How induction is applied.}
+The algorithm eliminates the nodes one at a time, in an order given by a traversal of
+the tree decomposition, maintaining a shrinking \emph{state matrix} $S$ initialized to
+the inverse of the Laplacian restricted to the current node set; eliminating node $v$
+applies the rank-one update $S \mathrel{-}= S[:,v]\,S[:,v]^{\!\top} / S[v,v]$. The
+induction variable is the number of eliminated nodes, and the induction hypothesis is
+stated as an explicit invariant of the state:
+
+\begin{lemma}[Elimination-state invariant, Lemma of the paper, notation cleaned]
+\label{lem:ind-elim-state}
+Let $U_1 \subseteq U_2 \subseteq V$. After the elimination of the nodes of
+$U_2 \setminus U_1$, the state matrix satisfies
+\[
+S_{|U_2 \setminus U_1|}
+\;=\;
+\begin{pmatrix} (L_{|U_1})^{-1} & 0 \\[2pt] 0 & 0 \end{pmatrix},
+\]
+i.e.\ all rows and columns of eliminated nodes are zero, and the block on the surviving
+nodes is the inverse of the Laplacian restricted to $U_1$. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Induction on the number $k$ of eliminated nodes. Base case $k=0$: the state is
+$(L_{|U_2})^{-1}$ by initialization. Step: partition the state around the next
+eliminated node $v$; the rank-one update zeroes row and column $v$ and replaces the
+surviving block by a Schur complement, which the block-inverse formula identifies with
+the inverse of the Laplacian restricted to the remaining nodes. (Full proof in
+Section~\ref{sec:ind-appendix}.)
+\end{proof}
+
+The labels store the elimination history: for each node, the columns of the state at
+the moments its neighbors were eliminated (a subtree-contiguity property of the
+traversal keeps each column segment addressable), and the query walks the two root
+paths recombining those pieces through the resistance formula. Note the craft: the
+invariant is an \emph{exact block shape}, not ``approximately correct'' --- strong
+enough to pin every entry of the state, which is what makes the reconstruction exact.
+The running-time bound rides the same induction: each of the $n$ elimination steps
+touches at most $d_{\max}$ already-processed neighbors on segments of length $O(h_G)$,
+giving the $O(n \cdot d_{\max} \cdot h_G^{2})$ total.
+
+\paragraph{What it buys.}
+The engine answers exact resistance-distance queries in time proportional to the
+decomposition height rather than the graph size, after near-linear preprocessing on
+low-treewidth data --- no approximation error, no sampling. The pattern --- eliminate
+along a decomposition, store the elimination history as labels, reconstruct from labels
+by an invariant --- transfers to any computation that factors through Gaussian
+elimination on small-treewidth structure.
+
+\section{Space--time plans for sum--product queries}
+\label{sec:ind-sumprod}
+
+The exemplar is a SIGMOD'26 paper on the space--time complexity of conjunctive-query
+evaluation \citep{sigmod26-371}. A \emph{sum--product query} is a conjunctive query
+evaluated over a semiring: ordinary joins (Boolean semiring), output counts (natural
+numbers), tuple probabilities, or optima (tropical semiring). Worst-case optimal join
+algorithms evaluate such queries in optimal time but materialize as they go, paying
+full space for intermediate results; systems instead want caching plans that trade
+time for space. The paper asks which points of the space--time plane a query can
+occupy: it defines a ladder of plan classes --- pseudo-trees, pseudo-trees with
+caching, tree-decomposition plans, and recursive pseudo-trees (RPTs) --- ordered by a
+domination preorder on their $(s,t)$ exponent pairs, and identifies what each class
+achieves. Headline results: every tree-decomposition plan is dominated by an RPT plan
+(proved by the second induction exhibited below), the dominations are mostly strict,
+witnessed by explicit path queries, and a Triple-$k$-Clique conjecture yields
+conditional space--time lower bounds over the tropical semiring.
+
+\paragraph{Problem.}
+Fix a semiring $\mathbb{K}$ and a sum--product query
+$Q(\mathbf{X}) = \prod_{i} R_i(\mathbf{X}_i)$; the database annotates tuples with
+values of $\mathbb{K}$, an assignment multiplies its annotations, and $Q$ sums over
+satisfying assignments. A \emph{pseudo-tree} is a directed tree over the variables of
+$Q$ in which every atom's variables sit on a single root-to-leaf branch; a plan is a
+pseudo-tree, possibly with caches at some vertices and applied recursively to
+subqueries, and its exponents $s$ and $t$ (defined recursively in the paper) guarantee
+evaluation in space $O(|D|^{s})$ and time $O(|D|^{t})$. Plan $P_1$ \emph{dominates}
+$P_2$ if $t(P_1) \le t(P_2)$ and $s(P_1) \le s(P_2)$; a class dominates another if for
+every query and every plan of the latter there is a dominating plan of the former.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[RPT evaluation, Theorem of the paper, compressed]\label{thm:ind-rpt}
+Every recursive pseudo-tree plan $(\mathcal{P},\mathcal{C},\rho)$ of $Q$ with exponents
+$s = s(\mathcal{P},\mathcal{C},\rho)$ and $t = t(\mathcal{P},\mathcal{C},\rho)$
+correctly evaluates $Q$ over any semiring, in space $O(|D|^{s})$ and time
+$O(|D|^{t})$. \eop
+\end{theorem}
+
+\sidenote{The benchmark being traded against: a worst-case optimal join evaluates a
+full query in time $O(|D|^{\rho^{*}})$ with $\rho^{*}$ the fractional edge cover --- but
+materializes intermediates, i.e.\ space exponent $\rho^{*}$ as well. The paper's
+sublinear-space plans give up time exponents to buy space back.}
+
+\paragraph{How induction is applied.}
+Two inductions run side by side. The \emph{correctness} half is execution-step
+induction over the run of the recursive algorithm: the induction variable is the
+sequence of function calls $\mathrm{solve}(A, \mathbf{x})$, and the invariant says each
+call returns exactly the value of the subquery rooted at $A$, with the cache holding
+exactly that value:
+
+\begin{lemma}[Cache invariant, Lemma of the paper, paraphrased]\label{lem:ind-rpt-cache}
+During any run of the algorithm on an RPT $(\mathcal{P},\mathcal{C},\rho)$, every call
+$\mathrm{solve}(A, \mathbf{x})$ returns exactly the value of the subquery of $Q$
+rooted at $A$, conditioned on the part of the partial assignment $\mathbf{x}$ over the
+variables of $A$; after the subsequent $\mathrm{fillCache}$ call, the cache $M_A$
+stores exactly this value. Hence the top-level call
+$\mathrm{solve}(r(\mathcal{P}), ())$ returns $Q(\mathbf{D})$. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Structural induction on the RPT, i.e.\ on the number of variables in the subtree
+rooted at $A$. Base case (single variable): the call accumulates
+$\bigoplus_{a} a$ directly, which is the subquery value. Step: the call iterates over
+candidate values $a$, multiplies the --- by hypothesis correct --- returns of the
+children's calls, and accumulates; the cache variant additionally uses that two partial
+assignments agreeing on $A$'s interface define the same subquery value. (Full proof in
+Section~\ref{sec:ind-appendix}.)
+\end{proof}
+
+The \emph{domination} half (every tree-decomposition plan is dominated by an RPT plan)
+is leaf-peeling structural induction on the number of bags of the tree decomposition
+$T$: with a single bag the plan is already a pseudo-tree plan (base case); otherwise
+let $v$ be a leaf of $T$ with parent $p$, eliminate the variables occurring in $v$'s
+bag but not in $p$'s into a single new atom over their joint neighbors, apply the
+hypothesis to the smaller decomposition, and attach the resulting RPT at the parent ---
+each peeling step preserves plan value and exponents, so the constructed RPT dominates.
+
+\paragraph{What it buys.}
+The optimizer gets a certified menu of space--time tradeoffs --- sublinear-space
+evaluation of full queries by caching at the right granularity --- rather than a single
+all-or-nothing algorithm. The cache invariant is the implementer's contract: it says
+precisely what each cache entry means, so the recursion can be memoized (and its cost
+accounted) safely; and the strict separations tell designers when adding a plan class
+genuinely buys new exponent pairs.
+
+\section{Near-duplicate text alignment by skyline sweeps}
+\label{sec:ind-lsh}
+
+The exemplar is a SIGMOD'26 paper on all-pair near-duplicate text alignment
+\citep{sigmod26-153}. Finding all pairs of near-duplicate substrings in long texts is
+a bread-and-butter entity-resolution task: plagiarism detection, version tracking,
+deduplication of logs and records. Locality-sensitive hashing (LSH) is the standard
+sieve --- hash positions so that similar stretches collide, then verify candidates ---
+but the candidate generation itself is the bottleneck: the maximal hash-consistent
+stretches, which the paper calls \emph{tight intervals}, live in a space of
+quadratically many intervals, and missing even one means a silently missed
+near-duplicate pair. The paper characterizes tight intervals through a
+\emph{dominance skyline} of positions and gives a monotone-stack sweep that generates
+exactly the tight intervals of a text of length $n$ in $O(n)$ time per hash function,
+with $O(\log n)$ expected stack --- and an $O(mn)$ expected-time alignment pipeline
+with a completeness guarantee: no near-duplicate pair is missed.
+
+\paragraph{Problem.}
+Let $T$ be a text of length $n$ and $h$ a hash function on positions (drawn from a
+random family); write $h(T[q])$ for the hash of the token at position $q$. Position
+$q$ \emph{dominates} $p$ (for $p < q$) iff $h(T[q]) < h(T[p])$. An interval $[l,r]$ is
+\emph{left-tight} iff $l = 1$ or $h(T[l-1])$ is smaller than every hash on $[l,r]$, and
+\emph{right-tight} iff $r = n$ or $h(T[r+1])$ is smaller than every hash on $[l,r]$;
+for a composite $g = (h_1,\dots,h_m)$, $[l,r]$ is tight iff it is left-tight under some
+$h_i$ and right-tight under some $h_j$. The task: enumerate, exactly once each, all
+tight intervals of $T$ under $h$ (and, for $m$ functions, under $g$).
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Tight-interval generation, Theorems 1--2 of the paper]\label{thm:ind-lsh}
+The monotone-stack sweep (Algorithm 1 of the paper) generates exactly the tight
+intervals of $T$ under $h$ --- every generated interval is tight, and every tight
+interval is generated --- in $O(n)$ time, producing $O(n)$ intervals, with the stack
+holding $O(\log n)$ positions in expectation. With $m$ independent hash functions the
+full pipeline runs in $O(mn)$ expected time. \eop
+\end{theorem}
+
+\paragraph{How induction is applied.}
+The induction variable is the scan position $r$; the state is the \emph{ordered
+skyline} $S(r)$ --- the positions $p \le r$ not dominated by any later position, in
+increasing order, whose hash values increase along the skyline and whose last element
+is $r$. The invariant: at the end of each loop iteration, $S$ is exactly the ordered
+skyline of the current position. The workhorse is the one-step update:
+
+\begin{lemma}[Skyline update, Lemma 6 of the paper]\label{lem:ind-skyline}
+Let $S(r) = (p_1, p_2, \dots, p_s)$ be the ordered skyline at position $r$ and
+$i = \min\{\, j \in [1,s] : h(T[p_j]) < h(T[r+1]) \,\}$. Then the ordered skyline at
+position $r+1$ is $S(r+1) = (p_1, \dots, p_i, r+1)$. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+By the monotonicity of hashes along the skyline, every $p_j$ with $j > i$ has
+$h(T[p_j]) > h(T[r+1])$, so the new position $r+1$ dominates exactly those --- they
+leave the skyline. Positions are dominated only by later ones, so the prefix
+$(p_1,\dots,p_i)$ keeps its pairwise order, and $r+1$ (the latest position, with the
+largest hash on the new skyline) is appended last.
+\end{proof}
+
+The base case is $S(0) = (0)$. The stack operations --- pop while the top's hash
+exceeds $h(T[r+1])$, then push $r+1$ --- implement exactly the update of
+Lemma~\ref{lem:ind-skyline}, so the invariant holds after every iteration. Exactness
+then follows by combining the invariant with two characterization lemmas of the paper:
+an interval $[l,r]$ is left-tight iff $l-1 \in S(r) \setminus \{r\}$, and right-tight
+iff $h(T[r+1]) < h(T[p])$ where $p$ is the smallest skyline position $\ge l$ (whose
+hash is the minimum on $[l,r]$). The sweep emits an interval exactly at a pop, which
+is exactly when both characterizations fire --- soundness and completeness at once.
+(Full proof in Section~\ref{sec:ind-appendix}.)
+
+\paragraph{What it buys.}
+The alignment stage enumerates all LSH candidates in linear time per hash function,
+replacing quadratic scans, with $O(\log n)$ expected working memory --- and the
+exactness theorem doubles as a \emph{recall certificate} for the entity-resolution
+pipeline: no near-duplicate pair can be missed. The pattern --- a dominance order on
+positions, the skyline as state, a monotone stack as its compressed representation ---
+is the same skeleton as classical monotone-stack algorithms, here made inductive and
+analyzable.
+
+\section{Succinct representations of all width-1 join plans}
+\label{sec:ind-succinct}
+
+The exemplar is a SIGMOD'26 paper on compressing the optimizer's search space
+\citep{sigmod26-233}. Join-order selection is NP-hard in general, so cost-based
+optimizers enumerate and cost candidate \emph{join trees}; for star queries the space
+is enormous --- $n^{\,n-1}$ join trees for $n$ relations --- and enumerating them one
+by one does not scale. The paper focuses on the plans that matter most,
+\emph{width-1} plans whose intermediate results are bounded by $O(N)$ in the maximum
+base cardinality $N$, and asks for a succinct representation from which all of them
+can be enumerated without duplicates. Its headline results: width-1 plans exist
+exactly for acyclic queries; a \emph{meta-decomposition} --- a labeled tree of size
+$O(|E(H)|)$ computed in $O(|E(H)|^{3})$ --- represents all join trees of an acyclic
+hypergraph; and an enumeration procedure outputs exactly the join trees, so the
+optimizer searches a linear-size object instead of an exponential family.
+
+\paragraph{Problem.}
+Let $Q$ be a conjunctive query with hypergraph $H$ (edges = atoms). A \emph{join tree}
+of $H$ is a tree over the hyperedges such that the hyperedges containing any vertex
+form a connected subtree; $H$ is \emph{acyclic} iff it has a join tree. For a
+(physical) query plan $P$, its \emph{width} $w(P)$ is the least exponent such that
+every intermediate result of $P$ is $O(N^{w(P)})$. For a hyperedge $e$, its
+\emph{outer part} is $o(e,H) = e \cap \bigl(\bigcup (E(H) \setminus \{e\})\bigr)$ ---
+the portion of $e$ shared with other edges --- and an \emph{ear} is a hyperedge the
+classical ear-removal characterization of acyclicity may peel off. The task:
+characterize the width-1 plans and represent all join trees succinctly.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Width-1 plans and their enumeration, Theorems of the paper,
+compressed]\label{thm:ind-succinct}
+(i) A conjunctive query $Q$ has a width-1 query plan if and only if $Q$ is acyclic.
+(ii) For acyclic $H$, the meta-decomposition $M$ produced by the algorithm has
+$|V(M)|, |E(M)| = O(|E(H)|)$, is computed in $O(|E(H)|^{3})$ time, and the enumeration
+procedure outputs exactly the join trees of $H$ --- every output is a join tree, and
+every join tree is output. \eop
+\end{theorem}
+
+\sidenote{The $n^{\,n-1}$ count for star queries is Cayley's formula --- the paper
+pairs it with Pr\"ufer sequences to count join trees of specific shapes, sharpening
+just how exponential the naive search space is.}
+
+\paragraph{How induction is applied.}
+The elimination structure is the ear-removal order: the meta-decomposition tree
+records it (a node $p$ is a descendant of $q$ iff $e_p$ is removed before $e_q$), and
+the correctness and completeness of the enumeration are proved by structural induction
+over that tree --- the induction hypothesis at a node is that the subtree's physical
+nodes induce a connected subtree of every join tree, so local choices extend to full
+join trees and every join tree arises. The step case that lets the algorithm remove
+ears in \emph{batches} is:
+
+\begin{proposition}[Batch ear removal, Proposition of the paper]\label{prop:ind-ears}
+Let $H$ be an acyclic hypergraph and $S = \{e_1, \dots, e_n\} \subseteq E(H)$,
+$n \ge 2$, a set of distinct ears with a common outer part
+$o(e_1,H) = \dots = o(e_n,H) =: o$. Then the hypergraph $H'$ with
+$E(H') = (E(H) \setminus S) \cup \{o\}$ is again acyclic. \eop
+\end{proposition}
+
+The enabling fact --- which pins the shared structure of same-outer-part ears --- is a
+two-line set-algebra lemma:
+
+\begin{lemma}[Ears with equal outer parts, Lemma of the paper]\label{lem:ind-equal-outer}
+If two ears $e_1, e_2$ of an acyclic hypergraph $H$ satisfy
+$o(e_1,H) = o(e_2,H)$, then $o(e_1,H) = o(e_2,H) = e_1 \cap e_2$. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+The common value lies in both ears (each outer part is contained in its own edge), and
+conversely $e_1 \cap e_2$ lies in the outer part of $e_2$ because $e_1$ is one of
+``the other edges'' for $e_2$ --- a double inclusion. (Full proof in
+Section~\ref{sec:ind-appendix}.)
+\end{proof}
+
+With the batch proposition, the peeling induction proceeds on the number of ears
+remaining: remove all same-outer-part ears at once, insert the single new ear $o$,
+witness a join tree of $H'$ from one of $H$ (the shared outer part glues the removed
+ears' positions into one subtree), and recurse on the strictly smaller hypergraph ---
+the measure $|E(H)|$ decreases at every step.
+
+\paragraph{What it buys.}
+The optimizer keeps a linear-size certificate that stands for an exponential family of
+plans: enumerating all width-1 --- i.e.\ linear-cost --- join plans becomes a traversal
+of the meta-decomposition, with the exactness of the enumeration (no invalid plan, no
+duplicates, nothing missed) inherited from the peeling induction. On top of it, the
+paper evaluates relation-dominated queries in $O(|db|)$ time by restricting plan
+search to the width-1 space the theorem certifies.
+
+\section{Advanced usage and further reading}
+\label{sec:ind-advanced}
+
+The substrate lemmas of Section~\ref{sec:ind-tool} are complete --- nothing deeper is
+ever added. What distinguishes advanced usage is the \emph{craft} on top: deliberate
+strengthening of the hypothesis, and nesting one induction inside another. This
+section states the strengthening principle, sketches two harder exemplars, and points
+to the literature.
+
+\subsection{The advanced rungs: strengthening and nesting}
+\label{sec:ind-strengthening}
+
+\begin{proposition}[Strengthening]\label{prop:ind-strengthen}
+To certify a specification $P$ it suffices to exhibit \emph{any} inductive predicate
+$I$ with $I \Rightarrow P$; the specification $P$ itself need not be inductive.
+Formally: if $I(s_0)$, $I$ is preserved by $\Gamma$, and $I(s) \Rightarrow P(s)$ for
+all states $s$, then $P$ holds at every reachable state. \eop
+\end{proposition}
+
+\begin{proof}
+Theorem~\ref{thm:ind-invariant} applied to $I$ gives $I$ at every reachable state;
+$I \Rightarrow P$ transfers it to $P$.
+\end{proof}
+
+The point is methodological. Target specifications are almost never inductive ---
+``the output equals the subquery answer'' says nothing about a half-finished run ---
+so the prover iterates: add bookkeeping to the predicate until the step case closes.
+Every exemplar of this chapter did it: the exact block shape
+(Lemma~\ref{lem:ind-elim-state}), the exact cache contents
+(Lemma~\ref{lem:ind-rpt-cache}), the ordered skyline with its monotone hashes
+(Lemma~\ref{lem:ind-skyline}), the ear-removal order with shared outer parts
+(Proposition~\ref{prop:ind-ears}). \emph{Nesting} is the second rung: two induction
+variables, an outer structural induction with an inner execution-step induction per
+piece --- the sum--product exemplar of Section~\ref{sec:ind-sumprod} nests its
+cache-invariant run argument inside the leaf-peeling domination proof. Beyond the
+naturals, termination arguments move to well-founded measures on multisets; those live
+in the term-rewriting literature rather than in this corpus.
+
+\subsection{Two advanced exemplars, sketched}
+\label{sec:ind-advanced-ex}
+
+Both exemplars of this section push induction into proof machinery that is itself the
+contribution; each is sketched in one paragraph.
+
+\paragraph{Fixed-parameter width checking \citep{sigmod26-114}\pods.}
+This PODS'26 paper settles the parameterized complexity of two central width measures:
+it is fixed-parameter tractable to check $\mathrm{ghw}(H) \le k$ and
+$\mathrm{fhw}(H) \le k$ --- generalised and fractional hypertree width, the
+decomposition measures behind beyond-acyclic query evaluation --- parameterised by
+$k$, the rank of $H$, and its maximum predicate arity $\Delta(H)$ (Corollary 8 of the
+paper; the first FPT algorithms for these problems). The engine transplants the
+MSO-transduction treewidth algorithm of Boja\'nczyk and Pilipczuk from tree
+decompositions to \emph{elimination forests}: a transduction rewrites a suboptimal
+forest into an optimal one, and its correctness is an induction over the forest whose
+step case is the paper's Reduced-Hypergraph Dealternation Lemma --- alternation depth
+(the \emph{split} and \emph{irregularity} parameters) stays bounded, with
+conflict-graph coloring and neutral-swap/pigeonhole arguments supplying the bound. The
+invariant carried by the induction: the output is always an elimination forest of the
+same hypergraph, of width no larger than the input's.
+
+\paragraph{Codd's theorem over semirings, and its limit \citep{sigmod26-290}.}
+Codd's theorem --- relational algebra equals domain-independent relational calculus ---
+is the foundation of declarative query languages, and provenance semirings (annotating
+tuples with probabilities, counts, confidences) are the standard way to give queries
+provenance semantics. The paper transports Codd's theorem to $\mathbb{K}$-relations
+over semirings with \emph{monus} (truncated subtraction) and \emph{support}:
+RA-expressibility, domain-independent calculus definability, and calculus definability
+coincide exactly over zero-sum-free semirings (Theorem of the paper), and the
+equivalence fails without zero-sum-freeness. Both directions rest on structural
+induction on expressions and formulas: every algebra operator translates to a calculus
+connective and back, and the hypothesis ``the translation defines the same
+$\mathbb{K}$-relation'' is preserved by each operation. The same technique then proves
+an \emph{inexpressibility}: over the bag semiring $\mathbb{N}$, division is not
+definable in basic relational algebra. Witness databases make division produce a tuple
+of multiplicity $2^{n}$, while an induction on the construction of any expression $E$
+bounds its support by $n^{\,l(E)}$ and its multiplicities by $p_E(n) \cdot
+2^{\,l(E)}$ --- growth that $2^{n}$ outruns. Induction here counts what expressions
+\emph{can} do: the mirror image of its usual certifying use.
+
+\subsection{Further reading}
+
+\begin{itemize}
+\item Floyd \citep{induction-bg1} and Hoare \citep{induction-bg2} --- the origins of
+  the invariant-assertion method: verification as base case plus preservation.
+\item Manna and Pnueli \citep{induction-bg3} --- safety properties (``nothing bad ever
+  happens'') as the invariant-based fragment of temporal logic.
+\item Cormen, Leiserson, Rivest, and Stein \citep{induction-bg4} --- the
+  loop-invariant discipline for algorithms, with worked analyses.
+\item Rosen \citep{induction-bg5} --- a refresher on strong induction, structural
+  induction, and the well-ordering principle they rest on.
+\end{itemize}
+
+\begin{recap}
+\item \textbf{What the tool is.} Induction converts claims about unbounded behavior
+  into two finite checks --- an invariant holds initially and survives one step ---
+  over whichever substrate the component offers: execution steps, recursive structure,
+  or a decreasing measure (all three interderivable,
+  Lemma~\ref{lem:ind-strong}).
+\item \textbf{Which substrate when.} Explicit state machine (sweep, incremental
+  index): state invariant. Recursively built object (decomposition, pseudo-tree,
+  expression): structural induction, leaf-peeling by default. Process without explicit
+  state (elimination order, rewrite sequence): strong induction on the natural
+  measure.
+\item \textbf{Why the craft matters.} Specifications are rarely inductive; strengthen
+  the predicate --- exact block shape, exact cache contents, monotone skyline,
+  removal order --- until the step case closes
+  (Proposition~\ref{prop:ind-strengthen}), audit every operation, and pair the
+  invariant with a decreasing measure to get termination and cost bounds.
+\item \textbf{What the corpus showed.} Resistance-distance labels
+  (Section~\ref{sec:ind-resistance}): induction on eliminated nodes, block-shape
+  invariant. Sum--product plans (Section~\ref{sec:ind-sumprod}): cache invariant over
+  the run, leaf-peeling over decompositions. LSH alignment
+  (Section~\ref{sec:ind-lsh}): skyline invariant over the scan, monotone-stack update.
+  Succinct plan representations (Section~\ref{sec:ind-succinct}): ear-removal
+  induction with batch peeling.
+\item \textbf{Advanced usage.} Strengthening and nesting
+  (Section~\ref{sec:ind-strengthening}) are the rungs beyond the basics; the advanced
+  exemplars of Section~\ref{sec:ind-advanced-ex} run induction inside MSO transductions
+  and use it to count what expressions can do. Deferred proofs are collected in the
+  Appendix (Section~\ref{sec:ind-appendix}).
+\end{recap}
+
+\section{Appendix}
+\label{sec:ind-appendix}
+
+Proofs omitted from the main text are collected here.
+
+\subsubsection*{Proof of Lemma~\ref{lem:ind-elim-state} (elimination invariant)}
+{\itshape Statement (recalled).} After eliminating the nodes of
+$U_2 \setminus U_1$ from the state initialized to $(L_{|U_2})^{-1}$, the state matrix
+is $\bigl(\begin{smallmatrix} (L_{|U_1})^{-1} & 0 \\ 0 & 0 \end{smallmatrix}\bigr)$
+--- zero rows and columns on eliminated nodes, the inverse restricted Laplacian on the
+survivors.\eop
+
+\begin{proof}
+Induction on the number $k$ of eliminated nodes. \emph{Base case} $k = 0$: the state
+is $S_0 = (L_{|U_2})^{-1}$ by initialization, and no rows or columns are zeroed.
+\emph{Induction hypothesis}: after $k$ eliminations, all rows and columns of the
+eliminated nodes are zero, and the block on the remaining node set $U$ is the inverse
+of the Laplacian restricted to $U$. \emph{Step}: eliminate $v = v_{k+1}$ and partition
+the state as $S_k = \bigl(\begin{smallmatrix} A & b \\ b^{\!\top} & c
+\end{smallmatrix}\bigr)$ with $c = S_k[v,v]$. The rank-one update gives
+\[
+S_{k+1} \;=\; S_k - \frac{S_k[:,v]\,S_k[:,v]^{\!\top}}{c}
+\;=\;
+\begin{pmatrix} A - b\,b^{\!\top}/c & 0 \\ 0 & 0 \end{pmatrix},
+\]
+so row and column $v$ are zeroed. The surviving block $A - bb^{\!\top}/c$ is the Schur
+complement of $c$ in $S_k$, and by the block-inverse identification --- if
+$M = \bigl(\begin{smallmatrix} A' & B \\ C & D \end{smallmatrix}\bigr)$ has inverse
+$\bigl(\begin{smallmatrix} E & F \\ G & H \end{smallmatrix}\bigr)$, then
+$E^{-1} = A' - BD^{-1}C$ --- the inverse of that block is the restriction of
+$(S_k)^{-1}$ to the remaining nodes, which by the induction hypothesis is the Laplacian
+restricted to $U \setminus \{v\}$. After all $|U_2 \setminus U_1|$ eliminations the
+block on $U_1$ is $(L_{|U_1})^{-1}$.
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:ind-rpt-cache} (RPT cache invariant)}
+{\itshape Statement (recalled).} Every call $\mathrm{solve}(A,\mathbf{x})$ returns
+exactly the value of the subquery of $Q$ rooted at $A$ conditioned on the part of
+$\mathbf{x}$ over $A$'s variables, and after $\mathrm{fillCache}$ the cache $M_A$
+stores exactly this value; hence the top-level call returns $Q$.\eop
+
+\begin{proof}
+Write, as in the paper, $Q[Y \mid \mathbf{y}]$ for the subquery of $Q$ restricted to
+the variables $Y$ and conditioned on the partial assignment $\mathbf{y}$, and let
+$\chi(A)$ be the variables of the subtree rooted at $A$. Induction on
+$|\chi(A)|$. \emph{Base case} $|\chi(A)| = 1$: the call allocates an output relation
+and accumulates over the candidate values at $A$; by the paper's subquery identity
+this accumulation is exactly $Q[\chi(A) \mid \mathbf{x}]$. \emph{Step}: for
+$|\chi(A)| > 1$, the call iterates over candidates $a$ and multiplies the returns of
+the children's calls,
+\[
+\mathrm{OUT} \;=\; \bigoplus_{a}\;
+\Bigl( a \;\otimes\; \bigotimes_{B \in \mathrm{child}(A)}
+\mathrm{solve}\bigl(B, (\mathbf{x},a)\bigr) \Bigr),
+\]
+which, by the induction hypothesis applied to the children (whose subtrees are
+strictly smaller) and the same subquery identity, equals
+$Q[\chi(A) \mid \mathbf{x}]$. For the cache clause, let $\mathbf{y}$ be the first
+argument reaching $A$ whose restriction to $A$'s interface agrees with
+$\mathbf{x}$'s: the call stores $Q[\chi(A) \mid \mathbf{y}]$ in $M_A$, and every later
+call with the same interface returns it --- correct because two assignments agreeing
+on the interface define equal subquery values,
+$Q[\chi(A) \mid \mathbf{y}] = Q[\chi(A) \mid \mathbf{x}]$. The top-level call has an
+empty assignment and the full tree, so it returns $Q$.
+\end{proof}
+
+\subsubsection*{Proof of Theorem~\ref{thm:ind-lsh} (tight-interval exactness)}
+{\itshape Statement (recalled).} The sweep generates exactly the tight intervals of
+$T$: every generated interval is tight, every tight interval is generated; a text of
+length $n$ is processed in $O(n)$ time with $O(n)$ intervals emitted and an
+$O(\log n)$ expected stack.\eop
+
+\begin{proof}
+First, by induction on $r$: after the iteration processing $r$, the stack $S$ is the
+ordered skyline $S(r)$. Base case $r = 0$: $S = (0)$. Step: the while-loop pops
+exactly the positions whose hashes exceed $h(T[r+1])$, and the push appends $r+1$, so
+by Lemma~\ref{lem:ind-skyline} the stack is $S(r+1)$. Second, soundness: the sweep
+emits $[l,r]$ when popping $p$, where $l - 1$ is the new stack top, so
+$l - 1 \in S(r) \setminus \{r\}$ and the paper's Lemma 1 gives left-tightness; the
+popped $p$ is the smallest skyline position $\ge l$, its hash is the minimum on
+$[l,r]$, and the pop condition $h(T[r+1]) < h(T[p])$ gives right-tightness by the
+paper's Lemma 3. Third, completeness: fix a tight $[l,r]$. By Lemma 1,
+$l - 1 \in S(r)$ at the start of iteration $r$; right-tightness gives
+$h(T[r+1]) < h(T[p])$ for $p$ the smallest skyline position $\ge l$, so the pop of $p$
+--- which the paper's Lemma 4 shows cannot be avoided --- exposes $l-1$ as the top,
+and $[l,r]$ is emitted. For the complexity: each position is pushed once and popped at
+most once, so the loop body executes $O(n)$ times and emits one interval per pop; the
+stack bound is the paper's Lemma 7, $\mathbb{E}\,|S(r)| = O(\log r)$ over the random
+hash family.
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:ind-equal-outer} (equal outer parts)}
+{\itshape Statement (recalled).} If ears $e_1, e_2$ of an acyclic hypergraph $H$
+satisfy $o(e_1,H) = o(e_2,H)$, then the common value is $e_1 \cap e_2$.\eop
+
+\begin{proof}
+Recall $o(e,H) = e \cap \bigl(\bigcup (E(H) \setminus \{e\})\bigr)$, so
+$o(e,H) \subseteq e$ for every edge $e$. Let $o = o(e_1,H) = o(e_2,H)$. Since
+$o = o(e_1,H) \subseteq e_1$ and $o = o(e_2,H) \subseteq e_2$, we get
+$o \subseteq e_1 \cap e_2$. Conversely, $e_1$ is one of the other edges for $e_2$, so
+\[
+e_1 \cap e_2 \;\subseteq\; e_2 \cap \bigl(\bigcup (E(H) \setminus \{e_2\})\bigr)
+\;=\; o(e_2,H) \;=\; o .
+\]
+The two inclusions give $o = e_1 \cap e_2$.
+\end{proof}
+
+\bibliographystyle{plainnat}
+\bibliography{chapters/induction-all}
