@@ -1,0 +1,15 @@
+# sigmod26-327 — Hydraulis: Balancing Large Transformer Model Training via Co-designing Parallel Strategies and Data Assignment
+
+from=tex flag=False score=2 stmts=0 proofs=0 chars=128138
+kinds: {}
+counts: {"np_hard": 0, "lower_bound": 4, "upper_bound": 1, "big_o": 1, "omega": 0, "theta": 0, "approx_ratio": 3, "whp": 0, "regret": 0, "dp": 0, "invariant": 0, "convergence": 4, "competitive": 0, "worst_case": 5, "sketch": 0, "cost_model": 1, "cardinality": 0, "learned": 0}
+
+## Statements
+## Proofs
+## Bound sentences
+- This provides an upper bound for the number of micro-batches.
+- Additionally, the maximum sequence length supported by the pipeline configured with $P$ (i.e., $ MaxLen (P )$) offers a good lower bound.
+- Derivation of the Lower Bound [display] Consider Eq.~ [ref] for the $d$-th pipeline.
+- Thus, we have: [display] For $B$, it is evident that: [display] By summing these two terms, the dispatching lower bound for the $d$-th pipeline is obtained: [display] Approximate Solver Our developed approximation algorithm is presented in Alg.~ [ref] .
+- Fortunately, it is feasible to estimate the lower bound of latency.
+- In particular, let $m_ i,j \ 0,1\ $ indicate whether the $i$-th sequence is assigned to $P_j$, then the lower bound of running time of the $j$-th pipeline can be expressed as (detailed derivation in Appendix~ [ref] Appendix E.1 ~ [cite] ): [display] Denote Eq.~ [ref] as $ LowerBound (\ m_ i,j \ _ i= …

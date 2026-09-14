@@ -1,0 +1,226 @@
+sigmod26-136	72	Improved Lower Bounds for Privacy under Continual Release
+sigmod26-175	72	On Sketching Trimmed Statistics
+sigmod26-114	71	FPT Parameterisations of Fractional and Generalised Hypertree Width
+sigmod26-371	71	The Space-Time Complexity of Sum-Product Queries
+sigmod26-104	68	Faster Relational Algorithms Using Geometric Data Structures
+sigmod26-115	68	Frequency Moments in Noisy Streaming and Distributed Data under Mismatch Ambiguity
+sigmod26-289	66	Clustering with Set Outliers and Applications in Relational Clustering
+sigmod26-222	64	Size Bound-Adorned Datalog
+sigmod26-243	64	Towards Output-Optimal Uniform Sampling and Approximate Counting for Join-Project Queries
+sigmod26-307	64	Efficient Exact Resistance Distance Computation on Small-Treewidth Graphs: A Labelling Approach
+sigmod26-314	63	Finding Heavy-Hitters with Optimal State Changes
+sigmod26-109	61	Fine-Grained Dichotomies for Conjunctive Queries with Minimum or Maximum
+sigmod26-298	61	Differentially Private Explanations for Clusters
+sigmod26-166	60	Near-Optimality for Single-Source Personalized PageRank
+sigmod26-038	57	Bounding the Fragmentation of B-Trees Subject to Batched Insertions
+sigmod26-244	57	Towards Parameterized Hardness on Maintaining Conjunctive Queries
+sigmod26-196	56	Privacy Loss of Noise Perturbation via Concentration Analysis of A Product Measure
+sigmod26-178	54	Optimal Pure Differentially Private Sparse Histograms in Deterministic Linear Time
+sigmod26-247	54	Unbiased Insights: Optimal Streaming Algorithms for ℓ p Sampling, the Forget Model, and Beyond
+sigmod26-350	53	Query Answering Under Volume-Based Diversity Functions
+sigmod26-357	53	Representation Obliviousness and Pseudodeterminism in Streaming Algorithms
+sigmod26-177	52	Optimal Enumeration of Regular Pattern Matches
+sigmod26-241	51	Tight Lower Bounds for ℓ 2 Sampling
+sigmod26-264	49	A Unifying Algorithm for Hierarchical Queries
+sigmod26-011	47	Acyclic Conjunctive Regular Path Queries are no Harder than Corresponding Conjunctive Queries
+sigmod26-375	47	Tractability Frontiers of the Shapley Value for Aggregate Conjunctive Queries
+sigmod26-259	46	A Bouquet of Results on Maximum Range Sum: General Techniques and Hardness Reductions
+sigmod26-012	44	Acyclic Graph Pattern Counting under Local Differential Privacy
+sigmod26-053	44	Coresets for Robust Query Optimization
+sigmod26-153	44	LSHAlign: All-Pair Near-Duplicate Text Alignment via Locality-Sensitive Hashing
+sigmod26-015	42	AeroSketch: Near-Optimal Time Matrix Sketch Framework for Persistent, Sliding Window, and Distributed Streams
+sigmod26-185	42	PANDAExpress: A Simpler and Faster PANDA Algorithm
+sigmod26-079	41	DP-S4S: Accurate and Scalable Select-Join-Aggregate Query Processing with User-Level Differential Privacy
+sigmod26-233	41	Succinct Structure Representations for Efficient Query Optimization
+sigmod26-303	41	Effective Clustering for Large Multi-Relational Graphs
+sigmod26-155	40	Maintaining Queries under Updates Using Heavy-Light Partitioning of the Input Relations
+sigmod26-337	40	N2E: A General Framework to Reduce Node-Differential Privacy to Edge-Differential Privacy for Graph Analytics
+sigmod26-290	39	Codd's Theorem for Databases over Semirings
+sigmod26-004	38	A Logical View of GNN-Style Computation and the Role of Activation Functions
+sigmod26-154	38	Maintaining Biconnected Components in Streaming Graphs
+sigmod26-227	38	Sparsity-Dimension Trade-Offs for Oblivious Subspace Embeddings
+sigmod26-231	38	Sublime: Sublinear Error & Space for Unbounded Skewed Streams
+sigmod26-306	38	Efficient Defective Clique Enumeration and Search with Worst-Case Optimal Search Space
+sigmod26-372	38	Theoretically and Practically Efficient Maximum Biclique Search
+sigmod26-102	37	Fast Estimation of Pairwise Biharmonic Distance on Graphs
+sigmod26-278	36	Bag Semantics Query Containment: The CQ vs. UCQ Case and Other Stories
+sigmod26-339	36	On the Expressiveness of Languages for Querying Property Graphs in Relational Databases
+sigmod26-349	36	Proximity Graphs for Similarity Search: Fast Construction, Lower Bounds, and Euclidean Separation
+sigmod26-373	35	Time-Critical Influence Minimization via Node Blocking
+sigmod26-382	35	Visual Template Inference for Data Extraction from Documents
+sigmod26-052	34	Constrained Shortest Path Finding on Terrain Surfaces
+sigmod26-110	33	FIRAS: A Framework for Interval Range Search and Sampling
+sigmod26-123	32	GPM: The Gaussian Pancake Mechanism for Planting Undetectable Backdoors in Differential Privacy
+sigmod26-293	32	Cut Costs, Not Accuracy: LLM-Powered Data Processing with Guarantees
+sigmod26-189	31	Periodic Community Search in Temporal Graphs: Time Series-based Methods
+sigmod26-377	31	Triangle Counting in Hypergraph Streams: A Complete and Practical Approach
+sigmod26-070	30	Deterministic Lower Bounds for k-Edge Connectivity in the Distributed Sketching Model
+sigmod26-232	30	Subset Sampling over Joins
+sigmod26-263	30	A General Framework for Per-record Differential Privacy
+sigmod26-200	29	Querying Cohesive Subgraphs in Temporal Graphs
+sigmod26-031	28	Balancing Global and Local: Representative Sampling for Large-Scale Vector Data
+sigmod26-304	28	Efficient and Scalable Directed Densest Subgraph Discovery
+sigmod26-094	27	Enumerating Graph Pattern Matches with ML Oracles
+sigmod26-157	27	Mathematical Foundations of Poisoning Attacks on Linear Regression over Cumulative Distribution Functions
+sigmod26-018	26	An Efficient Streaming Algorithm for Approximating Graphlet Distributions
+sigmod26-141	26	Jaguar: A Primal Algorithm for Conjunctive Query Evaluation in Submodular-Width Time
+sigmod26-150	26	LMSC: Local Sketch Modularity Optimisation for Size-Constrained Community Search in Networks
+sigmod26-006	25	A Unified Framework for Dense Subgraph Maintenance over Dynamic Bipartite Graphs
+sigmod26-049	25	Concurrent Composition for Differentially Private Continual Mechanisms
+sigmod26-257	25	Zero-Redundancy Search for Bi-Components in Bipartite Graphs
+sigmod26-355	25	Reliable and Private Utility Signaling for Data Markets
+sigmod26-219	24	Shape-Agnostic Table Overlap Discovery: A Maximum Common Subhypergraph Approach
+sigmod26-254	24	Weighted Set Multi-Cover on Bounded Universe and Applications in Package Recommendation
+sigmod26-283	24	Budgeted Strong Community Search in Heterogeneous Graphs
+sigmod26-294	24	DAG of DAGs: Order-Fairness Made Practical
+sigmod26-305	24	Efficient Approximate Nearest Neighbor Search via Hemi-Sphere Centroids Graph
+sigmod26-081	23	Efficient Anchored Densest Subgraph Discovery: Improved Time Complexity and Practical Performance
+sigmod26-142	23	Kangaroo: Efficient Lossless Floating-Point Compression via Dynamic Reference Selection
+sigmod26-235	23	TaCo: Data-adaptive and Query-aware Subspace Collision for High-dimensional Approximate Nearest Neighbor Search
+sigmod26-010	22	Accelerating Triangle-Connected Truss Community Search Across Heterogeneous Hardware
+sigmod26-137	22	Improving LZ4 for Effective Compression and Efficient Query
+sigmod26-180	22	ORDER: Optimal Routing with Path Indexing in Exchange Graph [Data-Intensive & Data Science Application]
+sigmod26-073	21	Differentially Oblivious Multi-way Join
+sigmod26-169	21	Nucleus Decomposition Revisited: An Efficient Counting-Based Approach
+sigmod26-363	21	SplineSketch: Even More Accurate Quantiles with Error Guarantees
+sigmod26-013	20	Adaptive Outlier Detection over Data Stream
+sigmod26-027	20	ASSS : Adaptive Stratified Sampling for Shapley-like Values
+sigmod26-068	20	Defense against Poisoning Attacks under Shuffle-DP
+sigmod26-151	20	Local Stability of Rankings
+sigmod26-179	20	Order-based Algorithms for Efficient Core Maintenance in Large Bipartite Graphs
+sigmod26-201	20	R ollbaccine : Herd Immunity against Storage Rollback Attacks in TEEs
+sigmod26-205	20	Recursive Querying of Neural Networks via Weighted Structures
+sigmod26-253	20	Weighted Fourier Factorizations: Optimal Gaussian Noise for Differentially Private Marginal and Product Queries
+sigmod26-024	19	Approximate DBSCAN via Density-Biased Sampling and Kernel Density Estimation
+sigmod26-214	19	Scalable Privacy-Preserving Shortest Path Distance Computation via 2-Hop Labeling in MPC
+sigmod26-242	19	To Adapt or Not to Adapt, That is the Ski Question
+sigmod26-348	19	PrivAGS: Differentially Private Attributed Graph Synthesis
+sigmod26-043	18	Causal Explanations for Disparate Trends: Where and Why?
+sigmod26-127	18	HeteroFedSyn: Differentially Private Tabular Data Synthesis for Heterogeneous Federated Settings
+sigmod26-190	18	PJsim: Towards Precise and Scalable Graph Similarity
+sigmod26-362	18	SieveSketch: A Fine-grained and Adaptive Sketch Framework for Accurate Frequency Estimation
+sigmod26-378	18	TRIM: Accelerating High-Dimensional Vector Similarity Search with Enhanced Triangle-Inequality-Based Pruning
+sigmod26-009	17	Accelerating Maximum Common Subgraph Computation by Exploiting Symmetries
+sigmod26-128	17	High-Throughput k Nearest Neighbors Search in Road Networks
+sigmod26-291	17	Continuous Subgraph Matching via Cost-Model-based Dynamic Vertex Dominance Embeddings
+sigmod26-301	17	DRPQ: Distributed Evaluation of Regular Path Queries On Streaming Graphs
+sigmod26-103	16	Fast-Convergent Proximity Graphs for Approximate Nearest Neighbor Search
+sigmod26-195	16	Prism: Private Relational Data Synthesis with Language Models
+sigmod26-224	16	Skyline Retrieval meets Set-Cover Chunk Merging: A Cost-Effective RAG-Sketch for Long-Context LLM QA
+sigmod26-310	16	Estimating Biclique Counts with Accuracy Guarantees
+sigmod26-351	16	Query Optimization for Database-Returning Queries
+sigmod26-085	15	Efficient Influential Community Search over Dynamic Graphs
+sigmod26-087	15	Efficient Meta-subgraph Instance Search over Large Heterogeneous Information Networks
+sigmod26-163	15	MTSP-LDP: A Framework for Multi-Task Streaming Data Publication under Local Differential Privacy
+sigmod26-229	15	Stress-Testing Causal Claims via Cardinality Repairs
+sigmod26-245	15	Towards Selecting Informative Alternative Relational Query Plans for Database Education
+sigmod26-262	15	A Fast, Mergeable, and LDP Compatible Sketch for Counting the Number of Distinct Values in Fully Dynamic Tables
+sigmod26-280	15	Beyond Vector Search: Querying With and Without Predicates
+sigmod26-334	15	MAVIS: Materialized View for Subgraph Matching
+sigmod26-340	15	P 2 FedRec: Towards Privacy-Preserving and Personalized Federated Recommendation via Relationship Awareness
+sigmod26-021	14	Analysis of Shuffling Beyond Pure Local Differential Privacy
+sigmod26-082	14	Efficient and Effective Biclique Counting with Local Differential Privacy
+sigmod26-095	14	Epoch-based Optimistic Concurrency Control in Geo-replicated Databases
+sigmod26-220	14	Shielding PII to Prevent Re-identification and Preserve Utility
+sigmod26-279	14	Benchmarking Differentially Private Tabular Data Synthesis: [Experiments & Analysis]
+sigmod26-322	14	GraphTwin: Cache-Centric Bit-Level Graph Representation for Fast and Exact Graph Queries
+sigmod26-333	14	Marlin: Efficient Coordination for Autoscaling Cloud DBMS
+sigmod26-385	14	WoW: A Window-to-Window Incremental Index for Range-Filtering Approximate Nearest Neighbor Search
+sigmod26-008	13	Accelerating Approximate Analytical Join Queries over Unstructured Data with Statistical Guarantees
+sigmod26-022	13	Analyzing Deviations from Monotonic Trends through Database Repair
+sigmod26-098	13	F air -C ount -M in : Frequency Estimation under Equal Group-wise Approximation Factor
+sigmod26-213	13	Scalable Clustering Over High Dimensional Vector Streams
+sigmod26-274	13	Approximate Query Processing under Updates
+sigmod26-093	12	Enhancing Local Differential Privacy Accuracy by Exploiting Inherent Uncertainty
+sigmod26-147	12	LINE: A Learned Index with Group-Enhanced Leaves and Cache-Optimized Inner Tree
+sigmod26-149	12	LM-Tree: A Hybrid Learned Index for Similarity Search in Metric Spaces
+sigmod26-152	12	Loom: Weaving PCS-Preserving and Searchable Cloud Backups for Secure Messaging
+sigmod26-234	12	SWMT: A Sliding Window Merkle Tree with Delayed Writes for Scalable Blockchain State Management
+sigmod26-035	11	Beyond Maximum Common Subgraph: A Framework Maximizing Shared Computation for Multi-Query Subgraph Matching
+sigmod26-060	11	CoShap: A Scalable Coalition Growth Approach to Shapley Value Approximation
+sigmod26-090	11	Enabling Efficient Update on Rule-Based Compressed Graph
+sigmod26-092	11	Enhancing Graph-based Approximate Maximum Inner Product Search via Norm-Adaptive Partitioning
+sigmod26-101	11	Fair Data Pre-Processing with Imperfect Attribute Space
+sigmod26-255	11	Workload-Aware Incremental Reclustering in Cloud Data Warehouses
+sigmod26-265	11	Accelerating High-Dimensional ANN Search via Skipping Redundant Distance Computations
+sigmod26-317	11	G uardrail : Automated Integrity Constraint Synthesis From Noisy Data
+sigmod26-325	11	Hops Can be Constrained: Efficient Distance Queries on Large Time-Dependent Road Networks
+sigmod26-329	11	Large-Scale Multiple Query Optimisation with Incremental Quantum(-Inspired) Annealing
+sigmod26-107	10	FGIM: a Fast Graph-based Indexes Merging Framework for Approximate Nearest Neighbor Search
+sigmod26-118	10	Geld: Load-balanced D-Core Decomposition for Consumer GPUs
+sigmod26-191	10	Poisson Sampling over Acyclic Joins
+sigmod26-199	10	Quantile Estimation with Duplicates
+sigmod26-228	10	SQLBarber: A System Leveraging Large Language Models to Generate Customized and Realistic SQL Workloads
+sigmod26-302	10	Dynamically Detect and Fix Hardness for Efficient Approximate Nearest Neighbor Search
+sigmod26-316	10	From Suspicious Errors to Valid Data: On Repairing Spatio-Temporal Data via Spatial and Temporal Dependencies
+sigmod26-003	9	A Game Theory Approach for Negotiating in Data Marketplaces
+sigmod26-198	9	Qualitative Join Discovery in Data Lakes using Examples
+sigmod26-354	9	Regular Expression Indexing for Log Analysis
+sigmod26-007	8	ABFlow: Alert Bursting Flow Query in Streaming Temporal Flow Networks
+sigmod26-044	8	Causal Search for Skylines (CSS): Causally-Informed Selective Data De-Correlation
+sigmod26-083	8	Efficient and Robust Out-Of-Distribution Vector Similarity Search with Cross-Distribution Monotonic Graph
+sigmod26-089	8	Eliminating Redundant Feature Tests in Decision Tree and Random Forest Inference on SQL Predicates
+sigmod26-099	8	FaaSBoard: Efficient Graph Processing with a Disaggregated Architecture on Serverless Services
+sigmod26-135	8	Improved Accuracy for Private Continual Cardinality Estimation in Fully Dynamic Streams via Matrix Factorization
+sigmod26-146	8	LICO: An SIMD-Aware High-Performance Learned Inverted Index Compression Framework
+sigmod26-158	8	Maximal Biclique Enumeration with Improved Worst-Case Time Complexity Guarantee: A Partition-Oriented Strategy
+sigmod26-203	8	RadixGraph: A Fast, Space-Optimized Data Structure for Dynamic Graph Storage
+sigmod26-308	8	Efficient Size-Bounded Community Search, Revisited: Frameworks for Practical Improvements
+sigmod26-383	8	Visualization-Oriented Progressive Time Series Transformation
+sigmod26-019	7	An Extensive Experimental Study of Indexes in Continuous Subgraph Matching: [Experiments & Analysis]
+sigmod26-076	7	Distribution-Aware Exploration for Adaptive HNSW Search
+sigmod26-140	7	Interpretable Attribute Discretization
+sigmod26-202	7	R2O: A Dual-Layer Framework for Joint Rewriting and Ordering in Distributed Property Graph Query Optimization
+sigmod26-212	7	Robust Fair Influence Maximization under Multiple Community Partitions
+sigmod26-221	7	SHoTClean: Bridging Soft and Hard Constraints for Multivariate Time Series Cleaning
+sigmod26-223	7	Sketch-based Secure Query Processing for Streaming Data
+sigmod26-236	7	Task Cascades for Efficient Unstructured Data Processing
+sigmod26-288	7	Cleaning Time Series under Seasonal and Trend Constraints
+sigmod26-299	7	DiskJoin: Large-scale Vector Similarity Join with SSD
+sigmod26-133	6	Hyra: Scalable Byzantine-Resilient State Storage Engine with Hierarchical Erasure-Coding
+sigmod26-134	6	IDAP++: Advancing Divergence-Aware Pruning with Joint Filter and Layer Optimization
+sigmod26-240	6	Through the Lens of Hubness: A Revisit on Graph-Based Approximate Nearest Neighbor Search: [Experiments & Analysis]
+sigmod26-282	6	Brook-2PL: Tolerating High Contention Workloads with A Deadlock-Free Two-Phase Locking Protocol
+sigmod26-313	6	Fast Optimal Group Steiner Tree Search using GPUs
+sigmod26-359	6	SAQ: Pushing the Limits of Vector Quantization through Code Adjustment and Dimension Segmentation
+sigmod26-036	5	Beyond Relational: Semantic-Aware Multi-Modal Analytics with LLM-Native Query Optimization
+sigmod26-088	5	Efficient Vector Index Merging in Vector Databases
+sigmod26-138	5	Improving Range Scan Performance in LSM-trees with Group Caching
+sigmod26-173	5	On Efficient Approximate Aggregate Nearest Neighbor Queries over Learned Representations
+sigmod26-250	5	Variational Inference for De Finetti Logic
+sigmod26-287	5	Categorical Data Clustering via Value Order Estimated Distance Metric Learning
+sigmod26-315	5	Focus! Fast On-disk Concurrency-control Using Sketches
+sigmod26-330	5	LLM-Powered Interactive Graph Search: A Scalable and Practical Approach
+sigmod26-367	5	Stochastic Submodular Data Forgetting
+sigmod26-037	4	Bound-Tightened Densest Subgraph Discovery on GPU
+sigmod26-050	4	Concurrent Path-Copying Update to Tree Structures
+sigmod26-063	4	cuRPQ: A High-Performance GPU-Based Framework for Processing Regular and Conjunctive Regular Path Queries
+sigmod26-086	4	Efficient LLM Serving for Agentic Workflows: A Data Systems Perspective
+sigmod26-131	4	HotHash: Hotness-Aware Consistent Hashing for Cloud Databases
+sigmod26-167	4	NeurBench: A Benchmark Suite for Learned Database Components with Drift Modeling: [Experiments & Analysis]
+sigmod26-207	4	Reqo: A Comprehensive Learning-Based Cost Model for Robust and Explainable Query Optimization
+sigmod26-225	4	SmartRabbit : An Interactive Query Processor
+sigmod26-251	4	VecBench: A Controllable Benchmark for Filtered Vector Search: [Experiments & Analysis]
+sigmod26-258	4	3dSAGER: Geospatial Entity Resolution over 3D Objects
+sigmod26-323	4	High Performance or Low Memory? An Updatable Learned Index Framework for Time-Space Tradeoff
+sigmod26-328	4	Integrating Vector Databases across Embedding Models
+sigmod26-365	4	SSCard: Substring Cardinality Estimation using Suffix Tree-Guided Learned FM-Index
+sigmod26-379	4	Understanding and Detecting Query Performance Regression in Practical Index Tuning: [Experiments & Analysis]
+sigmod26-381	4	VecFlow: A High-Performance Vector Data Management System for Filtered-Search on GPUs
+sigmod26-005	3	A Principled Solution to the Disjunction Problem of Diagrammatic Query Representations
+sigmod26-029	3	Automated Discovery of Test Oracles for Database Management Systems Using LLMs
+sigmod26-030	3	Automating Database-Native Function Code Synthesis with LLMs
+sigmod26-046	3	CMANNS: GPU-Accelerated Graph Index Construction for ANNS via Compute–Memory Disaggregation
+sigmod26-112	3	FLEA: Frequency-based Lossless Encoding Algorithm for Periodic Time Series
+sigmod26-116	3	From Learning to Recycling: A Log-Structured Learned-Less Index
+sigmod26-122	3	GoodTP: An Effective Data Selection Framework for Enhancing Trajectory Similarity Learning via Monte Carlo Tree Search
+sigmod26-130	3	HONEYBEE: Efficient Role-based Access Control for Vector Databases via Dynamic Partitioning
+sigmod26-204	3	RAIRS: Optimizing Redundant Assignment and List Layout for IVF-Based ANN Search
+sigmod26-237	3	The Case For Language Model Approximated LIKE Predicate
+sigmod26-267	3	ACGraph: An Efficient Asynchronous Out-of-Core Graph Processing Framework
+sigmod26-331	3	LPStream: Fine-grained Lazy Provenance for Stream Processing
+sigmod26-358	3	Retrieve-and-Verify: A Table Context Selection Framework for Accurate Column Annotations
+sigmod26-384	3	WaveStitch: Flexible and Fast Conditional Time Series Generation With Diffusion Models
+sigmod26-069	2	Detecting Join Bugs in Database Engines via Join Implication Reasoning
+sigmod26-249	2	Unseen Anomaly Detection from System Logs
+sigmod26-312	2	Fast Indexing for Temporal Information Retrieval

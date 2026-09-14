@@ -1,0 +1,16 @@
+# sigmod26-030 — Automating Database-Native Function Code Synthesis with LLMs
+
+from=tex flag=True score=3 stmts=3 proofs=0 chars=200342
+kinds: {"definition": 3}
+counts: {"np_hard": 0, "lower_bound": 0, "upper_bound": 1, "big_o": 0, "omega": 0, "theta": 0, "approx_ratio": 0, "whp": 0, "regret": 0, "dp": 0, "invariant": 0, "convergence": 0, "competitive": 0, "worst_case": 0, "sketch": 0, "cost_model": 0, "cardinality": 0, "learned": 0}
+
+## Statements
+**Definition Database Native Function Synthesis.** Given a SQL-level function specification $ S $ for the target database $ D $, database native function synthesis aims to generate the codes of necessary function units $\ f^ new _ unit \ $ that satisfy $ S $ and can be successfully integrated into $ D $ with all the essential references $\ f^ ref _ unit \ $, i.e., without any compliance error and passing all the test-cases $ T $ in database $ D $ with expected results. \[ f_ com S := ( f_ text , f_ dec ), and Integrate (f_ com , f_ ref , D ) D^+ \] Where: ; $f_ com S $ denotes that code \( f_ com \) correctly aligns with specifications $ S $ with correct function declaration and complete functionality of no extra operations. ; $ Integrate (f_ com , D ) D^+ $ denotes the successful integration of \( f_ com \) into $ D $, considering all the essential references \( f_ ref \) (i.e., passing all the testcases $ T $ without compliance error), resulting in an augmented database $ D^+ $.
+
+**Definition Database Native Function.** The function $f$ in a database $ D $ is composed of one or multiple unit functions $\ f_ unit \ $, which are implemented altogether to perform xxx operations over the underlying data, encapsulated as a unique SQL keyword identifier and accessible through a unified interface defined in SQL syntax. \[ f : I O \;\; \;\; f_ dec , \ f_ unit \ , f_ ref \] Where: ; \( I \) denotes the input data (i.e., the input parameter type); and \( O \) denotes the output result (i.e., the returned output type). ; \( f_ dec \) is the declaration that specifies the function signature, including name, parameters, return type, and category. ; \( f_ unit \) encompasses the unit functions with both the core implementation (i.e., the processing logic that maps inputs to outputs) and non-functional auxiliary ones, such as error handling and logging. ; \( f_ ref \) captures references to existing modules (e.g., macros) reused within the components.
+
+**Definition Database Native Function.** A database native function $f$ defined in a database $ D $ is represented as $ f_ dec , \ f^ new _ unit , f^ ref _ unit \ \ $, which is composed of one or multiple functions units $\ f^ new _ unit \ $, where each $ f^ new _ unit $ can invoke a set of external referenced function units $\ f^ ref _ unit \ $ (e.g., internal modules, macros), and is exposed through a unified SQL-level function interface defined in function declaration $ f_ dec $.
+
+## Proofs
+## Bound sentences
+- Summary: (1) Consistent Performance Improvement. ~outperforms both general agent-based methods (e.g., Claude Code), which struggle with complex database codebases by performing excessive searches and producing incorrect compilations, and the +Hint variants by 22.56\%, which effectively eliminate ret …

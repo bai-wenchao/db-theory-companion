@@ -1,0 +1,81 @@
+# sigmod26-293 — Cut Costs, Not Accuracy: LLM-Powered Data Processing with Guarantees
+
+from=tex flag=True score=32 stmts=30 proofs=0 chars=512380
+kinds: {"proposition": 4, "definition": 5, "theorem": 3, "lemma": 37, "corollary": 1}
+counts: {"np_hard": 0, "lower_bound": 9, "upper_bound": 14, "big_o": 61, "omega": 0, "theta": 0, "approx_ratio": 9, "whp": 15, "regret": 0, "dp": 0, "invariant": 0, "convergence": 0, "competitive": 0, "worst_case": 13, "sketch": 0, "cost_model": 0, "cardinality": 0, "learned": 0}
+
+## Statements
+**Lemma Simplified Version of Theorem 3 by \cite{waudby2024estimating.** Consider a (potentially infinite) sequence of Bernoulli random variables $X= X_1, X_2,... $ with mean $μ$. Let $X[:i]$ be the subsequence of $X$ containing of the first $i$ random variables. For a confidence parameter $α [0, 1]$, and any $μ<m$, we have P ( i N , I [ j [i],\, K (m, X[:j])≥ 1 α ]=1 )≤ α where $ K (m, Y)$, for any sequence $Y= Y_1, ..., Y_k $ is defined as K (m, Y)= _ j=1 ^ i (1+min(λ_j, 3 4m )×(Y_j-m)), -13pt λ_i=√ 2log(2/α) ilog(i+1) σ ^2_ i-1 ,\; σ _i^2= 1/4+Σ_ j=1 ^i(Y_j- μ _j)^2 i+1 , \; μ _i = 1/2+Σ_ j=1 ^iY_j i+1 . Furthermore, for any $μ>m$, P ( i N , I [ j [i],\, K ^-(m, X[:j])≥ 1 α ]=1 )≤ α Where $ K ^-(m, Y)$, for any sequence $Y= Y_1, ..., Y_k $ is defined as K ^ - (m, Y)= _ j=1 ^ i (1-min(λ_j, 3 4(1-m) )×(Y_j-m)) with $λ_j$ defined as above.
+
+**Lemma .** Consider any algorithm $A$ that samples a set of, $k$, points $S$, and returns a cascade threshold $ _ S, D $ based on the observed labels, $\ O (x);x S\ $, and all proxy scores $\ S (x);x D\ $. If $ P _ S~ D ( R _D( _ S, D )≤ T)≤ δ$ for all possible datasets of size $N$ and with $N^+$ positives, then we must have $ P _ S~ D ( P _D( _ S, D )≥ N^+ N-t )≤ α_t-δ$ for any $t≥ N^+ 2 )$ with $ N^+ 2 $-th lowest proxy score and $α_t$ denotes the probability that the algorithm does not sample any point with proxy score in $[0, x_t]$. Specifically, if sampling $k$ points i.i.d, where each point is sampled with probability $W(x)$ where $ W $ is increasing in $ S (x)$, we have $α≤(1- (1-T)t N )^k$.
+
+**Lemma Simplified Version of Theorem 4 by \cite{waudby2024estimating.** Consider any sequence of $k$ Bernoulli random variables $X= X_1, ..., X_k $ taken uniformly at random and without replacement from a population of size $N$ with mean $μ$. Let with $X[:i]$ be the subsequence of $X$ containing of the first $i$ random variables. For a confidence parameter $α [0, 1]$, and any $μ<m$, we have P ( i [k], I [ j [i],\, K _ WR (m, X[:j])≥ 1 α ]=1 )≤ α Where, $ K _ WR (T, Y)$, for any sequence $Y= Y_1, ..., Y_i $ is defined as K _ WR (T, Y)= _ j=1 ^ i (1+min(λ_j, 3 4T_i^ WR )×(Y_j-T_i^ WR )), T_i^ WR = NT-Σ_ j=1 ^ i-1 Y_j N-(i-1) ,\,λ_i=√ 2log(2/α) ilog(i+1) σ ^2_ i-1 . σ _i^2= 1/4+Σ_ j=1 ^i(Y_j- μ _j)^2 i+1 , \; μ _i = 1/2+Σ_ j=1 ^iY_j i+1 .
+
+**Lemma Corollary to Theorem 4 by \cite{waudby2024estimating.** For any $ [0, 1]$ with $ A _D( )<T$, let $X_1$, $X_2$,... $X_k$ be random samples from $D^ $ without replacement, and denote $N=|D^ |$. Let $S_i= X_1, ..., X_i $ and $S^ _A[:i]= I [ O (X_1)= P (X_1)], ..., I [ O (X_i)= P (X_i)] $, i.e., sequence of Bernoulli random variables each denoting whether the $i$-th sample is correctly answered by the proxy. Then, for a confidence parameter $α [0, 1]$, P ( i [k],\, E ^ _ A (S_i, T, , α)=1)≤ α, where E ^ _ A (S, T, , α)= I [ i [|S|]\, s.t. \, K _ WR (T, S_A^ [:i])≥ 1 α ]. $ K _ WR (T, Y)$ is defined as in Eq.~ [ref] .
+
+**Lemma Corollary to Theorem 4 by \cite{waudby2024estimating.** For any $ [0, 1]$ and given the resolution parameter, $r$, with $ P (D_r^ )>β$, let $X_1$, $X_2$,... $X_k$ be random samples from $D_r^ $ without replacement, and denote $N=|D^ , r |$. Let $S_i= X_1, ..., X_i $ and $S^ _O[:i]= I [ O (X_1)=1], ..., I [ O (X_i)=1] $, i.e., sequence of Bernoulli random variables each denoting whether the $i$-th sample is a positive. Then, for a confidence parameter $α [0, 1]$, P ( E _d^ (S, β, , α)=1)≤ α, where E _d^ (S, β, , α)= I [ i [k_ ]\, s.t. \, K ^-(β, S_O^ [:i])≥ 1 α ]. Where $ K ^-(T, X)$ is defined as in Eq.~ [ref] .
+
+**Lemma Corollary to Theorem 3 by \cite{waudby2024estimating.** For any $ [0, 1]$ with $ R _D( )<T$, let $X_1$, $X_2$,... $X_k$ be random samples from $D_+$ with replacement. Let $S_i= X_1, ..., X_i $ and $S^ _R[:i]= I [ S (X_1)≥ ], ..., I [ S (X_i)≥ ] $, i.e., sequence of Bernoulli random variables each denoting whether the $i$-th positive sample has proxy score above the threshold. Then, for a confidence parameter $α [0, 1]$, P ( i [k],\, E ^ _ R (S_i, T, , α)=1)≤ α, where E ^ _ R (S, T, , α)= I [ i [|S|]\, s.t. \, K (T, S_R^ [:i])≥ 1 α ]. $ K (T, Y)$ is defined as in Eq.~ [ref] .
+
+**Lemma Corollary to Theorem 4 by \cite{waudby2024estimating.** For any $ [0, 1]$ with $ P _D( )<T$, let $X_1$, $X_2$,... $X_k$ be random samples from $D^ $ without replacement, and denote $N=|D^ |$. Let $S_i= X_1, ..., X_i $ and $S^ _O[:i]= I [ O (X_1)=1], ..., I [ O (X_i)=1] $, i.e., sequence of Bernoulli random variables each denoting whether the $i$-th sample is a positive. Then, for a confidence parameter $α [0, 1]$, P ( i [k],\, E ^ _ WR (S_i, T, , α)=1)≤ α, where E ^ _ WR (S, T, , α)= I [ i [|S|]\, s.t. \, K _ WR (T, S_O^ [:i])≥ 1 α ], with $ K _ WR $ as define in Eq.~ [ref]
+
+**Lemma .** Consider an algorithm that assigns probability $ W (x)$ for sampling a data point $x D$ (where $ W (x)$ potentially depends on $ S (x)$ but not on $ O (x)$), and chooses, based on the set $S$ of $k$ i.i.d samples from $ W $, a cascade threshold, $ _S$ from the set $\ 0, S (x_1), ..., S (x_ k^+ )\ $ where $x_1$, ..., $x_k^+ S^+$. If the algorithm guarantees $ P ( R _D( _S)<T)≤ δ$ for all datasets $D$, we must also have $ P ( _S=0)≥ (1- (1-T)n^+ N )^k-δ$ for all datasets $D$.
+
+**Lemma Corollary to Theorem 3 by \cite{waudby2024estimating.** For a confidence parameter $α [0, 1]$ and any $ [0, 1]$ where $ P _D( )<T$, P ( E ^ (S, T, , α)=1)≤ α, where E ^ (S, T, , α)= I [ i [k_ ]\, s.t. \, K (T, S_O^ [:i])≥ 1 α ]. $ K (T, X)$ for a set of $i$ random variables $X=\ X_1, ..., X_i\ $ is defined as K (T, X)= _ j=1 ^ i (1+min(λ_j, 3 4T )×(X_j-T)), -13pt λ_i=√ 2log(2/δ) ilog(i+1) σ ^2_ i-1 ,\; σ _i^2= 1/4+Σ_ j=1 ^i(X_j- μ _j)^2 i+1 , \; μ _i = 1/2+Σ_ j=1 ^iX_j i+1 .
+
+**Lemma .** Consider an algorithm, $A$, that samples a set of $k$ points, $S$, i.i.d. and with a p.m.f $ W (x)$ for $x D$, and returns a cascade threshold $ _ S $. Assume algorithm $A$ meets the recall target $T$, $T≥ 0.5$, on all possible datasets of size $n$ and with $n^+$ positives. Then, for any dataset $D$, algorithm $A$ must have precision $$ P ( P _D( _ S )≥ n^+ n )≤ (1-α)^k-δ,$$ where $α=Σ_ x D^ (1-T)n^+ W (x)$.
+
+**Lemma .** Consider any algorithm that samples a set of $k$ points, $S$, i.i.d. where probably of a point $x D$ being sampled is monotonically increasing in $ S (x)$. If the algorithm returns a cascade threshold, $ _ S $, that meets the recall target $T$, $T≥ 0.5$, on all datasets of size $n$ and with $n^+$ positives, then, for any dataset $D$, it must have precision P ( P _D( _ S )≤ n^+ n )≥ (1-(1-T) n^+ n )^k-δ.
+
+**Lemma .** Consider any algorithm that samples a set of $k$ points, $S$, i.i.d. where the probability of a point $x D$ is sampled is monotonically increasing in $ S (x)$. If the algorithm returns a cascade threshold, $ _ S $, that meets the recall target $T$, $T≥ 0.5$, on all datasets of size $n$ and with $n^+$ positives, then, for any dataset $D$, it must have precision P ( P _D( _ S )≤ n^+ n )≥ (1- n^+ n )^k-δ.
+
+**Lemma .** Define $ Z ^ =\ Z _1^ , ..., Z _ k^+ ^ \ $ where $$ Z _i^ = Z_i+T,\; where \;\; Z_i^ = I [X_i> ]-T P (X_i) , $$ $$ with \; \; as either \; =min_ x D P (x)\; or \; =min_ x D^+ P (x). $$ Let $$λ^I(S, )= L ( Z ^ , δ)-T.$$ Then, Alg.~ [ref] , sampling data according to $ W (x)= P (x) $ and with $λ=λ^I$ returns a set of elements with recall less than $T$ with probability at most $δ$.
+
+**Lemma Theorem 3 by \cite{waudby2024estimating.** Consider a set of $t$ i.i.d random variables $X=\ X_1, ..., X_t\ $ with $X_i [0, 1]$ and $E[X_i]=μ$ for all $i$. We have $$ P (μ< L (X, δ))≤ δ for $$ L (X, δ)=min\ m [0, 1], K _i(m)< 1 δ \, i [t]\ , where, for any $m [0, 1]$, K _t(m)= _ i=1 ^ t (1+min(λ_i, 3 4m ))×(X_i-m), λ_i=√ 2log(2/δ) k σ ^2_ i-1 ,\; σ _i^2= 1/4+Σ_ j=1 ^i(X_j- μ _j)^2 i+1 , \; μ _i = 1/2+Σ_ j=1 ^iX_j i+1 .
+
+**Theorem .** Alg.~ [ref] meets the target threshold with the desired probability when choosing adjusted target, $ $ as $ _C$ or $ E$, where ^C=T+√ log(1/δ) 2k^+ , ^E= 1 k^+ min\ x, q(x)≤ δ\ and $q(x)= P ( B (k^+, T)≥ x)$ is the tail probability of a binomial distribution with parameters $k^+$ and $T$. That is, $ P _ S~ D (R_D( ^t_S)< T)≤ δ$ for either choices of $ = ^C$ or $ = ^E$.
+
+**Corollary .** Assume at most $γ$ percent of the positive samples have proxy score at most $λ$, that is $$ Σ_ x D, S (x)<λ I [ O (x)=1] Σ_ x D I [ O (x)=1] ≤ γ.$$ Then, clipped importance sampling using $ W _λ$ and using the target $T'=T(1+ λ+β γ-(λ+β) )$ yields an algorithm that meets the target $T$ with probability $δ$. change this based on new definition of $γ$, $λ$
+
+**Lemma Informal and Simplified Statement of Theorem 3 by \cite{waudby2024estimating.** Consider the set of i.i.d random variables $X$ with mean $μ$. For a confidence parameter $α [0, 1]$, and any $μ<m$, we have P ( T (m, X, α)=1 )≤ α,\, where T (m, X, α)≈ I [ K (m, X)≥ 1 α ], K (m, X)≈ _ i=1 ^ k (1+ (X_i-m) σ _ i-1 √ log(1/α) ), σ _i^2= 1/4+Σ_ j=1 ^i(X_j- μ _j)^2 i+1 , \; μ _i = 1/2+Σ_ j=1 ^iX_j i+1 .
+
+**Definition .** Given a precision (resp. recall) target $T$ and failure probability $δ$, and an oracle budget $k$, use at most $k$ oracle calls to find a cascade threshold $ $ such that not sure this makes sense &max_ [0, 1] R ( )\\ s.t. & P ( P _D( )< T)≤ δ &max_ [0, 1] P ( )\\ s.t. & P ( R _D( )< T)≤ δ
+
+**Lemma .** Assume the proxy model is $(α, β)$-calibrated and that there are at least $γ$ number of true positives. Then, sampling data records with proxy score $[α, 1]$ and using the target $T'=T(1+ α+β γ-(α+β) )$ yields an algorithm that meets the target $T$ with probability $δ$.
+
+**Definition .** Consider $α [0, n]$ and the subset $\ x_1, ..., x_ i_α \ $ of $D$ where $i$ is the largest integer such that $Σ_ j=1 ^i P (x)≤ α.$. We say that the proxy model $ P $ is $(α, β)$-calibrated with respect to dataset $D$ if for the subset $Σ_ j=1 ^ i_α O (x_i)≤ β+α$.
+
+**Definition .** Consider $λ [0, n]$ and the subset $\ x_1, ..., x_ i_λ \ $ of $D$ where $i$ is the largest integer such that $Σ_ j=1 ^i P (x)≤ λ.$. We say that the proxy model $ P $ is $(λ, β)$-calibrated with respect to dataset $D$ if for the subset $Σ_ j=1 ^ i_λ O (x_i)≤ β+λ$.
+
+**Lemma .** Let $q(x)= P ( B (k^+, T)≥ x)$ be the tail probability of a binomial distribution with parameters $k^+$ and $T$. Then, $ ^E= 1 k^+ min\ x, q(x)≤ δ\ $ is a valid adjusted target, i.e., $$ P _ S~ D (R_S( _D)≥ ^E)≤ δ when \; ^E= 1 k^+ min\ x, q(x)≤ δ\ .$$
+
+**Proposition .** For any $ [0, 1]$ with $ R _D( )<T$, we have P ( R _ S^+ ( )≥ T (T, k^+, α))≤α, where T (T, k^+, α)= 1 k^+ min\ ; [k^+], P ( B (k^+, T)≥ )≤ α\ , and $ P ( B (k^+, T)≥ )$ is the tail probability of a binomial distribution with parameters $k^+$ and $T$.
+
+**Lemma .** Given a desired recall target and probability of failure $δ$, define λ^U(S, ) = L (\ I [x≥ ], x S\ , δ)-T. Then, setting $λ=λ^U$ in Alg.~ [ref] , we have that output of Alg.~ [ref] fails to satisfy recall target $T$ with probability at most $δ$.
+
+**Lemma .** Consider a random variable $Z Z^ $ from Lemma~ [ref] for any $ [0, 1]$. We have double check $ =0, 1$ _1 _2 + T^2 _2 Σ_ x< 1 S (x) ≤ Var (Z)≤ _1 _2 + T^2 _2 Σ_ x< 1 S (x) , for $ _1=|D^+|((1-T)^2R_D( )+T-R_D( ))$ and $ _2=Σ_ x D S (x)$.
+
+**Proposition .** For any $ [0, 1]$ with $ P _D( )<T$, we have $ P ( P _S( )≥ T+√ log(1/α) 2|S^ | )≤α,$ where $S$ is i.i.d and uniformly sampled from $D$ and $α [0, 1]$ is a confidence parameter. Consequently, $ P ( E ^ naive (S, T, , α)=1)≤ α$.
+
+**Theorem .** Consider a uniform sample $S~ D$, and let $p$ be the number of positives in $S$, i.e., $p=|\ x S, O(x)=1\ |$. Set $$ ^*=max \ [0, 1], where \, P ( B (p, T)≥ p )≤ δ\ ,$$ and find $$ ^*=max\ [0, 1] where R_S( )≥ ^*\ $$
+
+**Lemma .** For a confidence parameter $α [0, 1]$ and any $ [0, 1]$ where $ P _D( )<T$, P ( E ^ (S, T, , α)=1)≤ α, where E ^ (S, T, , α)= T (T, S_O^ , α), and $ T $ is the hypothesis test defined in Lemma~ [ref] .
+
+**Proposition .** Let $ E $ be a function with false positive probability bounded by $α$ (as defined in Eq.~ [ref] ) when sampling a set $S$ from $D$. Setting $ ^*$ as Eq.~ [ref] , we have $ P ( P _D( ^*)<T)≤ | C |α$.
+
+**Theorem .** Let $λ(S, )= L ( Z ^ , δ)$ where $$ Z ^ =\ I [x> ]-T S (x) +T, x S^+\ ,\; =min_ x D^+ S (x) $$ Then, Alg.~ [ref] returns a set of elements with recall less than $T$ with probability at most $δ$.
+
+## Proofs
+## Bound sentences
+- In other words, Eq.~ [ref] allows us to check if $m$ is a suitable lower bound $μ$ or not while sampling new points and still have the probability of making a wrong estimate bounded by $α$.
+- Eq.~ [ref] also allows us to check if $m$ is a suitable upper bound for $μ$.
+- We use this upper bound only for our density estimation function $ E _d^ $.
+- Lower Bound on Utility The lemma below shows that any algorithm that guarantees the target recall is met with probability $δ$ and samples records with probability monotonically increasing in proxy score will have a precision upper bound based on the number of true positives in the dataset.
+- Thus, $α$ is a lower bound on the probability of not selecting any of the first $n^+$ data points in $k$ samples.
+- Specifically, given the sample set, $S$, let $$S^ =\ I [x≥ ], x S^+\ $$ and set $λ(S, )= L (S^ , δ)$. $ L $ provides a probabilistic lower bound on the true mean of $S^ $, so that Alg.~ [ref] would choose a $ $ such that expected value of elements of $S^ $ is more than $T$.
+- Here, we're interested in setting $λ(S, )$ to be be function that finds a lower bound $L$ for $ E [R_S( )]-T$ with high probability.
+- We note that Theorem 3 by [cite] is more general, and among other generalizations provides a two-sided confidence interval (not just a lower bound on mean as Lemma~ [ref] states).
+- The above lower bound can be used to define $λ$ in Alg.~ [ref] to satisfy the desired target recall with the desired probability, as stated below.
+- Note that we can replace Eq.~ [ref] with Eq.~ [ref] only because the algorithm terminates whenever $ L (X, δ)<T$ so that the algorithm never reaches $ $ values for which $T$ is higher than an upper bound for the mean of $R_S( )$.
+- Lower bound Consider any algorithm $A$ that samples a set of, $k$, points $S$, and returns a cascade threshold $ _ S, D $ based on the observed labels, $\ O (x);x S\ $, and all proxy scores $\ S (x);x D\ $.
+- This is better than setting threshold upper bound because that way there's no room for error.

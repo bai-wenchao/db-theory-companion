@@ -1,0 +1,13 @@
+# sigmod26-365 — SSCard: Substring Cardinality Estimation using Suffix Tree-Guided Learned FM-Index
+
+from=tex flag=True score=4 stmts=2 proofs=0 chars=108309
+kinds: {"definition": 2}
+counts: {"np_hard": 0, "lower_bound": 1, "upper_bound": 1, "big_o": 35, "omega": 0, "theta": 0, "approx_ratio": 1, "whp": 0, "regret": 0, "dp": 0, "invariant": 0, "convergence": 1, "competitive": 0, "worst_case": 9, "sketch": 0, "cost_model": 0, "cardinality": 66, "learned": 6}
+
+## Statements
+**Definition .** Starting character in estimation. Given a pattern string $P$ and a pruned suffix tree $T$, a char $P[i](1≤ i ≤ |P|)$ is the starting character, if the suffix started from $P[i]$ matches a path in $T$, and no suffix started from $P[k](k<i)$ matches any path in $T$.
+
+**Definition .** the $i$-th $L$-triple. Given the $L$-array in BWT. The $i$-th $L$-triple takes the form of $(L[i],i, r)$, where $r$ is the rank (i.e., the number of prior occurrences) of $L[i]$ in the $L$-array.
+
+## Proofs
+## Bound sentences

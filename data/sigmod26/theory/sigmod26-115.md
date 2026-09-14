@@ -1,0 +1,117 @@
+# sigmod26-115 — Frequency Moments in Noisy Streaming and Distributed Data under Mismatch Ambiguity
+
+from=tex flag=True score=68 stmts=30 proofs=18 chars=112537
+kinds: {"claim": 7, "definition": 5, "theorem": 5, "fact": 2, "lemma": 9, "corollary": 2}
+counts: {"np_hard": 0, "lower_bound": 26, "upper_bound": 5, "big_o": 46, "omega": 18, "theta": 7, "approx_ratio": 34, "whp": 0, "regret": 0, "dp": 0, "invariant": 0, "convergence": 0, "competitive": 0, "worst_case": 1, "sketch": 0, "cost_model": 0, "cardinality": 1, "learned": 0}
+
+## Statements
+**Claim .** The input $σ$ for $F_p$ after the input reduction has the following properties. ; For any $ [k]$ and $i [n]$, we have $q_ i,j ^ ( ) ~ q_ i,j' ^ ( ) $ for any $j, j' [ t k ]$ ($j ≠ j'$). In words, items created from the same element w.r.t.~the same player are pairwise dissimilar. ; For any $i [n]$ and any $ , ' [k]\ ( ≠ ')$ with $X_i^ ( ) = X_i^ ( ') = 1$, we have $q_ i,j ^ ( ) ~ q_ i,j' ^ ( ') $ for any $j, j' [ t k ]$. In words, if two players $ , '$ share an element $i$ (i.e., $X_i^ ( ) = X_i^ ( ') = 1$), then any item created by player $ $ from $i$ is similar to any item created by player $ '$ from $i$. ; For any $i [n]$ and any $ , ' [k]\ ( ≠ ')$ with $X_i^ ( ) = 0$ or $ X_i^ ( ') = 0$, we have $q_ i,j ^ ( ) ~ q_ i,j' ^ ( ') $ for any $j, j' [ t k ]$. In words, an item created from a zero entry (i.e., $X_i^ ( ) = 0$) is dissimilar to any other items created by the same element. ; For any $i, i' [n]\ (i ≠ i')$, we have $q_ i,j ^ ( ) ~ q_ i,j' ^ ( ') $ for any $j, j' [ t k ]$ and $ , ' [k]$. In words, items created from different elements are pairwise dissimilar.
+
+**Corollary .** For any constants $p > 1$, $C 0$ and $ (0, 1 3 )$, any $(( + C _p), 0.48)$-approximation algorithm for computing $F_p$ in the coordinator model on any noisy dataset of up to $m$ items distributed over $k 10p(C+1)$ sites needs $Ω ( 1 ^ 1/p m^ 1-1/p )$ bits of communication, regardless the number of rounds.
+
+**Definition $F_p$-mismatch-ambiguity ($p \ge 1$).** For a noisy dataset $σ = (σ_1, …, σ_m)$ and its ground truth $ = ( _1, …, _m)$, the $F_p$-mismatch-ambiguity of $σ$ with respect to $ $ is defined as _p(σ, ) = 1 F_p( ) Σ_ i [m] ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ). When there is no confusion, we simply write $ _p(σ, )$ as $ _p$.
+
+**Theorem .** For any constants $p > 1$, $C 0$ and $ (0, 1 3 )$, any $(( + C _p), 0.48)$-approximation algorithm for computing $F_p$ on any noisy dataset of up to $m$ items distributed over $k 10p(C+1)$ players needs $Ω ( 1 ^ 1/p m^ 1-1/p )$ bits of communication in the blackboard model.
+
+**Theorem .** For any constant $p 1$, given an input dataset of size $m$ with $ _p ≤ 0.4$ partitioned among $k$ sites in the coordinator model, Algorithm~ [ref] computes a $(( + O( _p)), 0.01)$-approximation of $F_p$, using two rounds and $O ( 1 ^2 km^ 1-1/p )$ words of communication.
+
+**Theorem .** For any constant $p 2$ and a noisy size-$m$ dataset $σ$ with $ _p ≤ ^p 4^ p+1 · k^ p-1 $, Algorithm~ [ref] computes an $(( + O( _p)), 0.01)$-approximation of $F_p$ in the coordinator model with $k$ sites, using three rounds and $O ( k^p ^ p+1 )$ words of communication.
+
+**Definition Frequency Moments.** Let $U=(u_1, …, u_n)$ be a finite universe and $ =( _1, …, _m) U^m$ be a noiseless dataset. For each element $u_j U$, define its frequency in $ $ as $$ f_j = \ i [m] _i = u_j\ . $$ The $p$-th frequency moment of $ $ is defined as $ F_p( ) = Σ_ j=1 ^n f_j^p. $
+
+**Theorem .** For any constant $p Z ^+$, given a noisy input data stream of length $m$ with $ _p ≤ 1 3(p!) $, Algorithm~ [ref] computes an $(( +O( _p), 0.01)$-approximation of $F_p$, using a single pass and $O ( 1 ^2 m^ 1-1/p )$ words of space.
+
+**Corollary .** For any constants $p > 1$, $C 0$ and $ (0, 1 3 )$, any $O(1)$-pass $(( + C _p), 0.48)$-approximation algorithm for computing $F_p$ on any noisy data stream of length up to $m$ needs $Ω ( 1 ^ 1/p m^ 1-1/p )$ bits of space.
+
+**Lemma \cite{Feige04.** Let $Z_1, , Z_t$ be arbitrary non-negative independent random variables, with expectations $μ_1, , μ_t$ where $μ_i ≤ 1$ for all $i$. Then for any $δ > 0$, [Σ_ i=1 ^t Z_i < (Σ_ i=1 ^t μ_i ) + δ ] > min ( δ 1 + δ , 1 13 ).
+
+**Lemma .** For graphs $G^σ = ([m], E^σ)$ and $G^ = ([m], E^ )$, representing a noisy data stream $σ$ and the corresponding ground truth $ $ respectively, we have _p^ σ _p^ ≤ _p F_p, and _p^ _p^ σ ≤ p 2 · _p F_p.
+
+**Lemma .** Let $ X = 1 t Σ_ i [t] X_i$, where $X_i$ is defined as in Lemma~ [ref] for the $i$-th sample in $S$. Then with probability at least $ 2 3 $, $ (1 - 2 _p - ) F_p ≤ X ≤ (1 + _p + ) F_p. $
+
+**Definition Tail Set.** For a data stream $σ$ and $j [p]$, define the tail set of an increasingly ordered $j$-clique $(i_1, , i_j)$ in $G^σ$ as $ (i_1, , i_j) = \ i [m] i ≥ i_j ( k [j], σ_i ~ σ_ i_k )\ . $
+
+**Lemma .** For a dataset $σ$, let $I S$ be a sampled node from Algorithm~ [ref] and $X = D_ · ( d_I I )^ p-1 · 1 \ ( d_I I )^ p-1 ≤ θ \ $. We have $ (1 - 2 _p - 2 )F_p ≤ [X] ≤ (1 + _p) F_p. $
+
+**Definition Ordered $p$-Clique.** For a data stream $σ$ of length $m$, define the set of ordered $p$-cliques in $G^σ$ as $ _p^σ = \ (i_1, …, i_p) [m]^ p (j, k) [p]^2, σ_ i_j ~ σ_ i_k \ . $
+
+**Lemma .** For a dataset $σ$, let $I S$ be a sampled node from Algorithm~ [ref] and $X = m (d_I)^ p-1 $. We have $ [X] = Σ_ i [m] (d_i)^ p-1 $.
+
+**Definition Increasingly Ordered $p$-Clique.** For a data stream $σ$, define the set of increasingly ordered $p$-cliques in $G^σ$ as $ _p^σ = \ (i_1, …, i_p) _p^σ i_1 … i_p\ $.
+
+**Theorem \cite{CKS03.** Any $0.49$-error algorithm for \ needs $Ω ( n klog k )$ bits of communication in the blackboard model.
+
+**Lemma .** Let $X = (I_1, , I_p) Π_ k [p] R_k$ be the output of Algorithm~ [ref] . It holds that $ [X] = _p^σ $.
+
+**Claim .** For any $j [t]$, $ [Y_j] ( [Y_j])^2 ≤ p! 1 - 2(p!) _p · m^ 1-1/p . $
+
+**Claim .** For any $j [t]$, $ (1 - 2(p!) _p) F_p ≤ [Y_j] ≤ (1 + _p) F_p. $
+
+**Fact .** For a noiseless dataset $ $, $F_p = Σ_ i [m] (d_i^ )^ p-1 $.
+
+**Claim .** For any $j [t]$, $ [Y_j] ( [Y_j])^2 ≤ m^ 1-1/p 1 - 2 _p $.
+
+**Claim .** Σ_ i L (d_i^ )^ p-1 · 1 \ ( d_i i )^ p-1 > θ \ ≤ θ _p F_p.
+
+**Lemma $\Bar{X}$ is not too small.** $ [ X ( 1 - - 2(p!) _p ) · F_p ] > 1 - 2·10^ -5 . $
+
+**Claim .** For any $j [t]$, $(1 - 2 _p) F_p ≤ [Y_j] ≤ F_p$.
+
+**Fact .** For a noiseless data stream $ $, $ _p^ = F_p$.
+
+**Lemma $\Bar{X}$ is not too small.** $ [ X < ( 1 - - 2 _p ) · F_p ] < 10^ -5 . $
+
+**Lemma $\Bar{X}$ is not too large.** $ [ X < (1 + + _p) · F_p ] > 1 13 . $
+
+**Claim .** Σ_ i H (d_i^ )^ p-1 ≤ k F_p α .
+
+## Proofs
+**Proof.** Let $n_ $ be the number of distinct elements in $ $, and $\ V_1, …, V_ n_ \ $ be the set of cliques in $G^ $. It is easy to see that for any $K_p _p^ $, all $p$ nodes in $K_p$ must belong to the same clique $V_k$ for some $k [n_ ]$. Therefore, the total number of ordered $p$-cliques is $Σ_ k [n_ ] V_k ^p = F_p$.
+
+**Proof.** We first bound the size of $ _p^ σ _p^ $. Consider an ordered $p$-clique $K_p = ( i_1 , , i_p )$ in $ _p^ σ _p^ $ with $i_1 = i$. There must exist a $k [p]$ such that $ i_k B_i^ σ B_i^ $. Therefore, the total number of ordered $p$-cliques in $ _p^ σ _p^ $ with $i_1 = i$ is at most $ B_i^ σ ^ p-1 - B_i^ σ B_i^ ^ p-1 ≤ B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 . $ Summing over $i [m]$, we have _p^ σ _p^ Σ_ i [m] ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ) = _p F_p. We next bound the size of $ _p^ _p^ σ $. Let $n_i$ be the number of ordered $p$-cliques in $ _p^ $ that contains $i$ and at least one node from $B_i^ B_i^σ$. We have $$ n_i ≤ p ( B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ) ≤ p ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ). $$ Note that for each $K_p =( i_1 , , i_p ) _p^ _p^ σ $, there exists $x, y [p]$ such that $ i_x ≠ i_y $ and $( i_x , i_y ) E^ σ $, which implies that $K_p$ is counted in both $n_ i_x $ and $n_ i_y $. Summing over $i [m]$, we have _p^ _p^ σ ≤ 1 2 Σ_ i [m] n_i ≤ p 2 · Σ_ i [m] ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ) = p 2 · _p F_p.
+
+**Proof.** It is easy to see that in Algorithm~ [ref] , $I_1$ is uniformly sampled from $[m]$ and $I_k$ is uniformly sampled from $ (I_1, , I_ k-1 )$ for $k = 2, , p$. Let $ K _p = (i_1, , i_p) _p^ σ $ be an increasingly ordered $p$-clique. We have [I_1 = i_1, , I_p = i_p] &=& [I_1 = i_1] · Π_ k=2 ^ p [I_k = i_k I_1 = i_1, , I_ k-1 = i_ k-1 ] \\ &=& 1 m Π_ k=2 ^ p 1 (i_1, , i_ k-1 ) . Note that $R_1 = m$, and $R_k = (I_1, , I_ k-1 ) $ for $k = 2, , p$, and $(I_1, , I_p)$ is always an increasingly ordered $p$-clique. It follows that [X] &=& Σ_ (i_1, , i_p) _p^ σ [I_1 = i_1, , I_p = i_p] · [X I_1 = i_1, , I_p = i_p] \\ & [ref] = & Σ_ (i_1, , i_p) _p^ σ 1 m Π_ k=2 ^ p 1 (i_1, , i_ k-1 ) · (i_1, , i_p) · m Π_ k=2 ^ p (i_1, , i_ k-1 ) \\ &=&Σ_ (i_1, , i_p) _p^ σ (i_1, , i_p) = _p^ σ .
+
+**Proof.** Lemma~ [ref] gives $ [ X ] = _p^ σ $ . Applying Lemma~ [ref] (setting $Z_i = X_i/| _p^ σ |$ and $δ = 1$), we have [ X < (1 + 1 t ) _p^ σ ] > 1 13 . By Fact~ [ref] and Lemma~ [ref] , _p^ σ ≤ _p^ + _p^ σ _p^ ≤ (1 + _p) F_p. The lemma follows from [ref] , [ref] , and the fact that $ 1 t 2 $.
+
+**Proof.** For every $j [t]$, let $Y_j = min \ X_j, m (p!) B_ I_1 ^ ^ p-1 \ .$ We have the following claims, whose proofs will be given shortly. The first claim states that the expectation of each $Y_j$ is not far away from $F_p$ given that $ _p$ is small, and the second bounds the variance of each $Y_j$. For any $j [t]$, $ (1 - 2(p!) _p) F_p ≤ [Y_j] ≤ (1 + _p) F_p. $ For any $j [t]$, $ [Y_j] ( [Y_j])^2 ≤ p! 1 - 2(p!) _p · m^ 1-1/p . $ We now have [ X < ( 1 - - 2(p!) _p ) F_p ] &=& [ 1 t Σ_ j [t] X_j - (1 - 2(p!) _p)F_p < - F_p ] \\ &≤& [ 1 t Σ_ j [t] Y_j - [Y_j] < - F_p ] \\ &≤& [Y_j] t ^2 F_p^2 \\ & ≤& (1 + _p)^2 [Y_j] t ^2 ( [Y_j])^2 \\ &≤& (1 + _p)^2 t ^2 · p! · m^ 1-1/p 1 - 2(p!) _p \\ &≤& 1 t · 12 (p!) m^ 1-1/p ^2 \\ &≤& 2· 10^ -5 , where from [ref] to [ref] , we use the fact $X_j ≥ Y_j$ and the first inequality of Claim~ [ref] . From [ref] to [ref] , we apply the second inequality of Claim~ [ref] . From [ref] to [ref] , we apply Claim~ [ref] . From [ref] to [ref] , we use our assumption $ _p < 1 3(p!) $. The last inequality is due to our choice of $t$ (Line~ [ref] of Algorithm~ [ref] ).
+
+**Proof.** [Proof of Claim~ [ref] ] We prove for every $j [t]$, and thus drop the subscript $j$ in $X_j$ and $Y_j$ and write them as $X$ and $Y$ for convenience. We first look at the difference between $X$ and $Y$, [X - Y] = Σ_ i [m] [I_1 = i] · [X-Y I_1 = i] = 1 m Σ_ i [m] [X-Y I_1 = i]. Conditioned on $I_1 = i$, we have X &=& (i, I_2, , I_p) · Π_ k [p] R_k ≤ p! · Π_ k [p] R_k \\ &=& p! · m · Π_ k=2 ^p (i, , I_ k-1 ) \\ &≤& p! · m · (i) ^ p-1 \\ &≤& m(p!) B_i^ σ ^ p-1 , where from [ref] to [ref] , we use the fact that $ (i, I_2, , I_ p-1 ) (i, I_2, , I_ p-2 ) … (i)$. The step from [ref] to [ref] follows from $ (i) B_i^ σ $. We thus have [X - Y I_1 = i] = [ . max \ X - m(p!) B_i^ ^ p-1 , 0 \ \ |\ I_1 = i ] m(p!) · max \ B_i^ σ ^ p-1 - B_i^ ^ p-1 , 0 \ . Noting that $ [I_1 = i] = 1 m $, we have [X - Y] &≤& p! · Σ_ i [m] max \ B_i^ σ ^ p-1 - B_i^ ^ p-1 , 0 \ \\ &≤& p! · Σ_ i [m] ( B_i^ σ B_i^ ^ p-1 - B_i^ B_i^ σ ^ p-1 ) \\ &=& p! · _p F_p. Consequently, [Y] &=& [X] - [X-Y] \\ & & _p^ σ - p! · _p F_p ( by [ref] and Lemma~ [ref] )\\ &≥& _p^ - _p^ _p^ σ - p! · _p F_p \\ &≥& (1 - 2(p!) _p) F_p. ( by Fact~ [ref] and Lemma~ [ref] ) On the other hand, by [ref] and Lemma~ [ref] , we have $ [Y] ≤ [X] = _p^ σ ≤ (1 + _p) F_p. $ The claim follows.
+
+**Proof.** [Proof of Claim~ [ref] ] Let $n_ $ be the number of distinct elements in the ground truth $ $, and $\ V_1, …, V_ n_ \ $ be the set of cliques in $G^ $. We prove for every $j [t]$, and thus drop the subscript $j$ in $Y_j$ for convenience. By the definition of $Y$, we have $ Y ≤ m(p!) · max_ i [m] B_i^ ^ p-1 = m(p!) · max_ k [n_ ] V_k ^ p-1 , $ which implies [Y] ≤ [Y^2] ≤ m(p!) · max_ k [n_ ] V_k ^ p-1 · [Y]. Note that max_ k [n_ ] V_k ^ p-1 = ( max_ k [n_ ] V_k ^p )^ 1-1/p ≤ ( Σ_ k [n_ ] V_k ^p )^ 1-1/p = F_p^ 1-1/p . And by Hölder's inequality, m = Σ_ k [n_ ] V_k ≤ n_ ^ 1-1/p ( Σ_ k [n_ ] V_k ^p )^ 1/p = n_ ^ 1-1/p F_p^ 1/p . Combining [ref] , [ref] , [ref] and the first inequality of Claim~ [ref] , we have [Y] [Y]^2 ≤ p! · m · max_ k [n_ ] V_k ^ p-1 [Y] ≤ p! · n_ ^ 1-1/p F_p^ 1/p · F_p^ 1-1/p (1 - 2(p!) _p) F_p ≤ p! · m^ 1-1/p 1 - 2(p!) _p .
+
+**Proof.** Let $n_ $ be the number of distinct elements in $ $, and $\ V_1, …, V_ n_ \ $ be the set of cliques in $G^ $. Then we have F_p( ) = Σ_ k [n_ ] V_k ^p = Σ_ k [n_ ] Σ_ i V_k V_k ^ p-1 = Σ_ k [n_ ] Σ_ i V_k B_i^ ^ p-1 = Σ_ i [m] B_i^ ^ p-1 .
+
+**Proof.** Since $I$ is uniformly sampled from $[m]$, we have $$ [X] = Σ_ i [m] [I=i] · m(d_i)^ p-1 = Σ_ i [m] (d_i)^ p-1 . $$
+
+**Proof.** By Lemma~ [ref] , we have $ [ X ] = Σ_ i [m] (d_i)^ p-1 $ . Applying Lemma~ [ref] on $X_1, …, X_t$, we get [ X < (1 + 1 t ) Σ_ i [m] (d_i)^ p-1 ] > 1 13 . By Fact~ [ref] , $F_p = Σ_ i [m] (d_i^ )^ p-1 $. We thus have Σ_ i [m] (d_i)^ p-1 &≤& F_p + Σ_ i [m] (d_i)^ p-1 - Σ_ i [m] (d_i^ )^ p-1 \\ &≤& F_p + Σ_ i [m] ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ) \\ &=& (1 + _p) F_p. The lemma follows by [ref] , [ref] , and the fact that $ 1 t 2 $.
+
+**Proof.** For any $j [t]$, let $Y_j = min \ X_j, m (d_I^ )^ p-1 \ $. We have the following claims, whose proof will be given at the end of this section. For any $j [t]$, $(1 - 2 _p) F_p ≤ [Y_j] ≤ F_p$. For any $j [t]$, $ [Y_j] ( [Y_j])^2 ≤ m^ 1-1/p 1 - 2 _p $. We now have [ X < ( 1 - - 2 _p ) F_p ] &=& [ 1 t Σ_ j [t] X_j - (1 - 2 _p)F_p < - F_p ] \\ &≤& [ 1 t Σ_ j [t] Y_j - [Y_j] < - F_p ] \\ &≤& [Y_j] t ^2 F_p^2 \\ &≤& [Y_j] t ^2 ( [Y_j])^2 \\ &≤& 1 t ^2 · m^ 1-1/p 1 - 2 _p \\ &≤& 10^ -5 , where from [ref] to [ref] , we use the fact that $X_j ≥ Y_j$ from the definition of $Y_j$ and the first inequality of Claim~ [ref] . From [ref] to [ref] , we use Chebyshev's inequality. From [ref] to [ref] , we use the second inequality of Claim~ [ref] . From [ref] to [ref] , we apply Claim~ [ref] . The last inequality follows by our assumption that $ _p ≤ 0.4$ and our choice of value $t$ (Line~ [ref] of Algorithm~ [ref] ).
+
+**Proof.** [Proof of Claim [ref] ] We first investigate the difference between $X$ and $Y$, [X - Y] &=& Σ_ i [m] 1 m · [X-Y I = i] = Σ_ i [m] max \ (d_i)^ p-1 - (d_i^ )^ p-1 , 0 \ \\ &≤& Σ_ i [m] ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ) \\ &=& _pF_p. Consequently, we have [Y] &=& [X]- [X-Y] \\ &≥& Σ_ i [m] (d_i)^ p-1 - _pF_p ( by [ref] and Lemma~ [ref] ) \\ &≥& F_p - Σ_ i [m] (d_i)^ p-1 - Σ_ i [m] (d_i^ )^ p-1 - _p F_p (by Fact~ [ref] ) \\ &≥& (1 - _p)F_p - Σ_ i [m] ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ) \\ &=& (1-2 _p) F_p. For the other direction, by Fact~ [ref] we have [Y] = 1 m Σ_ i [m] m · min \ (d_i)^ p-1 , (d_i^ )^ p-1 \ ≤ Σ_ i [m] (d_i^ )^ p-1 = F_p.
+
+**Proof.** [Proof of Claim [ref] ] Let $n_ $ be the number of distinct elements in $ $, and $\ V_1, …, V_ n_ \ $ be the set of cliques in $G^ $. By the definition of $Y$, we have Y ≤ m · max_ i [m] B_i^ ^ p-1 = m · max_ k [n_ ] V_k ^ p-1 , which implies [Y] ≤ [Y^2] ≤ m · max_ k [n_ ] V_k ^ p-1 · [Y]. Notice that max_ k [n_ ] V_k ^ p-1 = ( max_ k [n_ ] V_k ^p )^ 1-1/p ≤ ( Σ_ k [n_ ] V_k ^p )^ 1-1/p = F_p^ 1-1/p . And by Hölder's inequality, m = Σ_ k [n_ ] V_k ≤ n_ ^ 1-1/p ( Σ_ k [n_ ] V_k ^p )^ 1/p = n_ ^ 1-1/p F_p^ 1/p . Combining [ref] , [ref] , [ref] , and the first inequality of Claim~ [ref] , we have [Y] ( [Y])^2 ≤ m · max_ k [n_ ] V_k ^ p-1 [Y] ≤ n_ ^ 1-1/p F_p^ 1/p · F_p^ 1-1/p (1 - 2 _p) F_p ≤ m^ 1-1/p 1 - 2 _p .
+
+**Proof.** Let $n_ $ be the number of distinct elements in $ $, and $\ V_1, …, V_ n_ \ $ be the set of cliques in $G^ $. Then we have F_p( ) = Σ_ k [n_ ] V_k ^p = Σ_ k [n_ ] Σ_ i V_k V_k ^ p-1 = Σ_ k [n_ ] Σ_ i V_k B_i^ ^ p-1 = Σ_ i [m] B_i^ ^ p-1 .
+
+**Proof.** We start with the second inequality. Let $p_i = [I = i]$. We have p_i &=& [ site (i) is sampled ]· [i is sampled site (i) is sampled ] \\ &=& (i) D_ · ( i )^ p-1 (i) = ( i )^ p-1 D_ . Let $Y = D_ · ( d_I I )^ p-1 $. By the definition of $X$, we have [X] ≤ [Y] = Σ_ i [m] p_i · D_ · ( d_i i )^ p-1 = Σ_ i [m] (d_i)^ p-1 . Note that Σ_ i [m] (d_i)^ p-1 - Σ_ i [m] (d_i^ )^ p-1 ≤ Σ_ i [m] ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ) = _pF_p. By [ref] and Fact~ [ref] , we have (1 - _p) F_p ≤ Σ_ i [m] (d_i)^ p-1 ≤ (1+ _p) F_p. Combining [ref] and [ref] , it follows that $ [X] ≤ (1 + _p)F_p$. We now prove the first inequality. We start by bounding the difference between $X$ and $Y$. [Y-X] &=& Σ_ i [m] p_i · D_ · ( d_i i )^ p-1 · 1 \ ( d_i i )^ p-1 > θ \ \\ &=& Σ_ i [m] (d_i)^ p-1 · 1 \ ( d_i i )^ p-1 > θ \ \\ &≤& Σ_ i [m] B_i^ σ B_i^ ^ p-1 · 1 \ ( d_i i )^ p-1 > θ \ \\ &≤& Σ_ i [m] ( B_i^ σ B_i^ ^ p-1 - (d_i^ )^ p-1 ) _ 1 + Σ_ i [m] (d_i^ )^ p-1 · 1 \ ( d_i i )^ p-1 > θ \ _ 2 . For the first part, 1 ≤ Σ_ i [m] ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ) = _p F_p. For the second part, we divide $[m]$ into two sets using a threshold $α = ( θ 2 )^ 1 p-1 $: $$ H = \ i [m]\ |\ d_i^ i [ ] > α . \ and L = \ i [m]\ |\ d_i^ i [ ] ≤ α . \ . $$ We utilize the following two claims to bound the contributions of items in $H$ and $L$, respectively. Their proofs will be given shortly. Σ_ i H (d_i^ )^ p-1 ≤ k F_p α . Σ_ i L (d_i^ )^ p-1 · 1 \ ( d_i i )^ p-1 > θ \ ≤ θ _p F_p. By Claim~ [ref] and Claim~ [ref] , we have 2 &≤& Σ_ i H (d_i^ )^ p-1 + Σ_ i L (d_i^ )^ p-1 · 1 \ ( d_i i )^ p-1 > θ \ \\ &≤& k F_p α + θ _p F_p ≤ F_p 2 , where in the last inequality, we have used $θ = 2 ( 4k )^ p-1 $, $α = ( θ 2 )^ 1 p-1 = 4k $, and our assumption $ _p ≤ ^p 4^ p+1 · k^ p-1 $. Combining [ref] and [ref] , we have [Y-X] ≤ _p F_p + F_p 2 . By [ref] , [ref] and [ref] , we have [X] = [Y] - [Y-X] ≥ (1 - 2 _p - 2 ) F_p.
+
+**Proof.** [Proof of Claim~ [ref] ] Let $n_ $ be the number of distinct elements in $ $, and $\ V_1, …, V_ n_ \ $ be the set of cliques in $G^ $. Note that Σ_ i H (d_i^ )^ p-1 &=& Σ_ [k] Σ_ j [n_ ] Σ_ i V_j (d_i^ )^ p-1 · 1 \ d_i^ i [ ] > α \ \\ &=& Σ_ [k] Σ_ j [n_ ] Σ_ i V_j V_j ^ p-1 · 1 \ V_j V_j > α \ \\ &=& Σ_ [k] Σ_ j [n_ ] V_j ^ p-1 · V_j · 1 \ V_j V_j > α \ \\ &<& Σ_ [k] Σ_ j [n_ ] V_j ^p α = Σ_ [k] F_p α = k F_p α , where from [ref] to [ref] , we use the fact that if $i V_j $, then $d_i^ = B_i^ = V_j $ and $ i [ ] = B_i^ = V_j $.
+
+**Proof.** [Proof of Claim~ [ref] ] For any $i L$ such that $ ( d_i i )^ p-1 > θ$, we have θ &<& (d_i)^ p-1 ( i )^ p-1 \\ &≤& B_i^ σ B_i^ ^ p-1 B_i^ σ B_i^ (i) ^ p-1 \\ &=& (d_i^ )^ p-1 + ( B_i^ σ B_i^ ^ p-1 - (d_i^ )^ p-1 ) ( i [ ])^ p-1 - (( i [ ])^ p-1 - B_i^ σ B_i^ (i) ^ p-1 ) , where from [ref] to [ref] we use $d_i = B_i^ σ ≤ B_i^ σ B_i^ $ and $ i = B_i^ σ (i) ≥ B_i^ σ B_i^ (i) $. Rearranging the terms in [ref] gives θ ( i [ ])^ p-1 - (d_i^ )^ p-1 &≤& ( B_i^ σ B_i^ ^ p-1 - (d_i^ )^ p-1 ) + θ (( i [ ])^ p-1 - B_i^ σ B_i^ (i) ^ p-1 ) \\ &≤& ( B_i^ σ B_i^ ^ p-1 - (d_i^ )^ p-1 ) + θ ((d_i^ )^ p-1 - B_i^ σ B_i^ ^ p-1 ) \\ &≤& θ ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ), where in the second inequality, we use the fact that for any $p 2$ and any three sets $A,B,C$ such that $B A$, we always have $ A ^ p-1 - B ^ p-1 ≥ A C ^ p-1 - B C ^ p-1 $. The last inequality holds since $θ 1$. On the other hand, since $i L$ and $α = ( θ 2 )^ 1 p-1 $, we have θ ( i [ ])^ p-1 - (d_i^ )^ p-1 ≥ θ ( d_i^ α )^ p-1 - (d_i^ )^ p-1 = (d_i^ )^ p-1 . Combining [ref] and [ref] , we have for any $i L$ such that $ ( d_i i )^ p-1 > θ$, (d_i^ )^ p-1 ≤ θ ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ). It follows that Σ_ i L (d_i^ )^ p-1 · 1 \ ( d_i i )^ p-1 > θ \ ≤ Σ_ i [m] θ ( B_i^ σ B_i^ ^ p-1 - B_i^ σ B_i^ ^ p-1 ) = θ _p F_p.
+
+**Proof.** We first bound the variance of $X_i$. [X_i] &≤& [X_i^2] \\ &≤& θ · D_ · [X_i] (since $X_i θ · D_ $) \\ &=& θ · ( Σ_ i [m] ( i )^ p-1 ) · [X_i] θ · ( Σ_ i [m] (d_i)^ p-1 ) · [X_i] \\ &≤& θ · (1 + _p) F_p · [X_i] (by [ref] ) \\ &≤& θ · 1 + _p 1 - 2 _p - 2 · [X_i]^2 (by Lemma~ [ref] ) \\ &≤& 6θ · [X_i]^2. (by assumption $ _p ≤ ^p /( 4^ p+1 · k^ p-1 )$) By Chebyshev's inequality, [ X - [ X ] > 2 · [ X ] ] ≤ 4 t ^2 · (X_1) [X_1]^2 ≤ 24 θ t ^2 = 1 3 . By Lemma~ [ref] , we have with probability $ 2 3 $, X &≤& (1 + 2 )(1 + _p) F_p ≤ (1 + + _p) F_p, and \\ X &≥& (1 - 2 ) (1 - 2 _p - 2 ) F_p ≥ (1 - - 2 _p) F_p, which completes the proof.
+
+## Bound sentences
+- Within this framework, we focus on the frequency moments ($F_p$) problem and demonstrate that it is possible to approximate $F_p$ of the unknown ground-truth dataset using sublinear space in the data stream model and sublinear communication in the coordinator model, provided that the approximation r …
+- However, as we will demonstrate in this paper using $F_p$ as an example, it is feasible to approximate $f( )$ by introducing a parameter $ _f(σ, )$ into the approximation ratio.
+- The scaling factor is introduced for convenience; it transforms an additive error into a relative one for the ease of expressing the approximation ratio.
+- Accordingly, we assume that the algorithm is given $m$, which can be regarded as an upper bound on the number of distinct items (and hence the effective universe size), since elements absent from the stream can be ignored.
+- Notably, in the hard input constructions for the $F_p$ lower bound in the noiseless setting (e.g., [cite] ), it consistently holds that $n = Θ(m)$. 2mm Our Results.\ Our algorithmic result in the data stream model can be stated as follows: ; There is a one-pass $(( +O( _p)), 0.01)$-approximation alg …
+- We supplement the algorithmic result with the following lower bound: ; For any constant $C 0$, any $O(1)$-pass $((ε + C _p), 0.48)$-approximation algorithm for $F_p\ (p > 1)$ over a data stream of $m$ items must use at least $ Ω ( 1 ε^ 1/p m^ 1 - 1/p )$ bits of space.
+- This lower bound result contrasts with the noiseless setting, where for $F_p\ (p > 1)$, there exists one-pass $( , 0.01)$-approximation algorithms (e.g., [cite] ) for data streams containing $m$ items, using $ O ( 1 ^2 m^ 1- 2 / p )$ bits of space.
+- For the lower bound, we show: ; For any constant $C 0$, any $((ε + C _p), 0.48)$-approximation algorithm for $F_p\ (p > 1)$ over a dataset of $m$ items distributed across $k 10p(C+1)$ sites must use at least $ Ω ( 1 ε^ 1/p m^ 1 - 1/p )$ bits of communication.
+- This lower bound result is in stark contrast with the noiseless setting, where $( , 0.01)$-approximation algorithms for $F_p$ exist using only $ O ( 1 ^2 k^ p-1 log^ O(1) m )$ bits of communication~ [cite] ; in particular, the dependency on the input size $m$ is polylogarithmic.
+- While in our lower bound proof for the coordinator model, the hard input has a mismatch ambiguity in the order of $ ε / k $, which yields an $Ω (√ m / )$ communication lower bound.
+- In the data stream model, for $p > 2$, the best known space upper bound is $O ( 1 ^2 n^ 1-2/p log^2 n )$ bits~ [cite] , where $n$ denotes the universe size and the stream length is assumed to satisfy $m = n^ Θ(1) $.
+- First, it is not difficult to establish an upper bound of $ X $ by a Markov inequality.

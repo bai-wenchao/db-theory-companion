@@ -1,0 +1,12 @@
+# sigmod26-341 — P erseus : Achieving Strong Consistency and High Data Freshness for Scalable Geo-distributed HTAP
+
+flag=False score=1 stmts=1 proofs=0 chars=116569
+kinds: {"definition": 1}
+counts: {"np_hard": 0, "lower_bound": 0, "upper_bound": 1, "big_o": 0, "omega": 0, "theta": 0, "approx_ratio": 0, "whp": 0, "regret": 0, "dp": 0, "invariant": 3, "convergence": 0, "competitive": 0, "worst_case": 0, "sketch": 0, "cost_model": 0, "cardinality": 0, "learned": 0}
+
+## Statements
+**Definition 2.** 1 (Conflict Equivalence). Two schedules 𝑆 1 and 𝑆 2 are conflict-equivalent if (1) they are over the same set of TP transactions and AP queries, and (2) for every pair of conflicting operations (reads and writes), the relative order is the same.
+
+## Proofs
+## Bound sentences
+- By leveraging loosely synchronized clocks, CockroachDB can offer bounded staleness reads, allowing users to specify an upper bound on the staleness of the data relative to the current time.

@@ -1,0 +1,386 @@
+id,title,flag,score,n_stmt,n_proof,theorem,lemma,corollary,proposition,claim,definition,observation,fact,conjecture,np_hard,lower_bound,upper_bound,big_o,omega,theta,approx_ratio,whp,regret,dp,invariant,convergence,competitive,worst_case,sketch,cost_model,cardinality,learned,pdf,source
+sigmod26-136,Improved Lower Bounds for Privacy under Continual Release,True,72,30,20,10,13,5,0,0,2,0,0,0,0,114,24,86,0,5,32,1,0,32,3,0,0,1,3,0,1,0,ok,s2oa
+sigmod26-175,On Sketching Trimmed Statistics,True,72,30,20,5,19,3,0,0,3,0,0,0,0,14,7,0,21,17,23,13,0,0,0,0,0,0,23,0,0,0,ok,upw
+sigmod26-114,FPT Parameterisations of Fractional and Generalised Hypertree Width,True,71,30,20,5,7,3,1,3,11,0,0,0,0,0,4,0,0,0,6,0,0,0,12,0,0,0,1,0,3,0,ok,upw
+sigmod26-371,The Space-Time Complexity of Sum-Product Queries,True,71,30,20,1,18,0,0,0,14,0,0,1,0,9,4,113,1,0,0,0,0,0,0,0,0,7,0,0,11,0,ok,arxiv
+sigmod26-104,Faster Relational Algorithms Using Geometric Data Structures,True,68,30,18,8,19,0,0,0,4,0,0,0,0,2,2,249,13,9,90,15,0,0,0,0,0,1,0,0,0,0,ok,arxiv
+sigmod26-115,Frequency Moments in Noisy Streaming and Distributed Data under Mismatch Ambiguity,True,68,30,18,5,9,2,0,7,5,0,2,0,0,26,5,46,18,7,34,0,0,0,0,0,0,1,0,0,1,0,ok,arxiv
+sigmod26-289,Clustering with Set Outliers and Applications in Relational Clustering,True,66,29,18,12,13,1,0,0,3,0,0,0,0,0,0,182,3,5,87,2,0,1,0,0,0,2,0,0,1,0,ok,arxiv
+sigmod26-222,Size Bound-Adorned Datalog,True,64,30,17,11,1,6,6,0,20,0,0,0,0,0,18,20,0,0,0,0,0,0,1,0,0,4,6,0,10,0,ok,arxiv
+sigmod26-243,Towards Output-Optimal Uniform Sampling and Approximate Counting for Join-Project Queries,True,64,28,17,17,8,0,2,0,1,0,0,0,0,37,12,122,48,22,42,18,0,0,0,0,0,5,0,0,0,0,ok,arxiv
+sigmod26-307,Efficient Exact Resistance Distance Computation on Small-Treewidth Graphs: A Labelling Approach,True,64,23,20,1,19,0,0,0,3,0,0,0,0,0,4,54,0,0,2,0,0,0,0,0,0,1,4,0,0,0,ok,arxiv
+sigmod26-314,Finding Heavy-Hitters with Optimal State Changes,True,63,25,18,13,8,1,3,0,0,0,0,0,0,6,2,3,13,19,18,7,0,0,0,0,0,0,3,0,0,0,ok,upw|acm403
+sigmod26-109,Fine-Grained Dichotomies for Conjunctive Queries with Minimum or Maximum,True,61,20,20,1,17,0,0,0,1,1,0,0,0,10,3,3,0,0,0,0,0,0,0,0,0,0,10,0,0,0,ok,upw
+sigmod26-298,Differentially Private Explanations for Clusters,True,61,26,17,2,4,2,4,0,14,0,0,0,0,1,5,7,1,1,0,0,0,2,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-166,Near-Optimality for Single-Source Personalized PageRank,True,60,18,20,1,12,0,0,0,5,0,0,0,0,49,32,128,59,15,8,9,0,0,2,1,0,10,0,0,0,0,ok,s2oa
+sigmod26-038,Bounding the Fragmentation of B-Trees Subject to Batched Insertions,True,57,22,17,1,16,1,0,0,4,0,0,0,0,19,2,0,0,1,0,0,0,0,8,3,0,0,0,0,0,0,ok,arxiv
+sigmod26-244,Towards Parameterized Hardness on Maintaining Conjunctive Queries,True,57,30,13,9,13,0,2,0,12,0,0,5,0,35,9,120,15,0,0,1,0,0,0,0,0,2,0,0,0,0,ok,arxiv
+sigmod26-196,Privacy Loss of Noise Perturbation via Concentration Analysis of A Product Measure,True,56,30,12,3,10,7,6,0,7,3,0,0,0,2,9,3,0,5,1,0,0,4,1,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-178,Optimal Pure Differentially Private Sparse Histograms in Deterministic Linear Time,True,54,30,11,11,7,1,6,0,11,0,3,0,0,4,9,97,1,2,8,1,0,23,3,0,0,7,0,0,0,0,ok,arxiv
+sigmod26-247,"Unbiased Insights: Optimal Streaming Algorithms for ℓ p Sampling, the Forget Model, and Beyond",True,54,30,11,9,16,2,0,0,2,0,1,0,0,14,3,0,17,8,26,5,0,0,0,0,0,0,21,0,0,0,ok,upw|acm403
+sigmod26-350,Query Answering Under Volume-Based Diversity Functions,True,53,11,20,1,5,0,1,0,4,0,0,0,1,0,0,25,0,0,38,0,0,0,0,0,0,0,4,0,1,0,ok,arxiv
+sigmod26-357,Representation Obliviousness and Pseudodeterminism in Streaming Algorithms,True,53,25,13,5,4,0,0,4,9,2,1,0,0,32,1,0,16,0,4,5,0,0,1,0,0,0,11,0,1,0,ok,upw|acm403
+sigmod26-177,Optimal Enumeration of Regular Pattern Matches,True,52,24,14,7,13,0,0,0,2,2,0,0,0,0,0,155,1,0,0,0,0,0,1,0,0,15,1,0,0,0,ok,upw|acm403
+sigmod26-241,Tight Lower Bounds for ℓ 2 Sampling,True,51,21,14,5,7,0,6,0,3,0,0,0,0,27,6,0,46,3,4,0,0,0,0,0,0,0,83,0,0,0,ok,upw|acm403
+sigmod26-264,A Unifying Algorithm for Hierarchical Queries,True,49,30,9,6,2,2,3,4,13,0,0,0,0,0,1,18,0,0,5,0,0,0,4,0,0,2,0,0,0,0,ok,arxiv
+sigmod26-011,Acyclic Conjunctive Regular Path Queries are no Harder than Corresponding Conjunctive Queries,True,47,14,16,2,1,0,9,0,2,0,0,0,0,3,1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-375,Tractability Frontiers of the Shapley Value for Aggregate Conjunctive Queries,True,47,16,15,3,10,1,0,0,0,2,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,ok,arxiv
+sigmod26-259,A Bouquet of Results on Maximum Range Sum: General Techniques and Hardness Reductions,True,46,14,15,6,6,0,0,1,1,0,0,0,0,14,3,66,20,19,33,14,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-012,Acyclic Graph Pattern Counting under Local Differential Privacy,True,44,15,14,8,6,0,0,0,1,0,0,0,0,3,8,0,6,0,0,0,0,14,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-053,Coresets for Robust Query Optimization,True,44,15,13,4,11,0,0,0,0,0,0,0,1,4,9,0,0,4,5,3,3,0,0,0,1,16,1,4,58,0,ok,upw|acm403
+sigmod26-153,LSHAlign: All-Pair Near-Duplicate Text Alignment via Locality-Sensitive Hashing,True,44,16,14,7,8,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,13,0,1,0,ok,upw|acm403
+sigmod26-015,"AeroSketch: Near-Optimal Time Matrix Sketch Framework for Persistent, Sliding Window, and Distributed Streams",True,42,20,10,8,5,3,3,0,0,0,1,0,0,10,13,100,1,3,23,2,0,0,0,2,0,2,79,0,0,0,ok,arxiv
+sigmod26-185,PANDAExpress: A Simpler and Faster PANDA Algorithm,True,42,22,10,4,4,5,4,0,5,0,0,0,0,0,3,24,0,1,0,0,0,0,6,0,0,8,0,0,5,0,ok,upw
+sigmod26-079,DP-S4S: Accurate and Scalable Select-Join-Aggregate Query Processing with User-Level Differential Privacy,True,41,30,5,0,29,2,0,0,6,0,0,0,0,2,12,31,3,0,0,1,0,14,0,0,0,5,1,0,0,0,ok,arxiv
+sigmod26-233,Succinct Structure Representations for Efficient Query Optimization,True,41,23,8,11,8,1,1,0,2,0,0,0,1,0,2,19,0,0,1,0,0,0,0,0,0,5,2,8,21,0,ok,arxiv
+sigmod26-303,Effective Clustering for Large Multi-Relational Graphs,True,41,13,13,4,7,1,0,0,1,0,0,0,3,0,1,35,0,0,9,0,0,0,3,3,0,0,6,0,0,0,ok,arxiv
+sigmod26-155,Maintaining Queries under Updates Using Heavy-Light Partitioning of the Input Relations,True,40,22,8,0,4,0,5,0,13,0,0,0,0,1,18,2,3,2,11,0,0,0,2,0,0,10,0,0,0,0,ok,arxiv
+sigmod26-337,N2E: A General Framework to Reduce Node-Differential Privacy to Edge-Differential Privacy for Graph Analytics,True,40,19,10,2,13,0,0,0,4,0,0,0,0,0,30,87,0,0,24,1,0,8,0,0,0,9,0,0,0,0,ok,arxiv
+sigmod26-290,Codd's Theorem for Databases over Semirings,True,39,25,7,3,1,0,4,0,17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-004,A Logical View of GNN-Style Computation and the Role of Activation Functions,True,38,21,8,7,2,2,8,0,2,0,0,0,0,0,0,0,0,0,3,0,0,0,1,0,0,0,3,0,0,0,ok,upw|acm403
+sigmod26-154,Maintaining Biconnected Components in Streaming Graphs,True,38,22,8,3,16,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,ok,upw|acm403
+sigmod26-227,Sparsity-Dimension Trade-Offs for Oblivious Subspace Embeddings,True,38,24,6,4,10,2,0,6,2,0,0,0,0,51,4,36,87,28,1,5,0,0,4,0,0,0,1,0,0,0,ok,arxiv
+sigmod26-231,Sublime: Sublinear Error & Space for Unbounded Skewed Streams,True,38,11,13,2,7,0,0,2,0,0,0,0,0,9,9,16,3,10,0,0,0,0,0,0,0,3,141,0,3,0,ok,arxiv
+sigmod26-306,Efficient Defective Clique Enumeration and Search with Worst-Case Optimal Search Space,True,38,18,9,4,5,0,0,2,6,1,0,0,3,2,19,45,7,1,0,0,0,0,0,0,0,29,0,0,0,0,ok,arxiv
+sigmod26-372,Theoretically and Practically Efficient Maximum Biclique Search,True,38,21,7,9,11,0,0,0,1,0,0,0,4,4,40,0,0,0,1,0,0,0,0,0,0,12,5,0,2,0,ok,upw|acm403
+sigmod26-102,Fast Estimation of Pairwise Biharmonic Distance on Graphs,True,37,16,10,4,9,2,0,0,1,0,0,0,0,0,0,0,0,3,13,0,0,0,9,3,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-278,Bag Semantics Query Containment: The CQ vs. UCQ Case and Other Stories,True,36,30,2,3,15,3,0,0,20,6,3,0,0,2,1,0,0,0,2,0,0,0,0,0,0,0,0,0,1,0,ok,arxiv
+sigmod26-339,On the Expressiveness of Languages for Querying Property Graphs in Relational Databases,True,36,12,12,1,0,3,2,0,6,0,0,0,0,0,0,1,2,0,0,0,0,0,0,1,0,0,0,0,0,0,ok,arxiv
+sigmod26-349,"Proximity Graphs for Similarity Search: Fast Construction, Lower Bounds, and Euclidean Separation",True,36,17,9,3,7,0,1,0,0,0,6,0,0,7,0,89,11,4,0,1,0,0,0,0,0,6,0,0,0,0,ok,arxiv
+sigmod26-373,Time-Critical Influence Minimization via Node Blocking,True,35,26,3,7,15,0,0,0,4,0,0,0,5,5,4,8,0,0,53,0,0,0,0,0,0,2,0,0,0,0,ok,upw|acm403
+sigmod26-382,Visual Template Inference for Data Extraction from Documents,True,35,14,10,6,0,0,2,0,6,0,0,0,6,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-052,Constrained Shortest Path Finding on Terrain Surfaces,True,34,10,11,2,7,0,0,0,1,0,0,0,9,0,2,0,0,0,48,0,0,0,0,0,0,0,0,0,1,0,ok,upw|acm403
+sigmod26-110,FIRAS: A Framework for Interval Range Search and Sampling,True,33,19,7,4,7,5,2,0,1,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,5,0,0,0,0,ok,upw|acm403
+sigmod26-123,GPM: The Gaussian Pancake Mechanism for Planting Undetectable Backdoors in Differential Privacy,True,32,15,8,8,4,0,1,0,2,0,0,0,0,11,5,7,0,2,0,0,0,38,0,7,0,1,2,0,0,0,ok,upw
+sigmod26-293,"Cut Costs, Not Accuracy: LLM-Powered Data Processing with Guarantees",True,32,30,0,3,37,1,4,0,5,0,0,0,0,9,14,61,0,0,9,15,0,0,0,0,0,13,0,0,0,0,ok,arxiv
+sigmod26-189,Periodic Community Search in Temporal Graphs: Time Series-based Methods,True,31,19,6,8,0,0,0,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-377,Triangle Counting in Hypergraph Streams: A Complete and Practical Approach,True,31,14,8,9,2,0,0,0,3,0,0,0,0,0,1,14,0,0,2,0,0,0,0,3,0,2,0,0,0,0,ok,arxiv
+sigmod26-070,Deterministic Lower Bounds for k-Edge Connectivity in the Distributed Sketching Model,True,30,13,8,3,6,1,0,1,1,0,1,0,0,45,5,11,0,5,0,1,0,0,0,0,0,10,75,0,1,0,ok,upw
+sigmod26-232,Subset Sampling over Joins,True,30,9,10,5,2,2,0,0,0,0,0,0,0,0,12,0,5,1,4,0,0,0,0,0,0,2,1,0,0,0,ok,upw
+sigmod26-263,A General Framework for Per-record Differential Privacy,True,30,18,5,6,5,0,0,0,7,0,0,0,0,2,3,55,3,0,1,0,0,2,0,0,0,2,0,0,0,0,ok,arxiv
+sigmod26-200,Querying Cohesive Subgraphs in Temporal Graphs,True,29,12,8,0,10,0,0,0,2,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-031,Balancing Global and Local: Representative Sampling for Large-Scale Vector Data,True,28,9,8,3,5,1,0,0,0,0,0,0,9,2,2,0,0,0,10,0,0,0,1,3,0,0,0,0,1,0,ok,upw|acm403
+sigmod26-304,Efficient and Scalable Directed Densest Subgraph Discovery,True,28,13,6,8,1,2,0,0,2,0,0,0,2,17,1,1,1,0,54,1,0,0,0,17,0,1,9,0,0,0,ok,upw|acm403
+sigmod26-094,Enumerating Graph Pattern Matches with ML Oracles,True,27,8,8,7,0,1,0,0,0,0,0,0,2,1,0,1,0,0,1,4,0,0,0,0,5,1,8,0,2,0,ok,upw|acm403
+sigmod26-157,Mathematical Foundations of Poisoning Attacks on Linear Regression over Cumulative Distribution Functions,True,27,8,9,6,1,0,0,0,0,1,0,0,0,0,53,70,0,0,2,0,0,0,0,0,0,10,5,0,3,44,ok,upw|acm403
+sigmod26-018,An Efficient Streaming Algorithm for Approximating Graphlet Distributions,True,26,12,6,4,3,0,0,0,1,0,4,0,0,6,2,77,5,9,4,6,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-141,Jaguar: A Primal Algorithm for Conjunctive Query Evaluation in Submodular-Width Time,True,26,9,8,1,0,0,1,7,0,0,0,0,0,8,10,45,4,0,0,0,0,0,31,0,0,1,0,0,17,0,ok,arxiv
+sigmod26-150,LMSC: Local Sketch Modularity Optimisation for Size-Constrained Community Search in Networks,True,26,15,4,5,0,0,0,0,10,0,0,0,6,4,4,0,0,0,2,0,0,0,0,0,0,1,11,0,0,0,ok,upw|acm403
+sigmod26-006,A Unified Framework for Dense Subgraph Maintenance over Dynamic Bipartite Graphs,True,25,8,7,5,1,2,0,0,0,0,0,0,1,2,0,1,0,0,1,0,0,0,0,0,0,1,0,0,1,0,ok,upw|acm403
+sigmod26-049,Concurrent Composition for Differentially Private Continual Mechanisms,True,25,24,0,8,4,4,1,0,7,0,0,0,0,1,3,0,0,1,0,0,0,57,0,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-257,Zero-Redundancy Search for Bi-Components in Bipartite Graphs,True,25,13,6,2,4,0,0,0,7,0,0,0,0,0,1,7,0,0,0,0,0,0,0,0,0,8,0,0,0,0,ok,upw|acm403
+sigmod26-355,Reliable and Private Utility Signaling for Data Markets,True,25,12,6,5,2,0,0,0,5,0,0,0,0,0,1,11,0,0,1,2,0,1,0,0,0,0,0,0,1,0,ok,arxiv
+sigmod26-219,Shape-Agnostic Table Overlap Discovery: A Maximum Common Subhypergraph Approach,True,24,13,4,4,0,0,0,0,9,0,0,0,7,1,11,10,0,0,7,0,0,0,3,4,0,2,0,0,1,0,ok,arxiv
+sigmod26-254,Weighted Set Multi-Cover on Bounded Universe and Applications in Package Recommendation,True,24,14,4,4,7,0,0,0,3,0,0,0,1,0,0,122,0,0,102,0,0,0,0,0,0,0,0,0,2,0,ok,arxiv
+sigmod26-283,Budgeted Strong Community Search in Heterogeneous Graphs,True,24,8,7,4,2,1,0,0,1,0,0,0,5,0,15,0,0,0,1,0,0,0,0,0,0,2,0,0,0,0,ok,upw|acm403
+sigmod26-294,DAG of DAGs: Order-Fairness Made Practical,True,24,8,8,3,5,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-305,Efficient Approximate Nearest Neighbor Search via Hemi-Sphere Centroids Graph,True,24,8,7,3,3,0,0,0,2,0,0,0,0,1,4,0,0,0,5,0,0,0,0,5,0,2,0,0,0,0,ok,upw|acm403
+sigmod26-081,Efficient Anchored Densest Subgraph Discovery: Improved Time Complexity and Practical Performance,True,23,9,6,5,1,1,0,0,2,0,0,0,0,21,0,3,0,0,45,0,0,0,0,25,0,0,8,0,0,0,ok,upw|acm403
+sigmod26-142,Kangaroo: Efficient Lossless Floating-Point Compression via Dynamic Reference Selection,True,23,12,5,5,0,0,0,0,7,0,0,0,0,1,0,5,0,0,0,0,0,0,0,0,0,0,0,11,0,0,ok,upw|acm403
+sigmod26-235,TaCo: Data-adaptive and Query-aware Subspace Collision for High-dimensional Approximate Nearest Neighbor Search,True,23,11,5,2,2,0,0,0,7,0,0,0,0,1,1,6,0,0,2,0,0,0,0,0,0,0,0,0,1,0,ok,arxiv
+sigmod26-010,Accelerating Triangle-Connected Truss Community Search Across Heterogeneous Hardware,True,22,9,6,2,1,0,0,0,6,0,0,0,2,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-137,Improving LZ4 for Effective Compression and Efficient Query,True,22,8,7,0,0,0,7,0,1,0,0,0,0,0,1,32,0,0,0,0,0,0,0,0,0,5,0,0,0,2,ok,upw|acm403
+sigmod26-180,ORDER: Optimal Routing with Path Indexing in Exchange Graph [Data-Intensive & Data Science Application],True,22,5,7,1,2,0,0,0,2,0,0,0,1,1,0,0,0,1,3,0,0,0,3,0,0,1,2,0,0,0,ok,upw|acm403
+sigmod26-073,Differentially Oblivious Multi-way Join,True,21,16,2,3,9,0,0,0,4,0,0,0,0,6,54,0,12,0,0,0,0,3,0,0,0,14,0,0,1,0,ok,upw|acm403
+sigmod26-169,Nucleus Decomposition Revisited: An Efficient Counting-Based Approach,True,21,7,7,3,1,0,0,0,3,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,6,0,0,0,0,ok,upw|acm403
+sigmod26-363,SplineSketch: Even More Accurate Quantiles with Error Guarantees,True,21,7,6,0,4,0,0,0,2,1,0,0,0,7,4,91,10,11,3,0,0,0,5,0,0,27,218,0,0,0,ok,arxiv
+sigmod26-013,Adaptive Outlier Detection over Data Stream,True,20,8,5,2,3,0,0,0,3,0,0,0,0,10,7,25,0,0,1,0,0,0,0,0,0,3,0,1,1,0,ok,s2oa|upw|acm403
+sigmod26-027,ASSS : Adaptive Stratified Sampling for Shapley-like Values,True,20,19,0,15,0,2,1,0,1,0,0,0,0,0,0,0,8,1,8,3,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-068,Defense against Poisoning Attacks under Shuffle-DP,True,20,9,5,4,4,0,0,0,1,0,0,0,0,1,6,115,1,2,0,0,0,1,0,0,0,12,0,0,0,0,ok,arxiv
+sigmod26-151,Local Stability of Rankings,True,20,14,2,1,1,1,1,0,10,0,0,0,0,2,1,0,0,0,2,5,0,0,0,0,0,2,1,0,0,0,ok,arxiv
+sigmod26-179,Order-based Algorithms for Efficient Core Maintenance in Large Bipartite Graphs,True,20,15,2,9,6,0,0,0,0,0,0,0,0,2,0,0,3,0,0,0,0,0,0,0,0,3,0,0,1,0,ok,upw|acm403
+sigmod26-201,R ollbaccine : Herd Immunity against Storage Rollback Attacks in TEEs,True,20,13,3,1,3,0,0,0,9,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,ok,arxiv
+sigmod26-205,Recursive Querying of Neural Networks via Weighted Structures,True,20,15,1,8,2,0,2,0,2,0,0,1,6,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-253,Weighted Fourier Factorizations: Optimal Gaussian Noise for Differentially Private Marginal and Product Queries,True,20,11,4,8,3,0,0,0,0,0,0,0,0,20,5,0,0,0,0,0,0,19,0,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-024,Approximate DBSCAN via Density-Biased Sampling and Kernel Density Estimation,True,19,6,5,0,5,0,0,0,1,0,0,0,5,6,0,0,1,0,16,1,0,0,0,0,0,4,0,0,0,0,ok,upw|acm403
+sigmod26-214,Scalable Privacy-Preserving Shortest Path Distance Computation via 2-Hop Labeling in MPC,True,19,8,5,1,3,0,0,0,4,0,0,0,0,1,3,2,0,0,0,0,0,18,0,7,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-242,"To Adapt or Not to Adapt, That is the Ski Question",True,19,6,6,2,4,0,0,0,0,0,0,0,0,1,2,0,3,0,0,5,0,0,1,0,20,9,0,1,0,0,ok,upw|acm403
+sigmod26-348,PrivAGS: Differentially Private Attributed Graph Synthesis,True,19,9,4,4,2,0,1,0,2,0,0,0,3,0,0,0,0,0,2,0,0,21,0,4,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-043,Causal Explanations for Disparate Trends: Where and Why?,True,18,9,4,0,0,0,1,0,8,0,0,0,4,0,0,1,0,0,0,0,0,0,0,0,0,2,0,0,2,0,ok,arxiv
+sigmod26-127,HeteroFedSyn: Differentially Private Tabular Data Synthesis for Heterogeneous Federated Settings,True,18,12,3,6,0,0,0,0,6,0,0,0,0,0,3,16,1,0,0,1,0,4,0,2,0,4,0,0,0,0,ok,arxiv
+sigmod26-190,PJsim: Towards Precise and Scalable Graph Similarity,True,18,2,7,1,0,1,0,0,0,0,0,0,0,1,1,0,0,0,21,0,0,0,0,31,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-362,SieveSketch: A Fine-grained and Adaptive Sketch Framework for Accurate Frequency Estimation,True,18,7,5,3,2,0,0,0,0,2,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,8,50,0,0,0,ok,upw|acm403
+sigmod26-378,TRIM: Accelerating High-Dimensional Vector Similarity Search with Enhanced Triangle-Inequality-Based Pruning,True,18,7,5,4,1,0,0,0,2,0,0,0,0,83,0,8,0,0,0,0,0,0,1,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-009,Accelerating Maximum Common Subgraph Computation by Exploiting Symmetries,True,17,7,4,3,2,0,0,0,2,0,0,0,4,5,18,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,ok,arxiv
+sigmod26-128,High-Throughput k Nearest Neighbors Search in Road Networks,True,17,17,0,6,6,2,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1,0,ok,upw|acm403
+sigmod26-291,Continuous Subgraph Matching via Cost-Model-based Dynamic Vertex Dominance Embeddings,True,17,9,4,0,4,0,0,0,5,0,0,0,0,0,13,15,0,0,0,0,0,0,0,0,0,3,0,7,0,0,ok,arxiv
+sigmod26-301,DRPQ: Distributed Evaluation of Regular Path Queries On Streaming Graphs,True,17,12,2,2,0,0,0,0,10,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,1,0,0,0,ok,upw|acm403
+sigmod26-103,Fast-Convergent Proximity Graphs for Approximate Nearest Neighbor Search,True,16,9,3,1,4,0,0,0,4,0,0,0,0,0,1,70,3,0,1,0,0,0,0,13,0,7,0,0,0,0,ok,arxiv
+sigmod26-195,Prism: Private Relational Data Synthesis with Language Models,True,16,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,0,0,0,1,0,0,6,0,ok,upw|acm403
+sigmod26-224,Skyline Retrieval meets Set-Cover Chunk Merging: A Cost-Effective RAG-Sketch for Long-Context LLM QA,True,16,5,4,1,2,0,0,0,2,0,0,0,4,2,1,0,0,1,2,0,0,0,0,0,0,4,1,0,0,0,ok,upw|acm403
+sigmod26-310,Estimating Biclique Counts with Accuracy Guarantees,True,16,5,4,3,2,0,0,0,0,0,0,0,1,5,1,0,0,0,12,0,0,0,0,1,0,0,0,0,2,0,ok,upw|acm403
+sigmod26-351,Query Optimization for Database-Returning Queries,True,16,8,4,1,3,0,0,0,4,0,0,0,0,0,1,38,0,0,0,0,0,0,0,0,0,5,0,10,5,0,ok,upw|acm403
+sigmod26-085,Efficient Influential Community Search over Dynamic Graphs,True,15,12,1,7,1,0,0,0,4,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,ok,upw|acm403
+sigmod26-087,Efficient Meta-subgraph Instance Search over Large Heterogeneous Information Networks,True,15,9,2,0,4,0,0,0,3,2,0,0,5,2,5,13,0,0,0,0,0,0,0,0,0,5,0,0,0,0,ok,upw|acm403
+sigmod26-163,MTSP-LDP: A Framework for Multi-Task Streaming Data Publication under Local Differential Privacy,True,15,8,3,3,0,0,0,0,5,0,0,0,0,0,0,5,0,0,18,0,0,7,2,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-229,Stress-Testing Causal Claims via Cardinality Repairs,True,15,8,3,1,1,0,3,0,3,0,0,0,2,0,7,0,0,0,0,0,0,0,0,0,0,5,0,1,12,0,ok,arxiv
+sigmod26-245,Towards Selecting Informative Alternative Relational Query Plans for Database Education,True,15,13,0,2,2,0,0,0,9,0,0,0,2,0,0,0,0,0,6,0,0,0,0,0,0,3,0,1,0,0,ok,upw|acm403
+sigmod26-262,"A Fast, Mergeable, and LDP Compatible Sketch for Counting the Number of Distinct Values in Fully Dynamic Tables",True,15,6,4,5,0,0,0,0,1,0,0,0,0,0,1,0,1,0,5,0,0,9,2,0,0,0,114,1,100,0,ok,upw|acm403
+sigmod26-280,Beyond Vector Search: Querying With and Without Predicates,True,15,5,4,3,1,0,0,0,1,0,0,0,2,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,2,0,ok,upw|acm403
+sigmod26-334,MAVIS: Materialized View for Subgraph Matching,True,15,8,3,3,0,0,0,0,5,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,2,0,ok,upw|acm403
+sigmod26-340,P 2 FedRec: Towards Privacy-Preserving and Personalized Federated Recommendation via Relationship Awareness,True,15,7,4,5,0,0,0,0,2,0,0,0,0,0,2,0,0,0,0,0,0,12,0,4,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-021,Analysis of Shuffling Beyond Pure Local Differential Privacy,True,14,12,0,5,3,2,0,0,2,0,0,0,0,22,20,0,2,5,6,0,0,2,0,0,0,17,0,0,0,0,ok,upw|acm403
+sigmod26-082,Efficient and Effective Biclique Counting with Local Differential Privacy,True,14,10,1,5,0,0,0,0,5,0,0,0,0,3,0,0,0,0,2,0,0,22,0,0,0,1,0,1,0,0,ok,upw|acm403
+sigmod26-095,Epoch-based Optimistic Concurrency Control in Geo-replicated Databases,True,14,5,4,1,3,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,ok,arxiv
+sigmod26-220,Shielding PII to Prevent Re-identification and Preserve Utility,True,14,4,4,4,0,0,0,0,0,0,0,0,1,0,0,0,0,0,9,0,0,5,0,1,0,1,4,0,0,0,ok,upw|acm403
+sigmod26-279,Benchmarking Differentially Private Tabular Data Synthesis: [Experiments & Analysis],True,14,12,0,6,3,0,0,0,3,0,0,0,0,1,0,6,0,0,1,0,0,7,0,4,0,0,0,0,1,0,ok,arxiv
+sigmod26-322,GraphTwin: Cache-Centric Bit-Level Graph Representation for Fast and Exact Graph Queries,True,14,4,4,4,0,0,0,0,0,0,0,0,6,0,0,29,0,0,2,0,0,0,1,0,0,4,4,0,1,0,ok,upw|acm403
+sigmod26-333,Marlin: Efficient Coordination for Autoscaling Cloud DBMS,True,14,2,6,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-385,WoW: A Window-to-Window Incremental Index for Range-Filtering Approximate Nearest Neighbor Search,True,14,8,2,2,0,0,0,0,6,0,0,0,0,6,2,19,0,0,3,0,0,0,0,0,0,4,0,0,6,0,ok,arxiv
+sigmod26-008,Accelerating Approximate Analytical Join Queries over Unstructured Data with Statistical Guarantees,True,13,3,4,2,1,0,0,0,0,0,0,0,0,2,15,14,0,0,3,5,0,0,0,7,0,0,0,0,4,0,ok,arxiv
+sigmod26-022,Analyzing Deviations from Monotonic Trends through Database Repair,True,13,2,4,1,0,0,0,0,1,0,0,0,6,3,6,6,3,0,4,0,0,0,0,0,0,2,0,0,5,0,ok,arxiv
+sigmod26-098,F air -C ount -M in : Frequency Estimation under Equal Group-wise Approximation Factor,True,13,8,2,1,5,0,1,0,1,0,0,0,0,0,3,0,3,1,46,0,0,0,0,0,0,0,133,0,2,1,ok,upw|acm403
+sigmod26-213,Scalable Clustering Over High Dimensional Vector Streams,True,13,7,2,0,2,0,0,0,5,0,0,0,0,6,9,6,0,0,2,1,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-274,Approximate Query Processing under Updates,True,13,11,0,6,4,1,0,0,0,0,0,0,0,6,0,0,3,1,39,0,0,0,1,0,0,6,0,0,1,0,ok,upw|acm403
+sigmod26-093,Enhancing Local Differential Privacy Accuracy by Exploiting Inherent Uncertainty,True,12,6,3,2,1,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,14,0,0,0,2,0,0,0,0,ok,upw|acm403
+sigmod26-147,LINE: A Learned Index with Group-Enhanced Leaves and Cache-Optimized Inner Tree,True,12,3,4,3,0,0,0,0,0,0,0,0,0,0,3,0,0,0,6,0,0,0,0,0,0,11,0,0,0,11,ok,upw|acm403
+sigmod26-149,LM-Tree: A Hybrid Learned Index for Similarity Search in Metric Spaces,True,12,4,4,4,0,0,0,0,0,0,0,0,0,0,0,22,0,0,0,0,0,0,0,0,0,0,0,0,8,18,ok,upw|acm403
+sigmod26-152,Loom: Weaving PCS-Preserving and Searchable Cloud Backups for Secure Messaging,True,12,6,3,2,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,1,0,0,0,ok,upw|acm403
+sigmod26-234,SWMT: A Sliding Window Merkle Tree with Delayed Writes for Scalable Blockchain State Management,True,12,4,4,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,0,2,0,0,0,0,ok,upw|acm403
+sigmod26-035,Beyond Maximum Common Subgraph: A Framework Maximizing Shared Computation for Multi-Query Subgraph Matching,True,11,6,2,0,2,0,0,0,4,0,0,0,4,0,0,0,0,0,0,0,0,0,2,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-060,CoShap: A Scalable Coalition Growth Approach to Shapley Value Approximation,True,11,4,2,4,0,0,0,0,0,0,0,0,1,1,0,0,0,0,33,0,0,0,0,12,0,1,0,0,9,0,ok,upw|acm403
+sigmod26-090,Enabling Efficient Update on Rule-Based Compressed Graph,True,11,1,5,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,ok,upw|acm403
+sigmod26-092,Enhancing Graph-based Approximate Maximum Inner Product Search via Norm-Adaptive Partitioning,True,11,9,0,0,6,0,0,0,3,0,0,0,0,1,1,0,0,0,3,2,0,0,0,0,0,1,0,0,2,0,ok,upw|acm403
+sigmod26-101,Fair Data Pre-Processing with Imperfect Attribute Space,True,11,8,1,1,0,1,1,0,5,0,0,0,0,2,1,8,0,0,0,0,0,0,0,5,0,2,0,0,5,0,ok,arxiv
+sigmod26-255,Workload-Aware Incremental Reclustering in Cloud Data Warehouses,True,11,5,3,2,3,0,0,0,0,0,0,0,0,0,3,22,2,2,0,0,0,0,0,0,0,2,0,21,0,0,ok,arxiv
+sigmod26-265,Accelerating High-Dimensional ANN Search via Skipping Redundant Distance Computations,True,11,6,2,4,1,0,0,0,1,0,0,0,0,67,1,3,0,0,0,1,0,0,0,1,0,0,0,0,2,0,ok,upw|acm403
+sigmod26-317,G uardrail : Automated Integrity Constraint Synthesis From Noisy Data,True,11,7,2,2,0,0,4,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,108,0,1,0,ok,upw|acm403
+sigmod26-325,Hops Can be Constrained: Efficient Distance Queries on Large Time-Dependent Road Networks,True,11,9,0,1,7,0,0,0,1,0,0,0,2,0,0,18,0,0,1,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-329,Large-Scale Multiple Query Optimisation with Incremental Quantum(-Inspired) Annealing,True,11,4,3,4,0,0,0,0,0,0,0,0,3,0,1,2,0,0,0,0,0,0,1,0,0,1,0,0,2,0,ok,upw|acm403
+sigmod26-107,FGIM: a Fast Graph-based Indexes Merging Framework for Approximate Nearest Neighbor Search,True,10,7,1,0,0,0,0,0,7,0,0,0,0,0,0,21,0,0,1,0,0,0,0,0,0,1,0,0,0,0,ok,arxiv
+sigmod26-118,Geld: Load-balanced D-Core Decomposition for Consumer GPUs,True,10,3,3,3,0,0,0,0,0,0,0,0,0,1,10,0,0,0,0,0,0,0,0,6,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-191,Poisson Sampling over Acyclic Joins,True,10,4,3,1,0,0,2,0,1,0,0,0,0,0,0,0,1,1,0,0,2,0,0,0,0,1,0,1,4,0,ok,arxiv
+sigmod26-199,Quantile Estimation with Duplicates,True,10,9,0,0,2,0,5,0,2,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,1,108,0,0,0,ok,upw|acm403
+sigmod26-228,SQLBarber: A System Leveraging Large Language Models to Generate Customized and Realistic SQL Workloads,True,10,9,0,0,0,0,0,0,9,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1,15,0,ok,arxiv
+sigmod26-302,Dynamically Detect and Fix Hardness for Efficient Approximate Nearest Neighbor Search,True,10,9,0,5,0,1,0,0,3,0,0,0,0,0,3,7,0,0,2,0,0,0,0,0,0,1,0,0,0,0,ok,arxiv
+sigmod26-316,From Suspicious Errors to Valid Data: On Repairing Spatio-Temporal Data via Spatial and Temporal Dependencies,True,10,8,0,1,0,0,7,0,0,0,0,0,3,0,2,0,0,0,13,0,0,0,0,0,0,5,0,0,1,0,ok,upw|acm403
+sigmod26-003,A Game Theory Approach for Negotiating in Data Marketplaces,True,9,9,0,0,0,0,0,0,9,0,0,0,0,0,2,0,0,0,0,0,2,0,0,15,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-198,Qualitative Join Discovery in Data Lakes using Examples,True,9,3,2,0,0,0,2,0,1,0,0,0,4,0,0,8,0,0,5,0,0,0,1,0,0,1,5,0,19,0,ok,upw|acm403
+sigmod26-354,Regular Expression Indexing for Log Analysis,True,9,3,2,0,1,0,0,0,0,2,0,0,1,0,0,9,0,0,1,1,0,0,0,0,0,1,0,0,0,0,ok,arxiv
+sigmod26-007,ABFlow: Alert Bursting Flow Query in Streaming Temporal Flow Networks,True,8,8,0,2,4,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-044,Causal Search for Skylines (CSS): Causally-Informed Selective Data De-Correlation,True,8,6,0,0,0,0,0,0,5,1,0,0,0,4,4,15,0,0,1,0,0,0,0,0,0,4,0,0,7,0,ok,arxiv
+sigmod26-083,Efficient and Robust Out-Of-Distribution Vector Similarity Search with Cross-Distribution Monotonic Graph,True,8,4,2,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-089,Eliminating Redundant Feature Tests in Decision Tree and Random Forest Inference on SQL Predicates,True,8,4,2,2,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-099,FaaSBoard: Efficient Graph Processing with a Disaggregated Architecture on Serverless Services,True,8,4,2,2,0,0,0,0,0,2,0,0,0,0,1,2,0,0,0,0,0,0,0,1,0,0,0,1,0,0,ok,upw|acm403
+sigmod26-135,Improved Accuracy for Private Continual Cardinality Estimation in Fully Dynamic Streams via Matrix Factorization,True,8,5,0,3,0,0,0,1,1,0,0,0,1,16,16,0,3,1,1,0,0,21,0,0,0,3,0,0,19,0,ok,upw|acm403
+sigmod26-146,LICO: An SIMD-Aware High-Performance Learned Inverted Index Compression Framework,True,8,2,2,1,0,0,0,0,1,0,0,0,0,2,0,0,0,0,7,0,0,0,0,0,0,3,0,7,0,12,ok,upw|acm403
+sigmod26-158,Maximal Biclique Enumeration with Improved Worst-Case Time Complexity Guarantee: A Partition-Oriented Strategy,True,8,4,2,2,1,0,0,0,1,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,37,0,0,0,0,ok,upw|acm403
+sigmod26-203,"RadixGraph: A Fast, Space-Optimized Data Structure for Dynamic Graph Storage",True,8,4,2,3,1,0,0,0,0,0,0,0,0,0,0,77,0,0,0,0,0,0,0,0,0,6,0,0,0,0,ok,arxiv
+sigmod26-308,"Efficient Size-Bounded Community Search, Revisited: Frameworks for Practical Improvements",True,8,4,1,1,3,0,0,0,0,0,0,0,2,4,12,0,0,0,0,0,0,0,0,1,0,3,0,0,0,0,ok,upw|acm403
+sigmod26-383,Visualization-Oriented Progressive Time Series Transformation,True,8,4,2,2,0,0,0,0,2,0,0,0,0,0,8,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-019,An Extensive Experimental Study of Indexes in Continuous Subgraph Matching: [Experiments & Analysis],True,7,6,0,0,0,0,0,0,6,0,0,0,1,0,2,0,0,0,0,0,0,0,0,0,0,2,0,0,3,0,ok,upw|acm403
+sigmod26-076,Distribution-Aware Exploration for Adaptive HNSW Search,True,7,4,1,1,0,0,0,0,3,0,0,0,0,0,3,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,ok,arxiv
+sigmod26-140,Interpretable Attribute Discretization,True,7,7,0,1,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,7,0,1,1,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-202,R2O: A Dual-Layer Framework for Joint Rewriting and Ordering in Distributed Property Graph Query Optimization,True,7,7,0,0,0,0,0,0,7,0,0,0,0,0,0,16,0,0,0,0,0,0,0,4,0,3,0,0,3,1,ok,upw|acm403
+sigmod26-212,Robust Fair Influence Maximization under Multiple Community Partitions,True,7,4,0,4,0,0,0,0,0,0,0,0,7,9,8,15,2,0,36,5,0,0,0,1,0,12,0,0,3,0,ok,upw|acm403
+sigmod26-221,SHoTClean: Bridging Soft and Hard Constraints for Multivariate Time Series Cleaning,True,7,2,2,2,0,0,0,0,0,0,0,0,0,0,2,0,0,0,1,0,8,0,0,0,0,3,0,0,0,0,ok,upw|acm403
+sigmod26-223,Sketch-based Secure Query Processing for Streaming Data,True,7,2,2,0,2,0,0,0,0,0,0,0,0,0,3,0,0,0,7,1,0,2,0,0,0,3,184,0,4,0,ok,upw|acm403
+sigmod26-236,Task Cascades for Efficient Unstructured Data Processing,True,7,3,1,2,1,0,0,0,0,0,0,0,1,0,2,0,0,0,3,1,0,0,0,0,0,0,0,3,0,0,ok,arxiv
+sigmod26-288,Cleaning Time Series under Seasonal and Trend Constraints,True,7,5,1,1,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,2,0,0,0,ok,upw|acm403
+sigmod26-299,DiskJoin: Large-scale Vector Similarity Join with SSD,True,7,3,1,1,0,0,0,0,2,0,0,0,7,0,0,7,0,0,5,0,0,0,1,0,0,2,0,0,0,0,ok,arxiv
+sigmod26-133,Hyra: Scalable Byzantine-Resilient State Storage Engine with Hierarchical Erasure-Coding,True,6,2,2,0,2,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,3,0,0,0,0,ok,upw|acm403
+sigmod26-134,IDAP++: Advancing Divergence-Aware Pruning with Joint Filter and Layer Optimization,True,6,3,1,2,1,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,4,0,0,0,0,0,0,2,ok,upw|acm403
+sigmod26-240,Through the Lens of Hubness: A Revisit on Graph-Based Approximate Nearest Neighbor Search: [Experiments & Analysis],True,6,1,2,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,2,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-282,Brook-2PL: Tolerating High Contention Workloads with A Deadlock-Free Two-Phase Locking Protocol,True,6,2,2,2,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,3,0,0,0,0,ok,arxiv
+sigmod26-313,Fast Optimal Group Steiner Tree Search using GPUs,True,6,1,1,1,0,0,0,0,0,0,0,0,2,5,4,0,0,18,6,0,0,0,0,0,0,4,0,0,0,0,ok,upw|acm403
+sigmod26-359,SAQ: Pushing the Limits of Vector Quantization through Code Adjustment and Dimension Segmentation,True,6,2,1,0,2,0,0,0,0,0,0,0,0,4,1,12,0,0,9,2,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-036,Beyond Relational: Semantic-Aware Multi-Modal Analytics with LLM-Native Query Optimization,True,5,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,1,0,4,0,ok,arxiv
+sigmod26-088,Efficient Vector Index Merging in Vector Databases,True,5,5,0,1,2,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,ok,upw|acm403
+sigmod26-138,Improving Range Scan Performance in LSM-trees with Group Caching,True,5,0,2,0,0,0,0,0,0,0,0,0,0,5,3,0,0,0,0,0,0,0,0,0,1,3,2,0,0,1,ok,upw|acm403
+sigmod26-173,On Efficient Approximate Aggregate Nearest Neighbor Queries over Learned Representations,True,5,3,0,3,0,0,0,0,0,0,0,0,0,1,1,5,0,0,15,8,0,0,0,2,0,0,0,0,5,0,ok,arxiv
+sigmod26-250,Variational Inference for De Finetti Logic,True,5,3,0,1,0,0,0,0,2,0,0,0,0,1,0,0,0,0,2,0,0,0,2,4,0,0,0,0,1,0,ok,upw|acm403
+sigmod26-287,Categorical Data Clustering via Value Order Estimated Distance Metric Learning,True,5,5,0,3,2,0,0,0,0,0,0,0,0,0,0,15,0,2,0,0,0,0,0,12,0,2,0,0,1,0,ok,arxiv
+sigmod26-315,Focus! Fast On-disk Concurrency-control Using Sketches,True,5,1,1,0,1,0,0,0,0,0,0,0,0,2,4,1,0,4,9,1,0,0,1,0,0,0,56,0,0,0,ok,upw|acm403
+sigmod26-330,LLM-Powered Interactive Graph Search: A Scalable and Practical Approach,True,5,3,1,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-367,Stochastic Submodular Data Forgetting,True,5,4,0,4,0,0,0,0,0,0,0,0,0,0,0,35,0,0,13,0,0,0,0,1,0,0,2,0,2,0,ok,upw|acm403
+sigmod26-037,Bound-Tightened Densest Subgraph Discovery on GPU,True,4,0,1,0,0,0,0,0,0,0,0,0,0,8,22,0,0,0,3,0,0,0,0,12,0,2,0,0,0,0,ok,upw|acm403
+sigmod26-050,Concurrent Path-Copying Update to Tree Structures,True,4,2,1,1,1,0,0,0,0,0,0,0,0,0,0,9,1,0,0,2,0,0,0,0,0,0,1,0,0,0,ok,upw|acm403
+sigmod26-063,cuRPQ: A High-Performance GPU-Based Framework for Processing Regular and Conjunctive Regular Path Queries,True,4,4,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,ok,upw|acm403
+sigmod26-086,Efficient LLM Serving for Agentic Workflows: A Data Systems Perspective,True,4,1,1,1,0,0,0,0,0,0,0,0,2,0,0,19,0,0,0,0,0,0,1,0,0,0,0,5,0,0,ok,arxiv
+sigmod26-097,ESTune: Bayesian Uncertainty-Guided Early Stopping for Database Configuration Tuning,False,4,2,0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,1,1,0,0,0,0,8,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-126,HAMMER: An Automatic RAG Tuning System via Hierarchical Memory-Guided Monte Carlo Tree Search,False,4,2,0,1,0,0,0,0,1,0,0,0,4,0,0,0,0,1,9,0,0,0,0,1,0,0,0,0,0,1,ok,upw|acm403
+sigmod26-131,HotHash: Hotness-Aware Consistent Hashing for Cloud Databases,True,4,2,0,2,0,0,0,0,0,0,0,0,0,1,2,0,0,0,1,0,0,0,1,0,0,4,0,0,0,0,ok,upw|acm403
+sigmod26-167,NeurBench: A Benchmark Suite for Learned Database Components with Drift Modeling: [Experiments & Analysis],True,4,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,3,46,ok,upw|acm403
+sigmod26-207,Reqo: A Comprehensive Learning-Based Cost Model for Robust and Explainable Query Optimization,True,4,3,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,4,0,34,6,1,ok,arxiv
+sigmod26-225,SmartRabbit : An Interactive Query Processor,True,4,3,0,0,1,0,0,0,2,0,0,0,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,2,5,0,ok,upw|acm403
+sigmod26-251,VecBench: A Controllable Benchmark for Filtered Vector Search: [Experiments & Analysis],True,4,3,0,1,0,0,0,0,2,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1,0,2,5,0,ok,upw|acm403
+sigmod26-258,3dSAGER: Geospatial Entity Resolution over 3D Objects,True,4,4,0,0,0,0,0,0,4,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,2,1,ok,arxiv
+sigmod26-323,High Performance or Low Memory? An Updatable Learned Index Framework for Time-Space Tradeoff,True,4,2,0,0,0,0,0,0,0,2,0,0,0,1,6,0,0,0,1,0,0,0,0,0,0,2,0,2,0,76,ok,upw|acm403
+sigmod26-328,Integrating Vector Databases across Embedding Models,True,4,1,1,1,0,0,0,0,0,0,0,0,0,0,5,1,0,0,2,0,0,0,2,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-365,SSCard: Substring Cardinality Estimation using Suffix Tree-Guided Learned FM-Index,True,4,2,0,0,0,0,0,0,2,0,0,0,0,1,1,35,0,0,1,0,0,0,0,1,0,9,0,0,66,6,ok,arxiv
+sigmod26-379,Understanding and Detecting Query Performance Regression in Practical Index Tuning: [Experiments & Analysis],True,4,4,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,2,63,0,ok,upw|acm403
+sigmod26-381,VecFlow: A High-Performance Vector Data Management System for Filtered-Search on GPUs,True,4,2,1,0,0,0,0,0,2,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,2,0,0,0,0,ok,arxiv
+sigmod26-001,100x Cost & Latency Reduction: Performance Analysis of AI Query Approximation using Lightweight Proxy Models: [Experiments & Analysis],False,3,2,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,33,0,0,0,0,0,0,0,0,0,0,1,ok,arxiv
+sigmod26-005,A Principled Solution to the Disjunction Problem of Diagrammatic Query Representations,True,3,3,0,1,2,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,1,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-029,Automated Discovery of Test Oracles for Database Management Systems Using LLMs,True,3,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,ok,upw
+sigmod26-030,Automating Database-Native Function Code Synthesis with LLMs,True,3,3,0,0,0,0,0,0,3,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-046,CMANNS: GPU-Accelerated Graph Index Construction for ANNS via Compute–Memory Disaggregation,True,3,0,1,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,1,0,0,0,2,0,0,0,0,1,0,0,ok,upw|acm403
+sigmod26-054,CorrBound: Cardinality Estimation Accounting for Inter- and Intra-relation Correlations,False,3,2,0,1,1,0,0,0,0,0,0,0,0,0,43,0,0,0,8,0,0,0,0,0,0,3,76,0,75,0,ok,upw|acm403
+sigmod26-065,Data-Semantics-Aware Recommendation of Diverse Pivot Tables,False,3,1,0,0,0,0,0,0,1,0,0,0,3,0,0,6,0,0,5,0,0,0,2,0,0,0,0,0,2,0,ok,arxiv
+sigmod26-112,FLEA: Frequency-based Lossless Encoding Algorithm for Periodic Time Series,True,3,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,9,0,0,ok,upw|acm403
+sigmod26-116,From Learning to Recycling: A Log-Structured Learned-Less Index,True,3,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,85,ok,upw|acm403
+sigmod26-122,GoodTP: An Effective Data Selection Framework for Enhancing Trajectory Similarity Learning via Monte Carlo Tree Search,True,3,0,1,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,2,0,0,0,0,8,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-130,HONEYBEE: Efficient Role-based Access Control for Vector Databases via Dynamic Partitioning,True,3,1,0,0,0,0,0,0,1,0,0,0,3,1,1,8,0,0,0,0,0,0,0,0,0,2,0,0,1,0,ok,arxiv
+sigmod26-192,Practical Parameterized Query Optimization via Efficient Plan Reuse and List-wise Ranking,False,3,2,0,0,0,0,0,0,0,2,0,0,0,0,4,0,0,0,1,0,0,0,0,3,0,0,0,4,44,4,ok,upw|acm403
+sigmod26-204,RAIRS: Optimizing Redundant Assignment and List Layout for IVF-Based ANN Search,True,3,1,1,1,0,0,0,0,0,0,0,0,0,0,0,35,0,0,0,0,0,0,0,0,0,3,0,0,0,0,ok,arxiv
+sigmod26-237,The Case For Language Model Approximated LIKE Predicate,True,3,1,0,1,0,0,0,0,0,0,0,0,0,1,1,22,0,0,3,0,0,0,1,2,0,4,0,1,31,4,ok,upw|acm403
+sigmod26-267,ACGraph: An Efficient Asynchronous Out-of-Core Graph Processing Framework,True,3,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,1,8,0,0,0,0,0,0,ok,arxiv
+sigmod26-269,Aegis: A Correlation-Based Data Masking Advisor for Data Sharing Ecosystems,False,3,1,0,0,1,0,0,0,0,0,0,0,1,0,1,5,1,0,1,0,0,3,0,4,0,1,0,0,2,0,ok,arxiv
+sigmod26-331,LPStream: Fine-grained Lazy Provenance for Stream Processing,True,3,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-358,Retrieve-and-Verify: A Table Context Selection Framework for Accurate Column Annotations,True,3,3,0,0,0,0,0,0,3,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,ok,arxiv
+sigmod26-384,WaveStitch: Flexible and Fast Conditional Time Series Generation With Diffusion Models,True,3,1,1,0,0,0,1,0,0,0,0,0,0,0,2,5,0,0,0,0,0,0,0,3,0,4,0,0,0,0,ok,arxiv
+sigmod26-002,A Backend-Agnostic Compiler for Approximate Query Processing with Probabilistic Tensor Algebra,False,2,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,5,0,0,0,0,0,0,0,0,0,17,1,ok,upw|acm403
+sigmod26-033,BEACON: Budget-Aware Entity Matching Across Domains,False,2,1,0,0,0,0,0,0,1,0,0,0,0,0,0,3,0,0,1,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-045,Chatty-KG: A Multi-Agent AI System for On-Demand Conversational Question Answering over Knowledge Graphs,False,2,2,0,0,0,0,0,0,2,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-047,CoDec: Prefix-Shared Decoding Kernel for LLMs,False,2,0,0,0,0,0,0,0,0,0,0,0,2,1,2,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-069,Detecting Join Bugs in Database Engines via Join Implication Reasoning,True,2,0,1,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-074,DimWeaver: Dimensional Weaved Trajectory Compression,False,2,0,0,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,12,0,0,0,0,0,0,2,0,0,0,0,ok,upw|acm403
+sigmod26-080,Dynamic Flat Filter: A Unified Framework for Scalable and Stable Fingerprint-Based Filters,False,2,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,3,1,1,0,0,0,0,0,0,6,1,0,1,0,ok,upw|acm403
+sigmod26-105,FastGNAS: Accelerating and Scaling Graph Neural Architecture Search on Multi-GPUs via Ring-Based Model Migration,False,2,2,0,0,0,0,2,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,2,0,0,0,1,0,0,ok,upw|acm403
+sigmod26-119,GEM: A Native Graph-based Index for Multi-Vector Retrieval,False,2,1,0,0,0,0,0,0,1,0,0,0,0,0,4,0,0,0,5,0,0,0,0,3,0,0,4,0,0,0,ok,arxiv
+sigmod26-120,Generalized Entity Matching with Adaptivity via Large Language Models,False,2,2,0,0,2,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-129,HIRE: A Hybrid Learned Index for Robust and Efficient Performance under Mixed Workloads,False,2,0,0,0,0,0,0,0,0,0,0,0,0,3,0,10,0,0,3,0,0,0,0,0,0,5,0,7,0,54,ok,arxiv
+sigmod26-143,KVD rive: A Holistic Multi-Tier KV Cache Management System for Long-Context LLM Inference,False,2,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-145,LeaseGuard: Raft Leases Done Right,False,2,2,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,ok,arxiv
+sigmod26-164,MUFASA: Fast and Accurate Multivariate Time-Series Clustering,False,2,0,0,0,0,0,0,0,0,0,0,0,3,0,1,14,0,0,1,0,0,0,1,5,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-174,On Self-Designing Learned Indexes,False,2,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,2,0,0,0,0,1,0,1,0,3,0,45,ok,upw|acm403
+sigmod26-249,Unseen Anomaly Detection from System Logs,True,2,1,0,0,0,0,0,0,1,0,0,0,0,1,0,11,0,0,0,0,0,0,8,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-270,AgentTune: An Agent-Based Large Language Model Framework for Database Knob Tuning,False,2,0,0,0,0,0,0,0,0,0,0,0,1,3,4,0,0,0,0,0,0,0,0,5,0,0,0,0,1,0,ok,upw|acm403
+sigmod26-312,Fast Indexing for Temporal Information Retrieval,True,2,1,0,0,0,0,0,0,1,0,0,0,0,2,3,0,0,0,0,0,0,0,0,0,0,2,0,4,7,1,ok,upw
+sigmod26-327,Hydraulis: Balancing Large Transformer Model Training via Co-designing Parallel Strategies and Data Assignment,False,2,0,0,0,0,0,0,0,0,0,0,0,0,4,1,1,0,0,3,0,0,0,0,4,0,5,0,1,0,0,ok,arxiv
+sigmod26-347,Privacy-preserving and Verifiable Causal Prescriptive Analytics,False,2,2,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-352,Query-Aware Path Inference from Spatial Videos,False,2,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,2,0,ok,upw|acm403
+sigmod26-366,ST-Raptor: LLM-Powered Semi-Structured Table Question Answering,False,2,2,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,ok,arxiv
+sigmod26-014,Aeris Filter: A Strongly and Monotonically Adaptive Range Filter,False,1,0,0,0,0,0,0,0,0,0,0,0,0,7,0,1,1,0,0,0,0,0,2,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-020,An In-Depth Study of Filter-Agnostic Vector Search on a PostgreSQL Database System: [Experiments & Analysis],False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,1,1,0,ok,arxiv
+sigmod26-032,BAT: Target-Instance-Free Data Preparation Synthesis via LLM-Driven Tree Search,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-039,Breadcrumb Filters: Fast Fully Featured Filters,False,1,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,3,0,0,0,0,0,4,0,0,4,0,0,0,0,ok,upw|acm403
+sigmod26-040,Bridging the Gap: Cardinality Estimation for Semantic Queries on Unstructured Data,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,57,0,ok,upw|acm403
+sigmod26-061,CoTra: Towards Efficient and Scalable Distributed Vector Search with RDMA,False,1,1,0,0,0,0,0,0,1,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-071,DFLOP: A Data-driven Framework for Multimodal LLM Training Pipeline Optimization,False,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,5,0,0,0,0,0,0,1,0,0,2,0,0,0,0,ok,arxiv
+sigmod26-078,Divo: Learning a Stable and Effective Query Optimizer with a Diverse Workload,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,1,0,0,0,0,0,0,0,0,0,2,6,ok,upw|acm403
+sigmod26-106,FAVOR: Efficient Filter-Agnostic Vector ANNS Based on Selectivity-Aware Exclusion Distances,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,1,0,0,0,0,2,0,ok,arxiv
+sigmod26-111,FlashANNS: GPU-Driven Asynchronous I/O Pipelining for Eliminating Storage-Compute Bottlenecks in Billion-Scale Similarity Search,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,5,0,0,0,0,0,1,ok,upw|acm403
+sigmod26-121,GenRewrite: Query Rewriting via Large Language Models,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,2,0,0,1,2,6,0,ok,arxiv
+sigmod26-132,HYDRA: A Multi-Level Hierarchy-Driven Approach for Robust Anomaly Detection in Time Series,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,1,0,0,0,0,1,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-139,InferF: Declarative Factorization of AI/ML Inferences over Joins,False,1,0,0,0,0,0,0,0,0,0,0,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13,45,0,ok,arxiv
+sigmod26-159,Meep Hashing: Ultrafast and Compact Minimal Perfect Hashing for Practical Large-Scale Lookup Systems,False,1,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-170,O cto S elector : Efficient and Effective Batch-Aware Model Selection for Large Language Models,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,3,0,0,0,0,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-181,P-MOSS: Scheduling Main-Memory Indexes Over NUMA Servers Using Next Token Prediction,False,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,ok,arxiv
+sigmod26-193,Predictive Translation: High-Performance Buffer Management Without the Trade-Offs,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,1,0,0,ok,upw|acm403
+sigmod26-208,ReStore: A Reinforcement Learning Approach for Data Migration in Multi-Tiered Storage,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,1,0,0,0,2,0,0,ok,upw|acm403
+sigmod26-209,Reveal Hidden Pitfalls and Navigate Next Generation of Vector Similarity Search from Task-Centric Views: [Experiments & Analysis],False,1,0,0,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-211,RIB: Robust Learning-based Index Benefit Estimation,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,1,0,1,2,0,0,0,3,5,7,ok,upw|acm403
+sigmod26-215,ScaleDoc: Scaling LLM-based Predicates over Large Document Collections,False,1,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,ok,arxiv
+sigmod26-230,Sublime: Selecting Subgraph Matching Algorithms via Machine Learning,False,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,ok,upw|acm403
+sigmod26-252,VecFlow-Chamfer: A GPU-based Data Management System for High-Performance Multi-Vector Search on Superchips,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,2,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-256,Zeno Filter: To Infinity in Tiny Steps,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,5,0,2,0,0,ok,upw|acm403
+sigmod26-260,"A Comprehensive Benchmark on Spectral GNNs: The Impact on Efficiency, Memory, and Effectiveness",False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,11,0,0,10,0,0,0,2,1,0,0,0,0,0,0,ok,arxiv
+sigmod26-275,APQO: An Adaptive Framework for Parametric Query Optimization,False,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,2,0,0,0,0,2,3,ok,upw|acm403
+sigmod26-276,Are Your LLM-based Text-to-SQL Models Secure? Exploring SQL Injection via Backdoor Attacks,False,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,ok,arxiv
+sigmod26-277,Attribute Filtering in Approximate Nearest Neighbor Search: An In-depth Experimental Study,False,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,2,0,0,0,0,5,0,ok,arxiv
+sigmod26-286,Can Large Language Models Be Query Optimizer for Relational Databases?,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,8,5,4,ok,arxiv
+sigmod26-297,Detecting Logic Bugs in DBMSs via Equivalent Data Construction,False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,ok,upw|acm403
+sigmod26-318,Gem: Scalable Monotonic Graph Processing Beyond Billion-Scale on a Single Machine,False,1,0,0,0,0,0,0,0,0,0,0,0,0,9,9,0,0,0,0,0,0,0,0,16,0,0,116,0,0,0,ok,upw|acm403
+sigmod26-319,GenJoin: Conditional Generative Plan-to-Plan Query Optimizer that Learns from Subplan Hints,False,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,5,0,0,0,0,0,0,0,0,0,1,0,2,9,6,ok,arxiv
+sigmod26-320,GeoKGM: A Multimodal Large Language Model for Zero-Shot Knowledge Graph Completion in Geospatial Databases,False,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-321,GraphMatch: Subgraph Query Processing on Steroids,False,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,9,0,0,2,0,ok,upw|acm403
+sigmod26-324,"High-Throughput, Cost-Effective Billion-Scale Vector Search with a Single GPU",False,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,3,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-335,MCTuner: Spatial Decomposition-Enhanced Database Tuning via LLM-Guided Exploration,False,1,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,0,0,0,0,0,0,0,5,0,0,0,0,0,0,ok,arxiv
+sigmod26-341,P erseus : Achieving Strong Consistency and High Data Freshness for Scalable Geo-distributed HTAP,False,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-369,Test Data Generation for Complex SQL Queries,False,1,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,2,1,0,0,0,ok,upw|acm403
+sigmod26-380,Understanding Robustness Issues of Updatable Learned Indexes: [Experiments & Analysis],False,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,17,0,3,1,96,ok,upw|acm403
+sigmod26-016,AgenticScholar: Agentic Data Management with Pipeline Orchestration for Scholarly Corpora,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,4,ok,arxiv
+sigmod26-017,AlignedServe: Orchestrating Prefix-aware Batching to Build a High-throughput and Computing-efficient LLM Serving System,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-023,ANTEATER: A Filter-then-Scrutinize Architecture for End-to-End Attack Investigation,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-025,Are Learned DBMS Components Robust to Workload Drift?: [Experiments & Analysis],False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,47,16,ok,upw|acm403
+sigmod26-026,ART That Lasts: Persistent Multiversion Adaptive Radix Trees with Fast Atomic Range Queries,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,1,0,ok,upw|acm403
+sigmod26-028,AutoDDG: Automated Dataset Description Generation using Large Language Models,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-034,Beluga: A CXL-Based Memory Architecture for Scalable and Efficient LLM KVCache Management,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-041,Bw-Graph: An Efficient Graph Storage System Harmonizing Topology-Aware Tree with Paged CSR,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,ok,upw|acm403
+sigmod26-042,CANDOR-Bench: Benchmarking In-Memory Continuous ANNS under Dynamic Open-World Streams [Experiments & Analysis],False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,ok,upw|acm403
+sigmod26-048,Comparison and Analysis of Value Linking in Text-to-SQL systems: [Experiments & Analysis],False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,2,13,0,0,0,ok,upw|acm403
+sigmod26-051,CONE: Embeddings for Complex Numerical Data Preserving Unit and Variable Semantics,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-055,"Corrigendum: A Comprehensive Benchmark on Spectral GNNs: The Impact on Efficiency, Memory, and Effectiveness: [Experiments & Analysis]",False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-056,Corrigendum: Analysis and Evaluation of Using Microsecond-Latency Memory for In-Memory Indices and Caches in SSD-Based Key-Value Stores: [Experiments & Analysis],False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-057,Corrigendum: Attribute Filtering in Approximate Nearest Neighbor Search: An In-depth Experimental Study: [Experiments & Analysis],False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-058,Corrigendum: Building Stateless Serverless Vector DBs via Block-based Data Partitioning: [Experiments & Analysis],False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-059,Corrigendum: Burr: A Benchmark for Ontology Learning from Relational Databases [Experiments & Analysis],False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-062,Curator: Efficient Vector Search with Low-Selectivity Filters,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0,ok,arxiv
+sigmod26-064,DART: A Lock-free Two-layer Hashed ART Index for Disaggregated Memory,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,ok,upw|acm403
+sigmod26-066,DBugScribe: Automatic Database Bug Reproduction from Community Reports,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,4,0,ok,upw|acm403
+sigmod26-067,DeepEye-SQL: A Software-Engineering-Inspired Text-to-SQL Framework,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,ok,arxiv
+sigmod26-072,Dialect-Agnostic SQL Parsing via LLM-Based Segmentation,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,2,0,0,0,0,ok,arxiv
+sigmod26-075,Discovery of Denial Constraints with Hardware Acceleration,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-077,DIVER: A Robust Text-to-SQL System with Dynamic Interactive Value Linking and Evidence Reasoning,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-084,Efficient Index Layout and Search Strategy for Large-scale High-dimensional Vector Similarity Search,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-091,EncoderForge: Generating Efficient SQL for Encoders in Machine Learning Inference Pipelines,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,9,1,0,ok,upw|acm403
+sigmod26-096,EPSC: Testing Database Management Systems via Equivalent Prepared Statement Construction,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-100,Factorized and Vectorized Execution: Optimizing Analytical and Semantic Queries over Relations,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,6,1,0,1,0,ok,arxiv
+sigmod26-108,Finding Missed Optimizations in DBMSs through Unbalanced Short-circuit Query Construction,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,4,9,0,ok,upw|acm403
+sigmod26-113,FlowPilot: A Suggestion System for Designing Scientific Workflows,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-117,From Prefix Cache to Fusion RAG Cache: Accelerating LLM Inference in Retrieval-Augmented Generation,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-124,GPS: Revisiting the Data Layout for Disk-based High-Dimensional Vector Search,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-125,GraphRTX: Lighting the Way to Scalable Graph Analytics,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,1,0,ok,upw|acm403
+sigmod26-144,L3: A GPU-Native Co-Designed Data Format for Learned Lossless Lightweight Compression,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,2,1,1,1,0,0,0,11,ok,upw|acm403
+sigmod26-148,LiveBin: A Localized and Version-Aware Binned Scan Index,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,ok,upw|acm403
+sigmod26-156,Making LSM-Tree-based Key-Value Store Practical and Efficient for Multi-Tenant Serverless Cloud Databases,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,ok,upw|acm403
+sigmod26-160,Mixtera: A Data Plane for Foundation Model Training,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-161,Modeling Concurrency Control as a Learnable Function,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,ok,arxiv
+sigmod26-162,MoDora: Tree-Based Semi-Structured Document Analysis System,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-165,MultiVis-Agent: A Multi-Agent Framework with Logic Rules for Reliable and Comprehensive Cross-Modal Data Visualization,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,2,1,0,0,0,0,0,0,ok,arxiv
+sigmod26-168,NSHEDB: Noise-Sensitive Homomorphic Encrypted Database Query Engine,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,1,1,0,0,0,0,0,0,0,2,0,1,2,0,ok,arxiv
+sigmod26-171,O3-LSM: Maximizing Disaggregated LSM Write Performance via Three-Layer Offloading,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,0,0,0,0,0,1,0,0,ok,arxiv
+sigmod26-172,Octopus: Efficient Hypergraph Pattern Mining with Practical Processing-in-Memory Architecture,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,5,0,0,9,1,ok,upw|acm403
+sigmod26-176,"One DBMS, Two Modes, and a Bunch of Bugs: Catching Logic Bugs in Distributed DBMSs via Differential Testing",False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-182,"PACMMOD V4, N1 (SIGMOD), February 2026 Editorial",False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-183,"PACMMOD V4, N3 (SIGMOD), June 2026 Editorial",False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-184,"PACMMOD, V4, N2 (PODS), May 2026 Editorial",False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-186,PartitionKV: Redesigning LSM-tree KV Stores on NVMs with Adaptive Partitioning for Reducing Write Stalls and Amplification,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-187,PathSeer: Adaptive Neighbor Handling for Efficient Filtered ANN Search,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,ok,upw|acm403
+sigmod26-188,Performant Synchronization in Geo-Distributed Databases,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,4,0,4,0,2,0,0,ok,arxiv
+sigmod26-194,PRISM: Navigating Cost–Accuracy Trade-offs for NL2SQL,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-197,PTO: A Workload-driven Predictive Table Optimizer for Lakehouse Systems,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,3,0,0,0,0,7,0,ok,upw|acm403
+sigmod26-206,Reducing Tail Latency in Storage-Disaggregated Database Systems,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-210,Reward-SQL: Boosting Text-to-SQL via Stepwise Execution-Aware Reasoning and Process-Supervised Rewards,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,ok,arxiv
+sigmod26-216,SchemaRAG: A Schema-aware Retrieval-Augmented Generation Framework for Text-to-SQL,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-217,Serving Hybrid LLM Loads with SLO Guarantees Using CPU-GPU Attention Piggybacking,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,ok,arxiv
+sigmod26-218,SG-Serve: Efficient Model Serving for Subgraph-based Graph Representation Learning,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,ok,upw|acm403
+sigmod26-226,SPALM: A Sparsity-Pattern-Adaptive Library for Matrices,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,ok,upw|acm403
+sigmod26-238,The Power of Anomaly Detection in Predictive Maintenance: [Experiments & Analysis],False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,5,0,0,1,0,ok,upw|acm403
+sigmod26-239,"This is Going to Sound Crazy, But What If We Used Large Language Models to Boost Automatic Database Tuning Algorithms By Leveraging Prior History? We Will Find Better Configurations More Quickly Than Retraining From Scratch!",False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,ok,arxiv
+sigmod26-246,Translytical Processing via DB-OS Co-designed Buffer: Cross-Engine Isolation and Tunable Update Visibility for HTAP,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,1,0,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-248,Understanding the Impact of Data Noise in Federated Learning: [Experiments & Analysis],False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-261,A Comprehensive Survey of Subgraph Matching: [Experiments & Analysis],False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,0,5,0,3,3,0,ok,upw|acm403
+sigmod26-266,Accelerating Stream Processing Engines via Hardware Offloading,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-268,Adaptive Sharding in Untrusted Environments,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,2,0,1,0,0,0,0,ok,upw|acm403
+sigmod26-271,AixelAsk: A Stepwise-Guided Retrieval and Reasoning Framework for Large Table QA,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-272,AixelNet: A Pre-trained Model with Table-aware Adaptation for Structured Data Prediction,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-273,Analysis and Evaluation of Using Microsecond-Latency Memory for In-Memory Indices and Caches in SSD-Based Key-Value Stores,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-281,BPI: A Novel Efficient and Reliable Search Structure for Hybrid Storage Blockchain,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,1,0,0,0,0,ok,arxiv
+sigmod26-284,Building Stateless Serverless Vector DBs via Block-based Data Partitioning,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,1,1,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-285,Burr: A Benchmark for Ontology Learning from Relational Databases,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-292,Counting Is All You Need for Instant Tuple Discovery: Enabling Real-Time HTAP in Standalone DBMSs,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,5,0,0,0,0,0,3,0,ok,upw|acm403
+sigmod26-295,DARTH: Declarative Recall Through Early Termination for Approximate Nearest Neighbor Search,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-296,DepCache: A KV Cache Management Framework for GraphRAG with Dependency Attention,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1,0,0,0,1,ok,upw|acm403
+sigmod26-300,Drama : Unifying Data Retrieval and Analysis for Open-Domain Analytic Queries,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-309,Enjima: A Resource-Adaptive Stream Processing System,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,ok,upw|acm403
+sigmod26-311,F3: The Open-Source Data File Format for the Future,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,ok,upw|acm403
+sigmod26-326,Hourglass: An Adaptive Range Filter with Lightweight Hybrid Encoding,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,1,ok,upw|acm403
+sigmod26-332,LSM-Raft: Optimizing Raft for LSM-tree Store,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,3,0,0,0,1,0,0,ok,upw|acm403
+sigmod26-336,MorphingDB: A Task-Centric AI-Native DBMS for Model Management and Inference,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,2,1,ok,arxiv
+sigmod26-338,NeurStore: Efficient In-database Deep Learning Model Management System,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,ok,arxiv
+sigmod26-342,P4KVS: A Role-Replica Separation Offloading Method to Achieve In-Network Consistency for KV Stores Based on P4 Switches,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-343,"PACMMOD V3, N4 (SIGMOD), September 2025: Editorial",False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-344,"PACMMOD V3, N5 (PODS), November 2025 Editorial",False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-345,"PACMMOD V3, N6 (SIGMOD), December 2025: Editorial",False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-346,PLForge: Enhancing Language Models for Natural Language to Procedural Extensions of SQL,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-353,RABIT: Efficient Range Queries with Bitmap Indexing,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,2,5,1,67,0,ok,upw|acm403
+sigmod26-356,Reliable Answers for Recurring Questions: Boosting Text-to-SQL Accuracy with Template Constrained Decoding,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,2,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-360,Scalable Graph Indexing using GPUs for Approximate Nearest Neighbor Search,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,14,0,0,0,0,0,0,ok,arxiv
+sigmod26-361,SEFRQO: A Self-Evolving Fine-Tuned RAG-Based Query Optimizer,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,3,ok,arxiv
+sigmod26-364,SRS: Detecting Logic Bugs of Join Implementation in DBMSs via Set Relation Synthesis,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,2,0,ok,upw|acm403
+sigmod26-368,TensorSocket: Shared Data Loading for Deep Learning Training,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,arxiv
+sigmod26-370,Testing Graph Databases with Synthesized Queries,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,ok,upw|acm403
+sigmod26-374,TQEx: Tensor-based Query Engine Enhanced by Bridging the Gap,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,ok,upw|acm403
+sigmod26-376,TranSQL + : Serving Large Language Models with SQL on Low-Resource Hardware,False,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,3,9,0,ok,arxiv

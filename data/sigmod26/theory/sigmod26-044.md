@@ -1,0 +1,24 @@
+# sigmod26-044 — Causal Search for Skylines (CSS): Causally-Informed Selective Data De-Correlation
+
+from=tex flag=True score=8 stmts=6 proofs=0 chars=278928
+kinds: {"definition": 5, "observation": 1}
+counts: {"np_hard": 0, "lower_bound": 4, "upper_bound": 4, "big_o": 15, "omega": 0, "theta": 0, "approx_ratio": 1, "whp": 0, "regret": 0, "dp": 0, "invariant": 0, "convergence": 0, "competitive": 0, "worst_case": 4, "sketch": 0, "cost_model": 0, "cardinality": 7, "learned": 0}
+
+## Statements
+**Definition Causal Path.** Let $G_A = (V_A, E_A)$ be a causal graph on attribute set $A$ and let $a_i$ and $a_j$ be two attributes in $A$. The sequence $[e_1, e_2, …, e_k]$ of edges is said to be a causal path from $a_i$ to $a_j$ (denoted as $a_i a_j$) iff there is a sequence $[a_ s_1 , …, a_ s_k , a_ s_ k+1 ]$ of attributes, such that ( _ 1≤ h ≤ k \;\; (e_h = a_ s_h , a_ s_ h+1 ) (e_h = a_ s_ h+1 , a_ s_ h )) \\ (a_ s_1 = a_i) (a_ s_ k+1 = a_j). A causal path is said to be a directed causal path (denoted as $a_i a_j$) iff \[ ( _ 1≤ h ≤ k \;\; e_h = a_ s_h , a_ s_ h+1 ) (e_ s_1 = a_i) (e_ s_ k+1 = a_j). \] All causal paths that are not directed are referred to as undirected causal paths .
+
+**Definition Causal Graph.** Let $D$ be a data set defined [R2.M2] in an attribute space, $A$. A causal graph, $G_A = (V_A, E_A, λ)$, corresponding to the attribute set $A$ is an edge-labeled directed acylic graph (DAG), where for each attribute $a_i A$, there is a vertex $v_i V_A$ and each edge $e_h = a_i, a_j $ (or $a_i a_j$) indicates a known direct causal relationship between the attributes $a_i$ and $a_j$ and the edge label $λ(e_h)$ indicates the nature of the causal relationship between the two attributes.
+
+**Definition Tuple dominance ($dom$).** Let $u$ and $t$ be two tuples in $D$ and $t.a_h$ be the value of attribute, $a_h$, of tuple $t$. Let $P$ be the user provided preference attribute set. Tuple $u$ dominates $t$ ($u~dom_P~t$) in the preference attribute set $P$ iff \[( _ a_i P \;\; u.a_i _ a_i t.a_i) ( _ a_k P \;\; u.a_k _ a_k t.a_k),\] where $ _ a_* $ and $ _ a_* $ are the value dominance relationships according to the preference function $θ_ a_* $.
+
+**Observation Selective De-Correlation.** As a corollary to the above, we note that negative correlations can be eliminated by conditioning on the mediator/fork attributes with originally negative impact; similarly, positive correlations can be boosted by conditioning on the colliders which have originally negative impact.
+
+**Definition Skyline.** Let $D$ be a data set. The skyline, $S D$, with respect to the preference attribute set $P$ and preference criteria $Θ$ is the maximal subset of $D$, where \[S = \ t D \; |\; _ u D \;\; u\;\; dom_P\;\; t\ .\]
+
+**Definition Conditioning.** Let $D$ be a data set and let $a A$ be an attribute. Let $Dom(a)$ be the domain of this attribute. cond(D, a) = \ (v,D_v) &\;|\;& (v Dom(a)) \\ && (t D) (D_v = \ t.a = v\ ) \ .\;\;\;\;\;\;\;
+
+## Proofs
+## Bound sentences
+- Computing $corr(X,Y | Z)$ Let $S Z$ be a non-empty subset of $Z$, obtained through clustering, such that $S = Z|^u_l$; i.e., $S$ is the version of the Gaussian $z$ truncated at lower bound, $l$, and upper bound $u$.
+- Computing $corr(X,Y)$ Given the above, we have cov(X,Y) & = & cov(a × Z + ε_ a ,b × Z + ε_ b ) ~=~ a× b × V_Z.\\ var(X) & = & a^2 × V_Z + V_ ε a \\ var(Y) & = & b^2 × V_Z + V_ ε b From these, and using \[corr(X,Y) = cov(X,Y) √ var(X) × √ var(Y) ,\] we can compute the correlation between $X$ and $Y$  …
+- Computing $corr(X,Y)$ Given the above, since $X$ and $Y$ are independent from each other on the path, we have \[ cov(X,Y) = 0\;\; and \;\; corr(X,Y) = 0.\\ \] Computing $corr(X,Y | Z)$ Let $S Z$ be a non-empty subset of $Z$, obtained through clustering, such that $S = Z|^u_l$; i.e., $S$ is the versi …

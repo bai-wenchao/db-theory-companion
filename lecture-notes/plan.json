@@ -1,0 +1,759 @@
+{
+ "venue": "sigmod26",
+ "chapters": {
+  "reduction": {
+   "n_papers": 50,
+   "exemplars": [
+    {
+     "id": "sigmod26-136",
+     "title": "Improved Lower Bounds for Privacy under Continual Release",
+     "domain": "privacy-dp | streaming",
+     "usage": "Gadgets embed inner-product queries into graph streams; packing/reidentifiable-distribution arguments yield sample-complexity bounds; binary-tree mechanisms plus composition give near-matching upper bounds.",
+     "quote": "\"Any (ε,δ)-DP incremental mechanism ... for maintaining the size of the maximum matching, degree histogram, or core number of a vertex must have additive error α = Ω(min{T^a, n^b}).\"",
+     "score": 72,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-289",
+     "title": "Clustering with Set Outliers and Applications in Relational Clustering",
+     "domain": "+ clustering-outliers",
+     "usage": "LP feasibility plus greedy rounding with weight-charging arguments; Set-Cover reductions via line-point encodings; coresets shrink instances; randomized repetition over join samples.",
+     "quote": "\"If the Unique games conjecture is true, there exists no (1, f−ε, γ)-approximation algorithm that runs in polynomial time for the problem, where f = o(log n).\"",
+     "score": 66,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-350",
+     "title": "Query Answering Under Volume-Based Diversity Functions",
+     "domain": "+ diverse-query-answering",
+     "usage": "Measure-algebra submodularity proof; combinatorial reductions; marginal diversity evaluated as a tropical-semiring sum-product query; ranked enumeration with compatible rankings for preprocessing.",
+     "quote": "\"Let Ω be any volume assignment over a universe U of possible solutions. Then δ_Ω is always monotone and submodular.\"",
+     "score": 53,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-357",
+     "title": "Representation Obliviousness and Pseudodeterminism in Streaming Algorithms",
+     "domain": "streaming | sketching",
+     "usage": "Reduction chain from ROPD F0 estimator to ROPD Promise-Union protocol to PD Disj protocol, contradicting CC(Disj)=Ω(m); canonical-value and output-distribution arguments.",
+     "quote": "\"Let ε, δ ≤ 1/3. Any ROPD streaming algorithm that (ε, δ)-approximates F0 requires Ω(n) space (where n is the size of the universe).\" (Thm 3.1)",
+     "score": 53,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-264",
+     "title": "A Unifying Algorithm for Hierarchical Queries",
+     "domain": "provenance | uncertain-data",
+     "usage": "Variable-elimination rules (private variables, duplicate atoms) with invariant induction; homomorphism φ commuting with monoid operations transfers provenance to each application; bipartite-clique reduction for hardness.",
+     "quote": "\"Then, the output of Algorithm [hierarchical] on Q and D_φ is the φ-mapping of the output of Algorithm [hierarchical] on Q and D₊.\"",
+     "score": 49,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-375",
+     "title": "Tractability Frontiers of the Shapley Value for Aggregate Conjunctive Queries",
+     "domain": "provenance",
+     "usage": "#Set-Cover and permanent reductions via databases whose Shapley values encode coverage counts; Shapley linearity/symmetry/dummy axioms to decompose; injective transformations shifting value functions across aggregation.",
+     "quote": "\"If Q is [hierarchical], then φ(f, A_α) is computable in polynomial time ... Otherwise, there is a localized [value function] such that computing φ(f, A_α) is #P-complete.\"",
+     "score": 47,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  },
+  "concentration-ineq": {
+   "n_papers": 38,
+   "exemplars": [
+    {
+     "id": "sigmod26-175",
+     "title": "On Sketching Trimmed Statistics",
+     "domain": "streaming | sketching",
+     "usage": "Geometric level sets with random threshold ζ; dyadic subsampling isolates Θ(log n/ε²) survivors; CountSketch/heavy-hitter identification; Chernoff plus union bound over levels.",
+     "quote": "\"there exists a linear sketch that uses poly(log n/ε) bits of space and estimates Σ_{i=1}^k |a_i|^p up to a (1±ε) multiplicative factor with high constant probability.\"",
+     "score": 72,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-314",
+     "title": "Finding Heavy-Hitters with Optimal State Changes",
+     "domain": "streaming | sketching",
+     "usage": "Morris/Morris+ counters with sub-gamma tails (Lemma 22, exp(−cR)); competing-pairs counting plus Markov for counter survival; dyadic subsampling (Lemmas 13/14); exponential max-stability (Prop 15) for Fk tracking; lower bound from crafted streams with one repeated item.",
+     "quote": "\"Let k ∈ [1, ∞). Suppose that an algorithm solves the (ε, ℓk)-heavy-hitter problem with probability at least 3/4. Then this algorithm must use at least Ω(n^{1−1/k} ε^{-1} log(1/ε)) state changes.\" (Thm 6)",
+     "score": 63,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-196",
+     "title": "Privacy Loss of Noise Perturbation via Concentration Analysis of A Product Measure",
+     "domain": "privacy-dp",
+     "usage": "Radon–Nikodym product-measure lemma; exponent-optimized Markov bound; AMP sensitivity/Jacobian bounds; linear DP composition.",
+     "quote": "\"if σ_M ≥ (Δ₂f/ε)·t, then the product noise achieves (ε,δ)-DP on the perturbed f(x) ... the expected magnitude of our product noise is reduced by a factor of Θ(log 1/δ) relative to the classic Gaussian noise.\"",
+     "score": 56,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-259",
+     "title": "A Bouquet of Results on Maximum Range Sum: General Techniques and Hardness Reductions",
+     "domain": "spatial",
+     "usage": "Grid-shifted random sampling of points with Chernoff plus union bound for weighted-depth concentration; guard-point encodings reduce (min,+)-convolution to batched MaxRS; trapezoidal maps for exact colored enumeration.",
+     "quote": "\"Assuming that (min,+)-convolution on sequences of length n requires Ω(n²) time, the batched MaxRS problem on n points and m query interval lengths requires Ω(mn) time.\"",
+     "score": 46,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-012",
+     "title": "Acyclic Graph Pattern Counting under Local Differential Privacy",
+     "domain": "privacy-dp | graph-db",
+     "usage": "Parallel/basic DP composition, Laplace concentration, Chernoff on effective degrees, Chebyshev for sampling error; random marking reduces path counting to walk counting.",
+     "quote": "\"The k-round mechanism satisfies E[M(G,ε)] = W_k, and with probability at least 1−β, |M(G,ε) − W_k| ≤ kγ√N(d(G)+γ)^{k−1} = Õ(√(N·d(G)^{k−1})).\"",
+     "score": 44,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-079",
+     "title": "DP-S4S: Select-Join-Aggregate Query Processing with User-Level DP",
+     "domain": "privacy-dp | aqp",
+     "usage": "Rényi-divergence convexity and Bernstein/Chernoff bounds drive amplification and error proofs; SVT searches the truncation threshold.",
+     "quote": "\"Algorithm 2 satisfies (ε,0)-DP; with probability 1−β its error is Õ(√(n/q) + 1/q + τ*(T) + τ*(T)/(qε*)).\"",
+     "score": 41,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  },
+  "induction": {
+   "n_papers": 36,
+   "exemplars": [
+    {
+     "id": "sigmod26-114",
+     "title": "FPT Parameterisations of Fractional and Generalised Hypertree Width",
+     "domain": "query-optimization",
+     "usage": "MSO transductions lift Bojańczyk–Pilipczuk; elimination forests with a Reduced-Hypergraph Dealternation Lemma bound alternation depth; conflict-graph coloring and neutral-swap/pigeonhole arguments; induction over forests.",
+     "quote": "\"it is fixed-parameter tractable to check ghw(H) ≤ k and fhw(H) ≤ k parameterised by k, rank(H), Δ(H).\"",
+     "score": 71,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-371",
+     "title": "The Space-Time Complexity of Sum-Product Queries",
+     "domain": "join-algorithms",
+     "usage": "Induction over trees and elimination orders; AGM/fractional-edge-cover bounds on intermediates; explicit witness-query constructions; heavy/light partitioning for sublinear-space plans.",
+     "quote": "\"For any ε > 0, no algorithm can solve this problem over the tropical semi-ring in space S=O(|E|^k4−ε) and time T=O(|E|^k2).\"",
+     "score": 71,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-307",
+     "title": "Efficient Exact Resistance Distance Computation on Small-Treewidth Graphs",
+     "domain": "graph-db",
+     "usage": "Block-matrix inversion/Schur complements derive elimination formulas; induction on eliminated node sets; random-walk interpretation for the cut property; subtree-contiguous traversal for lookup.",
+     "quote": "\"Algorithm [index-building] has a time complexity of O(n · d_max · h_G^2).\"",
+     "score": 64,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-153",
+     "title": "LSHAlign: All-Pair Near-Duplicate Text Alignment via Locality-Sensitive Hashing",
+     "domain": "entity-resolution",
+     "usage": "Monotone-stack skyline updates proved by induction; probability s/(s+1), s/(s+2) union-bound tightness computations; rectangle partition guarantees completeness (no missed near-duplicates).",
+     "quote": "\"Given a text T with length n, and a hash function g = (h1, . . . , hm) ∈ G, the expected number of tight intervals in T under g is O(nm).\" (Thm 4)",
+     "score": 44,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-233",
+     "title": "Succinct Structure Representations for Efficient Query Optimization",
+     "domain": "query-optimization",
+     "usage": "Structural induction, ear-removal acyclicity, Prüfer-sequence tree counting; theorems justify restricting plan search to width-1/meta-decomposition space; experiments validate.",
+     "quote": "\"A conjunctive query Q has width-1 query plans if and only if Q is acyclic.\"",
+     "score": 41,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-290",
+     "title": "Codd's Theorem for Databases over Semirings",
+     "domain": "provenance",
+     "usage": "Structural induction translating expressions ↔ formulas; multiplicity-growth counting (support ≤ n^{l(E)}, multiplicities ≤ p_E(n)·2^{l(E)}) against a 2^n division counterexample.",
+     "quote": "\"There is no expression of basic relational algebra BRA that defines the division operation ÷ on N-databases.\"",
+     "score": 39,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  },
+  "estimation-theory": {
+   "n_papers": 27,
+   "exemplars": [
+    {
+     "id": "sigmod26-115",
+     "title": "Frequency Moments in Noisy Streaming and Distributed Data under Mismatch Ambiguity",
+     "domain": "streaming | sampling",
+     "usage": "Ordered p-clique sampling estimator with truncation controls expectation/variance (Hölder, Chebyshev, plus a Renyi-style inequality); DISJ communication-complexity reduction yields the space lower bound.",
+     "quote": "\"Any O(1)-pass ((ϵ + Cηp), 0.48)-approximation algorithm for computing Fp on any noisy data stream of length up to m needs Ω(m^{1−1/p}/ϵ^{1/p}) bits of space.\"",
+     "score": 68,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-231",
+     "title": "Sublime: Sublinear Error & Space for Unbounded Skewed Streams",
+     "domain": "streaming | sketching",
+     "usage": "Geometric-series epoch analysis over expansions; Markov/Chebyshev for confidence; Jensen for encoding length; entropy incompressibility argument proves the lower bound.",
+     "quote": "\"Such a sketch must use at least N/E(N) · [Ω(log 1/δ + log log(N/E(N))) − Θ(1)] bits of memory at some point in time while processing a stream.\"",
+     "score": 38,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-102",
+     "title": "Fast Estimation of Pairwise Biharmonic Distance on Graphs",
+     "domain": "graph-db",
+     "usage": "Absorbing-random-walk interpretation of L_v^{-1}; pushback invariant by induction (Lemma 4.1); unbiased tree-sampling estimators via electrical networks/Kirchhoff (Lemma 6.1, Cor 6.2); Chernoff-Hoeffding plus union bounds.",
+     "quote": "\"If ω_t = d_v²Δ²log(2n/δ)/(2ε²), FastTree ... samples ω_t trees and the corresponding estimators satisfy that for each node u, |x_a(u) − x̃_a(u)| ≤ ε and |x_b(u) − x̃_b(u)| ≤ ε.\" (Thm 6.3)",
+     "score": 37,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-373",
+     "title": "Time-Critical Influence Minimization via Node Blocking",
+     "domain": "graph-db",
+     "usage": "Reverse-score sample sets (GRS/TRS) with unbiased coverage estimators (Lemma 5.8); concentration bounds (Lemma 6.4) set the sample threshold θ_max (Lemma 6.5); union bounds give the end-to-end approximation guarantee.",
+     "quote": "\"Given 0 ≤ ε, δ ≤ 1, CBFM returns B* satisfies: Pr[D(B*) ≥ τ(1 − 1/e − ε)·D(B_o)] ≥ 1 − 3δ.\" (Thm 6.7)",
+     "score": 35,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-293",
+     "title": "Cut Costs, Not Accuracy: LLM-Powered Data Processing with Guarantees",
+     "domain": "llm-db",
+     "usage": "Betting/empirical-Bernstein confidence sequences (Waudby-Smith–Ramdas style) become sequential stopping rules; binomial tail calibration; importance-sampling variance analysis.",
+     "quote": "\"use at most k oracle calls to find a cascade threshold θ such that P(R_D(θ) < T) ≤ δ\"",
+     "score": 32,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-377",
+     "title": "Triangle Counting in Hypergraph Streams: A Complete and Practical Approach",
+     "domain": "streaming",
+     "usage": "Equal-inclusion-probability reservoir lemma underpins unbiasedness; direct variance computation; harmonic-sum accounting bounds replacements.",
+     "quote": "\"Algorithm [1] provides an unbiased estimate of hyper-vertex triangle count. Specifically, E[ĉ] = c.\"",
+     "score": 31,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  },
+  "adversarial-construction": {
+   "n_papers": 21,
+   "exemplars": [
+    {
+     "id": "sigmod26-166",
+     "title": "Near-Optimality for Single-Source Personalized PageRank",
+     "domain": "graph-db",
+     "usage": "Monte-Carlo discovery with Chernoff and union bound; martingale-difference error control with Azuma–Hoeffding; lower bounds via r-padded hard instances with hidden splits, Bayes likelihood-ratio switching.",
+     "quote": "\"DistWalks solves the SSPPR-R query within O(min{log(n)/δ, m + n·log n·log(mδ/n)}) queries in expectation.\"",
+     "score": 60,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-306",
+     "title": "Efficient Defective Clique Enumeration and Search with Worst-Case Optimal Search Space",
+     "domain": "graph-db",
+     "usage": "Branching-vector induction over search-tree instances; Moon–Moser-style witness graphs for the output lower bound; colorful-degree core arguments for size bounds.",
+     "quote": "\"The worst-case output size of maximal k-defective clique enumeration is Ω(3^{n/3}·n^k) when k is a constant.\"",
+     "score": 38,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-349",
+     "title": "Proximity Graphs for Similarity Search: Construction, Lower Bounds, Euclidean Separation",
+     "domain": "ann-vector-search",
+     "usage": "Covering-net decompositions yield sparse constructions; adversarial point sets give size lower bounds; a log-drop distance-descent lemma bounds greedy query paths.",
+     "quote": "\"there is a set P of Θ(n) points ... such that any 2-PG for P must have Ω(n log Φ) edges, regardless of the query time allowed.\"",
+     "score": 36,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-123",
+     "title": "GPM: Gaussian Pancake Mechanism for Undetectable DP Backdoors",
+     "domain": "privacy-dp | security",
+     "usage": "Covertness by reduction to hCLWE hardness (SIVP/GapSVP vs BQP); Gaussian c.d.f. analysis of peak misalignment along w; Weyl equidistribution over random w for the average-case bound.",
+     "quote": "\"With constant probability over sampling w ←$ S^{d−1}, M is not (ε,δ)-DP where ε ∈ Θ(1/β²) for any 0 < δ ≤ 0.5.\"",
+     "score": 32,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-150",
+     "title": "LMSC: Local Sketch Modularity for Size-Constrained Community Search",
+     "domain": "graph-db",
+     "usage": "Algebraic comparison of LM/LSM gain differences; worst-case log-ratio bounding for the τ threshold; explicit clique counterexamples for non-monotonicity/non-submodularity.",
+     "quote": "\"LSM does not suffer from local free-rider effect when the identified community is a weak sense community and τ > log_{1+1/h}( h(h−1)/2 ).\"",
+     "score": 26,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-179",
+     "title": "Order-based Algorithms for Core Maintenance in Bipartite Graphs",
+     "domain": "graph-db",
+     "usage": "Order-position necessary/sufficient conditions (lack values, monotone paths in the order) prune candidate sets; the adversarial construction separates insertion from deletion complexity.",
+     "quote": "\"Updating these bi-cores after inserting an edge (u,v) is unbounded under the model of locally persistent algorithms.\"",
+     "score": 20,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  },
+  "information-theory": {
+   "n_papers": 5,
+   "exemplars": [
+    {
+     "id": "sigmod26-185",
+     "title": "PANDAExpress: A Simpler and Faster PANDA Algorithm",
+     "domain": "join-algorithms | query-optimization",
+     "usage": "LP duality picks optimal weights; a sub-probability-measure / geometric-mean construction turns each Shannon-inequality proof step into recursive hyperplane partitioning; potential |D|+|M|+3|S| bounds recursion depth.",
+     "quote": "\"PANDAExpress can compute a model Σout for the DDR (8) of size ∥Σout∥ = O(B) in time O(N log N + B log N) where B = ∏δ Nδ^{wδ}.\"",
+     "score": 42,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-079",
+     "title": "DP-S4S: Select-Join-Aggregate Query Processing with User-Level DP",
+     "domain": "privacy-dp | aqp",
+     "usage": "Rényi-divergence convexity and Bernstein/Chernoff bounds drive amplification and error proofs; SVT searches the truncation threshold.",
+     "quote": "\"Algorithm 2 satisfies (ε,0)-DP; with probability 1−β its error is Õ(√(n/q) + 1/q + τ*(T) + τ*(T)/(qε*)).\"",
+     "score": 41,
+     "pods": false,
+     "reused": true
+    },
+    {
+     "id": "sigmod26-231",
+     "title": "Sublime: Sublinear Error & Space for Unbounded Skewed Streams",
+     "domain": "streaming | sketching",
+     "usage": "Geometric-series epoch analysis over expansions; Markov/Chebyshev for confidence; Jensen for encoding length; entropy incompressibility argument proves the lower bound.",
+     "quote": "\"Such a sketch must use at least N/E(N) · [Ω(log 1/δ + log log(N/E(N))) − Θ(1)] bits of memory at some point in time while processing a stream.\"",
+     "score": 38,
+     "pods": false,
+     "reused": true
+    },
+    {
+     "id": "sigmod26-279",
+     "title": "Benchmarking Differentially Private Tabular Data Synthesis: [Experiments & Analysis]",
+     "domain": "privacy-dp | benchmark",
+     "usage": "RDP accounting assigns budgets across pipeline stages; KL convexity/chain-rule lemma proves the estimation-ordering theorem; no proofs in extract — statements imported from prior work.",
+     "quote": "\"the KL divergence error of conditional estimation is always no larger than that of independent estimation\"",
+     "score": 14,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-237",
+     "title": "The Case For Language Model Approximated LIKE Predicate",
+     "domain": "llm-db",
+     "usage": "Entropy measures predicate difficulty; capacity ratio M/H(W) links model scale to success probability, gating when LM approximation is viable.",
+     "quote": "\"M represents an abstracted upper bound on the total task complexity H(W) that the model can reliably internalize ... a tractable, albeit simplified, link between model scale and task complexity.\"",
+     "score": 3,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  },
+  "communication-complexity": {
+   "n_papers": 4,
+   "exemplars": [
+    {
+     "id": "sigmod26-115",
+     "title": "Frequency Moments in Noisy Streaming and Distributed Data under Mismatch Ambiguity",
+     "domain": "streaming | sampling",
+     "usage": "Ordered p-clique sampling estimator with truncation controls expectation/variance (Hölder, Chebyshev, plus a Renyi-style inequality); DISJ communication-complexity reduction yields the space lower bound.",
+     "quote": "\"Any O(1)-pass ((ϵ + Cηp), 0.48)-approximation algorithm for computing Fp on any noisy data stream of length up to m needs Ω(m^{1−1/p}/ϵ^{1/p}) bits of space.\"",
+     "score": 68,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-243",
+     "title": "Towards Output-Optimal Uniform Sampling and Approximate Counting for Join-Project Queries",
+     "domain": "join-algorithms | sampling",
+     "usage": "Hybrid heavy/light partition, Hoeffding intersection estimation, geometric search on OUT, Markov/Chebyshev median amplification, negative-hypergeometric rejection; coupon-collector reductions from listing hardness.",
+     "quote": "\"any randomized algorithm that ... outputs an O(1) approximation of OUT with high probability requires at least Ω(N/√OUT) time.\"",
+     "score": 64,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-357",
+     "title": "Representation Obliviousness and Pseudodeterminism in Streaming Algorithms",
+     "domain": "streaming | sketching",
+     "usage": "Reduction chain from ROPD F0 estimator to ROPD Promise-Union protocol to PD Disj protocol, contradicting CC(Disj)=Ω(m); canonical-value and output-distribution arguments.",
+     "quote": "\"Let ε, δ ≤ 1/3. Any ROPD streaming algorithm that (ε, δ)-approximates F0 requires Ω(n) space (where n is the size of the universe).\" (Thm 3.1)",
+     "score": 53,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-070",
+     "title": "Deterministic Lower Bounds for k-Edge Connectivity in the Distributed Sketching Model",
+     "domain": "graph-db | distributed-query",
+     "usage": "Probabilistic-method set families plus pigeonhole partitions create indistinguishable neighborhood pairs; reduction and a simulation of the sketching algorithm by the three parties transfer the hardness.",
+     "quote": "\"Every deterministic algorithm that decides k-edge connectivity on n-node graphs in the distributed sketching model has a worst case message length of Ω(k) bits.\"",
+     "score": 30,
+     "pods": true,
+     "reused": false
+    }
+   ]
+  },
+  "dp-composition": {
+   "n_papers": 18,
+   "exemplars": [
+    {
+     "id": "sigmod26-298",
+     "title": "Differentially Private Explanations for Clusters",
+     "domain": "privacy-dp",
+     "usage": "Composition/post-processing calculus assembles the end-to-end privacy proof; direct sensitivity analyses (L1 histogram algebra, binary-entropy limits) justify replacing standard divergences with low-sensitivity scores.",
+     "quote": "\"Given a clustering function f: ..., alg:gen_global_explanation is (ε_CandSet + ε_TopComb + ε_Hist)-DP.\"",
+     "score": 61,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-178",
+     "title": "Optimal Pure Differentially Private Sparse Histograms in Deterministic Linear Time",
+     "domain": "privacy-dp",
+     "usage": "Four-case distribution-dominance analysis over neighboring supports plus DP composition proves privacy; geometric-mechanism estimator accuracy carries through to per-coordinate utility.",
+     "quote": "\"The utility guarantee of Theorem 4.1 is an ℓ∞ bound and is asymptotically optimal, matching the lower bound Ω(min{1/ε ln d, n}) of Balcer and Vadhan.\"",
+     "score": 54,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-337",
+     "title": "N2E: Reducing Node-Differential Privacy to Edge-Differential Privacy for Graph Analytics",
+     "domain": "privacy-dp | graph-db",
+     "usage": "Sequential composition, group privacy, post-processing; SVT over sensitivity-1 monotone queries at logarithmic scale; LP rounding of the (x_v,y_e) relaxation.",
+     "quote": "\"The N2E framework satisfies (ε, δ)-node-DP.\"",
+     "score": 40,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-263",
+     "title": "A General Framework for Per-record Differential Privacy",
+     "domain": "privacy-dp",
+     "usage": "Doubling budget partition plus per-slice Laplace; union bounds; composition lemmas; down-neighborhood lower bounds gauge near-optimality.",
+     "quote": "\"|Q̂(D) − Q(D)| ≤ |Q(D)−Q(D')| + Err_M(D', ε_min(D)/4, β/2), where D' is obtained by removing O(1/ε_min(D)·log log(·/β)) records\"",
+     "score": 30,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-073",
+     "title": "Differentially Oblivious Multi-way Join",
+     "domain": "join-algorithms | privacy-dp",
+     "usage": "FO join evaluation leaks only input size plus a DP-noisy join-size bound; RST/EST lemmas establish smoothness of the sensitivity bound; hybrid construction picks the cheapest valid smooth bound per subset.",
+     "quote": "\"Algorithm 3 runs in O((N^w + |Q(I)| + RRS(I)) · log N) time under data complexity, where w is the fractional hypertree width of the join query.\"",
+     "score": 21,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-214",
+     "title": "Scalable Privacy-Preserving Shortest Path via 2-Hop Labeling in MPC",
+     "domain": "graph-db | privacy-dp",
+     "usage": "Optimal-substructure induction over boundary decompositions proves distance preservation; truncated Laplace mechanism analysis gives privacy with guaranteed convergence.",
+     "quote": "\"Theorem 5.4 (Privacy Guarantee). The above mechanism satisfies (𝜖, 𝛿)-differential privacy.\"",
+     "score": 19,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  },
+  "exchange-greedy": {
+   "n_papers": 16,
+   "exemplars": [
+    {
+     "id": "sigmod26-053",
+     "title": "Coresets for Robust Query Optimization",
+     "domain": "query-optimization",
+     "usage": "Hoeffding plus union bounds (Lemmas 3.1–3.2); greedy coverage with exponential termination (Lemma 3.4); global↔local risk transfer (Lemma 4.2); Markov argument (Lemma 4.6).",
+     "quote": "\"There exists an algorithm that samples O((κ*/δ²) ln(N) ln(δ⁻¹)) queries from W and computes ... a set C ⊆ Π of size O(κ* ln δ⁻¹) such that, with high probability, C is a (c₁ε, τ, c₂δ|W)-coreset for risk.\" (Thm 3.5)",
+     "score": 44,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-200",
+     "title": "Querying Cohesive Subgraphs in Temporal Graphs",
+     "domain": "graph-db",
+     "usage": "Union-find with inverse-Ackermann amortization; Kruskal-style cycle edge-exchange for the decomposition; induction for correctness; priority search trees for the range queries.",
+     "quote": "\"The construction of BTAS runs in O(m log m) and BTAS-Index costs O(m) space.\"",
+     "score": 29,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-031",
+     "title": "Balancing Global and Local: Representative Sampling for Large-Scale Vector Data",
+     "domain": "sampling | ann-vector-search",
+     "usage": "Gamma-sum moment identities; (1−p)^m ≤ e^{-mp}; contraction-unrolling greedy analysis; parsimonious k-median reduction.",
+     "quote": "\"Let B be the budget and let A_gre be the size-B output of (lazy-)greedy in Algorithm 2. Then F(A_gre) ≥ (1 − 1/e) max_{|A|≤B} F(A).\"",
+     "score": 28,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-009",
+     "title": "Accelerating Maximum Common Subgraph Computation by Exploiting Symmetries",
+     "domain": "graph-db",
+     "usage": "Swap/exchange arguments map any pruned branch to an earlier lexicographic branch; the automorphism characterization identifies symmetry classes.",
+     "quote": "\"Variable symmetry breaking does not violate the correctness or completeness of the MCIS solution.\"",
+     "score": 17,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-224",
+     "title": "Skyline Retrieval meets Set-Cover Chunk Merging for Long-Context LLM QA",
+     "domain": "llm-db",
+     "usage": "WSC reduction proves hardness, motivating greedy merging; an averaging argument against an optimal cover bounds each greedy step.",
+     "quote": "\"The meta-query merge problem is NP-hard via a polynomial-time, cost-preserving reduction from Weighted Set Cover (WSC).\"",
+     "score": 16,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-229",
+     "title": "Stress-Testing Causal Claims via Cardinality Repairs",
+     "domain": "data-cleaning",
+     "usage": "NP-completeness motivates influence-scored greedy heuristics (SubCure-tuple/pattern) with sampling and periodic influence recomputation instead of exact optimization.",
+     "quote": "\"Problem 1 and Problem 2 are NP-complete for AVG and ATE.\"",
+     "score": 15,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  },
+  "amortized-potential": {
+   "n_papers": 11,
+   "exemplars": [
+    {
+     "id": "sigmod26-177",
+     "title": "Optimal Enumeration of Regular Pattern Matches",
+     "domain": "indexing",
+     "usage": "Left/right-canonical embeddings; epoch partition of intervals; suffix array/tree ranges, radix sort, range-max structure for O(1) delay; counting bound Σ(|O_i|−1) ≤ min{kn,|S|} (Lemma 3.4); segment tree for the dynamic case.",
+     "quote": "\"We can enumerate the set S of all valid embeddings of α in T with constant delay, after a preprocessing running in O(n + |S|) time. The used space is O(n + min{|S|, n^k}).\" (Thm 1.1)",
+     "score": 52,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-015",
+     "title": "AeroSketch: Near-Optimal Time Matrix Sketch Framework for Streams",
+     "domain": "streaming | sketching",
+     "usage": "FD decomposability composes per-site sketches; iteration error bounds give the whp guarantee; amortization over every-ℓ-updates SVD yields the time bound.",
+     "quote": "\"ML-AeroSketch solves [sliding-window matrix sketch tracking] with space O((d/ε)·log R) and amortized time O((d/ε)·log d·log R) per update, with success probability at least 99/100.\"",
+     "score": 42,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-180",
+     "title": "ORDER: Optimal Routing with Path Indexing in Exchange Graph",
+     "domain": "+ DeFi exchange order routing",
+     "usage": "Contradiction proofs on the global weight ordering validate lazy maintenance; epoch decomposition (scan + heap build + per-selection heap ops) yields the amortized bound.",
+     "quote": "\"For any two indices i < i′, no path in B_i′ has a strictly smaller ordering key than a path in B_i.\"",
+     "score": 22,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-363",
+     "title": "SplineSketch: Even More Accurate Quantiles with Error Guarantees",
+     "domain": "sketching",
+     "usage": "Potential function over bucket counters bounds splits; rank error charged along split history; coefficient-feasibility argument for the spline lemma.",
+     "quote": "\"for any threshold σ_i of the final sketch, ε^n(σ_i) ≤ O(log α·n/k)\"",
+     "score": 21,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-274",
+     "title": "Approximate Query Processing under Updates",
+     "domain": "aqp",
+     "usage": "Splitting the join tree into exact connex and approximated parts trades ratio for update speed; a Boolean-semiring reduction imports the dynamic lower bound.",
+     "quote": "\"For any b > 1, any free-connex query Q(H,F), all auxiliary views can be updated in amortized O(log_b M) time under an insertion-only update sequence.\"",
+     "score": 13,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-203",
+     "title": "RadixGraph: A Fast, Space-Optimized Data Structure for Dynamic Graph Storage",
+     "domain": "graph-db | storage-compression",
+     "usage": "The occupancy model yields the space objective; dynamic programming over layer splits minimizes it; amortized counting of compaction costs bounds update time.",
+     "quote": "\"Under a single-threaded execution model, the amortized time complexity of edge insertion, update and deletion is O(1).\"",
+     "score": 8,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  },
+  "spectral-matrix": {
+   "n_papers": 13,
+   "exemplars": [
+    {
+     "id": "sigmod26-038",
+     "title": "Bounding the Fragmentation of B-Trees Subject to Batched Insertions",
+     "domain": "indexing",
+     "usage": "Spectral (Jordan/Perron–Frobenius) analysis proves convergence; eigenvector arithmetic yields the fullness bounds; regime analysis selects even/uneven/TargetSplit algorithms.",
+     "quote": "\"For r ∈ (B/(2i), B/(2i−1)], the expected final fullness of the deferred even split strategy is 2ir(H₂ᵢ − Hᵢ)/B, where Hₖ is the k-th harmonic number.\"",
+     "score": 57,
+     "pods": true,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-303",
+     "title": "Effective Clustering for Large Multi-Relational Graphs",
+     "domain": "graph-db",
+     "usage": "Neumann series with Lidskii/Courant–Fischer eigenvalue arguments; Sinkhorn–Knopp scaling (Birkhoff–von Neumann) for a symmetric doubly stochastic affinity; CountSketch for scalable norm estimation.",
+     "quote": "\"If S_ω is doubly stochastic and Z=Y^T, optimizing [the relaxed objective] is equivalent to optimizing Σ_k Σ_{v_i∈C_k} ‖z_i − c^(k)‖²₂, where c^(k) is the center of cluster C_k.\"",
+     "score": 41,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-235",
+     "title": "TaCo: Subspace Collision for High-dimensional Approximate Nearest Neighbor Search",
+     "domain": "ann-vector-search",
+     "usage": "Poincaré separation (Cauchy interlacing) proves the eigensystem allocation solves the log-det problem; projection non-expansiveness plus Chernoff bound justify collision-based candidate selection in k-ANNS.",
+     "quote": "\"∥B⊤(𝑜𝑖−𝑜𝑧)∥² ≥ (1−𝜀)∥𝑜𝑖−𝑜𝑧∥² ... yields ∥B⊤(𝑜𝑖−𝑜𝑗)∥² < ∥B⊤(𝑜𝑖−𝑜𝑧)∥².\"",
+     "score": 23,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-190",
+     "title": "PJsim: Towards Precise and Scalable Graph Similarity",
+     "domain": "graph-db",
+     "usage": "Kronecker-sum eigenvalue analysis, Neumann expansion, and real Schur decomposition replace direct O(n^6) vectorized inversion.",
+     "quote": "\"The vectorized PJsim similarity matrix has the direct closed-form solution: Vec(𝑆^PJ) = 2(1−𝑐)(𝑋⊕𝑋)^{−1}Vec(𝐼𝑛)\"",
+     "score": 18,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-101",
+     "title": "Fair Data Pre-Processing with Imperfect Attribute Space",
+     "domain": "fairness",
+     "usage": "Conditioning on each X₄=j slice yields per-slice latent-class models; tensor-decomposition identifiability plus the shared mixing distribution forces one consistent global permutation; θ₄ read from observed conditionals.",
+     "quote": "\"the local parameters 𝜃𝵢 of each 𝑋𝵢 are generically identifiable up to a global permutation of the latent states.\"",
+     "score": 11,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-265",
+     "title": "Accelerating High-Dimensional ANN Search via Skipping Redundant Distance Computations",
+     "domain": "ann-vector-search",
+     "usage": "JL distortion bounds turn distance thresholds into cheap projected-space comparisons; orthogonal-transform invariance enables multiplication-free iterative refinement.",
+     "quote": "\"If δ(p,q) < τ, then Pr(‖A(p−q)‖²₂ < (1+ε)d/D·τ) > p1; if δ(p,q) > τ, then Pr(‖A(p−q)‖²₂ < (1+ε)d/D·τ) < p2.\"",
+     "score": 11,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  },
+  "online-decisions": {
+   "n_papers": 0,
+   "exemplars": []
+  },
+  "coresets-rnla": {
+   "n_papers": 8,
+   "exemplars": [
+    {
+     "id": "sigmod26-289",
+     "title": "Clustering with Set Outliers and Applications in Relational Clustering",
+     "domain": "+ clustering-outliers",
+     "usage": "LP feasibility plus greedy rounding with weight-charging arguments; Set-Cover reductions via line-point encodings; coresets shrink instances; randomized repetition over join samples.",
+     "quote": "\"If the Unique games conjecture is true, there exists no (1, f−ε, γ)-approximation algorithm that runs in polynomial time for the problem, where f = o(log n).\"",
+     "score": 66,
+     "pods": false,
+     "reused": true
+    },
+    {
+     "id": "sigmod26-053",
+     "title": "Coresets for Robust Query Optimization",
+     "domain": "query-optimization",
+     "usage": "Hoeffding plus union bounds (Lemmas 3.1–3.2); greedy coverage with exponential termination (Lemma 3.4); global↔local risk transfer (Lemma 4.2); Markov argument (Lemma 4.6).",
+     "quote": "\"There exists an algorithm that samples O((κ*/δ²) ln(N) ln(δ⁻¹)) queries from W and computes ... a set C ⊆ Π of size O(κ* ln δ⁻¹) such that, with high probability, C is a (c₁ε, τ, c₂δ|W)-coreset for risk.\" (Thm 3.5)",
+     "score": 44,
+     "pods": true,
+     "reused": true
+    },
+    {
+     "id": "sigmod26-303",
+     "title": "Effective Clustering for Large Multi-Relational Graphs",
+     "domain": "graph-db",
+     "usage": "Neumann series with Lidskii/Courant–Fischer eigenvalue arguments; Sinkhorn–Knopp scaling (Birkhoff–von Neumann) for a symmetric doubly stochastic affinity; CountSketch for scalable norm estimation.",
+     "quote": "\"If S_ω is doubly stochastic and Z=Y^T, optimizing [the relaxed objective] is equivalent to optimizing Σ_k Σ_{v_i∈C_k} ‖z_i − c^(k)‖²₂, where c^(k) is the center of cluster C_k.\"",
+     "score": 41,
+     "pods": false,
+     "reused": true
+    },
+    {
+     "id": "sigmod26-349",
+     "title": "Proximity Graphs for Similarity Search: Construction, Lower Bounds, Euclidean Separation",
+     "domain": "ann-vector-search",
+     "usage": "Covering-net decompositions yield sparse constructions; adversarial point sets give size lower bounds; a log-drop distance-descent lemma bounds greedy query paths.",
+     "quote": "\"there is a set P of Θ(n) points ... such that any 2-PG for P must have Ω(n log Φ) edges, regardless of the query time allowed.\"",
+     "score": 36,
+     "pods": false,
+     "reused": true
+    },
+    {
+     "id": "sigmod26-052",
+     "title": "Constrained Shortest Path Finding on Terrain Surfaces",
+     "domain": "spatial",
+     "usage": "Contradiction and induction for spanner lemmas; triangle-inequality charging; Kruskal MST plus pre-order traversal gives the factor 2.",
+     "quote": "\"It holds that dg(u,v) ≤ dG(u,v) ≤ (1+ε)·dg(u,v), where dG(u,v) is the shortest distance between u and v on G.\"",
+     "score": 34,
+     "pods": false,
+     "reused": false
+    },
+    {
+     "id": "sigmod26-127",
+     "title": "HeteroFedSyn: Differentially Private Tabular Data Synthesis for Heterogeneous Federated Settings",
+     "domain": "privacy-dp",
+     "usage": "zCDP additivity plus post-processing for budget allocation across marginals; expectation calculations strip projection and noise bias; random projection compresses 2-way marginals before release; greedy selection trades noise error against dependency error.",
+     "quote": "\"z_{a,b} − ‖z_{a∗b}‖²₂ − [kασ₂² + ασ₁²(s_b‖M̂_a‖²₂ + s_a‖M̂_b‖²₂) − s_a s_b α²σ₁⁴] is an unbiased estimator of the square of InDif²_{a,b}.\"",
+     "score": 18,
+     "pods": false,
+     "reused": false
+    }
+   ]
+  }
+ }
+}

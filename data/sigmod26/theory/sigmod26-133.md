@@ -1,0 +1,17 @@
+# sigmod26-133 — Hyra: Scalable Byzantine-Resilient State Storage Engine with Hierarchical Erasure-Coding
+
+flag=True score=6 stmts=2 proofs=2 chars=99431
+kinds: {"lemma": 2}
+counts: {"np_hard": 0, "lower_bound": 0, "upper_bound": 0, "big_o": 4, "omega": 0, "theta": 0, "approx_ratio": 0, "whp": 0, "regret": 0, "dp": 0, "invariant": 0, "convergence": 0, "competitive": 0, "worst_case": 3, "sketch": 0, "cost_model": 0, "cardinality": 0, "learned": 0}
+
+## Statements
+**Lemma 5.1.** For any data chunk 𝐷𝑖 at block height ℎ, Hyra ensures it is never permanently lost.
+
+**Lemma 5.2.** Under BFT environment with 𝑓 Byzantine replicas, the redundancy rate of any coding 𝑛−𝑓 scheme that guarantees recoverability must be at least 𝑛−2𝑓 .
+
+## Proofs
+**Proof.** We focus on the top-level encoding (level 𝐿), which guarantees recoverability. At each height ℎ, the selected replica set 𝔑ℎ contains 𝑛−𝑓 replicas, among which at least 𝑛−2𝑓 are honest. Under the (𝑛−2𝑓 , 2𝑓 ) RS scheme, any 𝑛−2𝑓 chunks suffice to reconstruct the original data chunks ⟨𝐷 0, . . . , 𝐷𝑛−2𝑓 −1 ⟩. 𝔑ℎ is agreed upon via BFT consensus and recorded in the header of block 𝐵ℎ+1 , ensuring all honest replicas share a consistent view. If an honest replica 𝑅 ∈ 𝔑ℎ has not yet performed encoding, it retains the full data Dℎ until learning that it is in 𝔑ℎ . Once the network becomes synchronous, 𝑅 can either complete encoding or supply its data directly for recovery. By the eventual synchrony assumption, this ensures any 𝐷𝑖 remains recoverable from honest replicas. □
+
+**Proof.** Let the top-level coding scheme use parameters (𝐾𝐿 , 𝑀𝐿 ), the redundancy rate is 𝑑 = 𝐾𝐿 + 𝑀𝐿 /𝐾𝐿 . First, to ensure recoverability in the presence of 𝑓 faulty replicas, at least 𝐾𝐿 out of the 𝐾𝐿 + 𝑀𝐿 chunks must be available. In the worst case, 𝑓 replicas may withhold or return invalid chunks, so we must have: 𝐾𝐿 + 𝑀𝐿 − 𝑓 ≥ 𝐾𝐿 ⇒ 𝑀𝐿 ≥ 𝑓 Second, we consider the constraints imposed by BFT consensus. A block is committed when at least 𝑛−𝑓 replicas agree. Since at most 𝑓 of them may be faulty, it follows that at least 𝑛−2𝑓 honest replicas have committed the previous block. Therefore, no more than 𝑛−2𝑓 honest replicas are guaranteed to store data chunks at height ℎ. To ensure successful recovery without relying on faulty replicas, the data must be recoverable from these 𝑛−2𝑓 honest replicas. Thus, 𝐾𝐿 ≤ 𝑛−2𝑓 . Combining the above, we obtain the redundancy rate: 𝑛−2𝑓 + 𝑓 𝑛−𝑓 𝐾𝐿 + 𝑀𝐿 𝐾𝐿 + 𝑓 ≥ ≥ = 𝐾𝐿 𝐾𝐿 𝑛−2𝑓 𝑛−2𝑓 This bound is tight and achieved when 𝐾𝐿 = 𝑛−2𝑓 and 𝑀𝐿 = 𝑓 , corresponding to the configuration used in Hyra. □
+
+## Bound sentences

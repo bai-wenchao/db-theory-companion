@@ -1,0 +1,28 @@
+# sigmod26-228 — SQLBarber: A System Leveraging Large Language Models to Generate Customized and Realistic SQL Workloads
+
+from=tex flag=True score=10 stmts=9 proofs=0 chars=182774
+kinds: {"definition": 9}
+counts: {"np_hard": 0, "lower_bound": 0, "upper_bound": 1, "big_o": 0, "omega": 0, "theta": 0, "approx_ratio": 1, "whp": 0, "regret": 0, "dp": 0, "invariant": 0, "convergence": 1, "competitive": 0, "worst_case": 0, "sketch": 0, "cost_model": 1, "cardinality": 15, "learned": 0}
+
+## Statements
+**Definition Database.** black The user must specify a target database $ D =\ R_1,R_2, ,R_n\ $ on which to generate queries. Depending on privacy requirements, this can be a production database with a public schema and masked data, or a database that differs from the production database from which constraints are derived. The SQL generation method should produce SQL templates and instantiate queries whose workload statistics match the target as closely as possible, even when operating on a different database. black Following prior work on query or benchmark generation~ [cite] , this problem does not constrain the underlying database, and existing methods typically use one from available benchmarks. black Although we adopt the same assumption, our experiments in Section~ [ref] show that (1) SQLBarber can adjust its generation process to adapt to different database types and sizes, and (2) the selected database affects the diversity and structure of the generated queries. This finding suggests an interesting direction for future work: integrating learned database generation~ [cite] with query generation to enable end-to-end benchmark customization that jointly models both databases and queries.
+
+**Definition Cost-Aware Query Generation.** Given a database $ D $, an SQL template $t_i$ with placeholders $ P_i $, and a target query cost $ C $, we try to produce an SQL query by replacing the placeholders $ P_i $ with different predicate values, and identifying appropriate predicate values such that this query can have the target cost $ C $. The query cost type could be cardinality, execution plan cost, execution time, or any user-defined one. These cost metrics can be obtained by estimations from the query optimizer or by actual execution.
+
+**Definition Customized SQL Template Generation.** Given a database $ D $ and a collection of user specifications $ S $, where $s_i$ is a natural language requirement on the SQL template such as ``This SQL template should have two joins and access three tables'', we want to generate a set of SQL templates $ T $ such that $t_i$, black after instantiation , is executable on $ D $ and satisfies $s_i$. Each SQL template $t_i$ can be instantiated into SQL queries by replacing the placeholders $ P $ with predicate values.
+
+**Definition Cost Distributions of SQL Queries..** Each SQL query incurs a cost, and users can specify a target cost distribution that the generated queries are expected to follow. The Wasserstein Distance~ [cite] can be used to measure the similarity between the user-specified target distribution and the cost distribution of the generated SQL queries. The system should generate SQL queries with costs that reduce this distance as much as possible within a given time budget.
+
+**Definition Correctness of SQL Templates..** Correct SQL templates should satisfy two requirements. (1) SQL templates should not have syntax errors, and the instantiated SQL queries should be executable on the target database. (2) SQL templates should satisfy user-defined specifications. Note that since we are targeting generating SQL queries for testing and benchmarking purposes, we do not have requirements on the semantics of these templates.
+
+**Definition Specifications for SQL Templates.** Specifications $ S = \ s_1, s_2, , s_n\ $ control the structure and features of SQL templates. Each specification may include numerical constraints, such as limits on the number of tables, joins, or aggregations, as well as structural constraints, such as the presence of nested queries or the use of complex scalar expressions.
+
+**Definition Customized and Realistic Workload Generation.** Given a database $ D $, a set of user specifications $ S $ for SQL templates, the number $ N $ of queries to generate, and a target cost distribution $d^*$, we want to generate an SQL workload where the underlying SQL templates satisfy $ S $ and the instantiated $ N $ queries match the target cost distribution $d^*$.
+
+**Definition SQL Template.** SQL templates $ T = \ t_1, t_2, , t_n\ $ are predefined SQL statements in which certain components of each template $t_i$ are placeholders $ P_i = \ p_1, p_2, , p_m\ $ to be filled with predicate values. SQL templates alone cannot be executed directly by the execution engine.
+
+**Definition SQL Query.** SQL queries are SQL statements that can be executed directly by the query execution engine. SQL templates $ T $ can be instantiated into executable SQL queries by replacing the placeholders $ P $ with predicate values.
+
+## Proofs
+## Bound sentences
+- Table names tell LLMs which relations a query may access, table sizes allow LLMs to estimate the execution costs of a query (e.g., scanning large tables would take longer than scanning small tables), and the tuple counts provide information on the upper bound of the SQL cardinality.

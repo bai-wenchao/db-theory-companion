@@ -1,0 +1,13 @@
+# sigmod26-045 — Chatty-KG: A Multi-Agent AI System for On-Demand Conversational Question Answering over Knowledge Graphs
+
+from=tex flag=False score=2 stmts=2 proofs=0 chars=138545
+kinds: {"definition": 2}
+counts: {"np_hard": 0, "lower_bound": 0, "upper_bound": 0, "big_o": 6, "omega": 0, "theta": 0, "approx_ratio": 0, "whp": 0, "regret": 0, "dp": 0, "invariant": 0, "convergence": 0, "competitive": 0, "worst_case": 0, "sketch": 0, "cost_model": 0, "cardinality": 0, "learned": 0}
+
+## Statements
+**Definition Question Intermediate Representation (QIR).** Given a question \( q \) that mentions entities, expresses relations, and targets an unknown variable, potentially involving intermediate variables for multi-hop reasoning, the QIR is defined as \( QIR = (E, U, R, RF) \). Here, \( E \) is the set of mentioned entities, \( U \) is the set of variables (including the target and any intermediates), $ R $ is the set of relation phrases in $q$, and \( RF \) is a set of relational facts. Each \( rf RF \) is a triple \( e_1, r, e_2 \), where \( e_1, e_2 (E U) \) and \( r R \). -0.5ex
+
+**Definition Dialogue.** -0.9ex The dialogue history is defined as $ D = \ (q_1, A_1), (q_2, A_2), , (q_ n-1 , A_ n-1 ) \ $, where each $q_i$ is a user-issued question and $A_i = [a_1, a_2, , a_m]$ is the corresponding system-generated answer. Each $a_j$ may be a count, a Boolean value, or an entity; $A_i$ may also be a list of such values. -.9ex
+
+## Proofs
+## Bound sentences

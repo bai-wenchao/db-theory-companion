@@ -1,0 +1,175 @@
+\chapter{Spectral and Matrix Tools}
+\label{ch:spectral-matrix}
+
+Why do eigenvalues keep appearing in database papers?  Because the field's core
+objects are linear-algebraic in disguise: similarity and embedding quality are spectral
+properties of affinity and covariance matrices; the structured inverses arising from
+random walks, kernels, and fixed-point equations exist---and can be
+approximated---precisely when their spectra stay clear of zero; iterative processes
+converge at rates set by spectral radii and eigengaps; and low-rank summaries are
+optimal because of singular values.  In this corpus, $13$ papers reach for this
+machinery; after a compact toolbox we see three exemplars using it three different
+ways.
+
+\section{The tool: workhorse results}
+\label{sec:spectral-toolbox}
+
+Throughout, $A$ is symmetric with eigenvalues $\lambda_1 \ge \dots \ge \lambda_n$ and
+singular values $\sigma_1 \ge \sigma_2 \ge \dots$; all statements are classical
+(see~\cite{spectral-matrix-bg1,spectral-matrix-bg2}; for graphs
+specifically~\cite{spectral-matrix-bg5}).
+
+\begin{proposition}[Courant--Fischer]
+\[
+\lambda_k(A) = \min_{\dim V = n-k+1}\ \max_{0 \ne x \in V} \frac{x^{\top}\!A x}{x^{\top}\!x}
+= \max_{\dim V = k}\ \min_{0 \ne x \in V} \frac{x^{\top}\!A x}{x^{\top}\!x}.
+\]
+Hence if $B \in \mathbb{R}^{n \times s}$ has orthonormal columns, the eigenvalues
+$\mu_i$ of the compression $B^{\top}\!A B$ interlace:
+$\lambda_i(A) \ge \mu_i \ge \lambda_{n-s+i}(A)$ (Poincar\'e separation).
+\end{proposition}
+
+\begin{lemma}[Weyl; Davis--Kahan $\sin\Theta$]
+$|\lambda_k(A + E) - \lambda_k(A)| \le \|E\|_2$ for symmetric $E$; and an invariant
+subspace $U$ of $A$ separated from the rest of the spectrum by a gap $\Delta$ moves to
+$\widetilde U$ of $A + E$ by at most
+$\|\sin\Theta(U, \widetilde U)\|_2 \le \|E\|_2 / \Delta$: subspace stability is
+perturbation norm over eigengap.
+\end{lemma}
+
+\begin{theorem}[matrix Bernstein~\cite{spectral-matrix-bg6}]
+For independent, centered, symmetric $d \times d$ matrices $Y_i$ with
+$\|Y_i\|_2 \le R$ surely and $\sigma^2 = \bigl\| \sum_i \mathbb{E} Y_i^2 \bigr\|_2$,
+\[
+\Pr\Bigl[ \Bigl\| \sum\nolimits_i Y_i \Bigr\|_2 \ge t \Bigr] \le
+2d\, \exp\bigl( -t^2 / (2(\sigma^2 + Rt/3)) \bigr).
+\]
+This is the bridge to the concentration chapter: sums of independent matrices
+concentrate like sums of scalars, paying only a factor $d$.
+\end{theorem}
+
+Also worth pocketing: by Eckart--Young--Mirsky, truncated SVD is the optimal rank-$k$
+summary ($\|A - B\|_2 = \sigma_{k+1}$,
+$\|A - B\|_F = (\sum_{i > k} \sigma_i^2)^{1/2}$); power iteration contracts the angle
+to the dominant direction by $\sigma_2/\sigma_1$ per step (squared on
+$A^{\top}\!A$; $(\sigma_{k+1}/\sigma_k)^q$ over $q$ subspace-iteration steps), so the
+gap \emph{is} the convergence
+rate~\cite{spectral-matrix-bg3,spectral-matrix-bg4}.  Eigenvalues of a Kronecker sum
+are pairwise sums, $\lambda(A \oplus B) = \{\lambda_i(A) + \lambda_j(B)\}$, and
+$\rho(A) < 1$ gives the Neumann expansion $(I - A)^{-1} = \sum_{t \ge 0} A^t$ with
+geometrically decaying truncation error~\cite{spectral-matrix-bg1}; orthogonal
+projections are non-expansive.  For fixed $x$, the first $d$ rows of a random
+orthogonal matrix satisfy $\mathbb{E} \|Ax\|_2^2 = (d/D) \|x\|_2^2$ with chi-square
+tails, so $d = \Theta(\varepsilon^{-2} \log(1/\beta))$ dimensions give
+$(1 \pm \varepsilon)$ distortion (distributional Johnson--Lindenstrauss)~\cite{spectral-matrix-bg4}.
+
+\section{Three views from the corpus}
+
+\subsection*{Effective clustering for large multi-relational graphs}
+
+An NP-hard normalized-cut-type objective over a dense multi-relational affinity is
+relaxed spectrally, with Sinkhorn--Knopp scaling and a Neumann series replacing a full
+eigendecomposition.
+
+\begin{theorem}[doubly stochastic affinity gives $k$-means]
+If $S_\omega$ is doubly stochastic and the relaxed embedding is $Z = Y^{\top}$, then
+optimizing the relaxed objective is equivalent to optimizing
+\[
+\min_{C_1, \dots, C_K}\ \sum_{k=1}^{K}\ \sum_{v_i \in C_k}
+\bigl\| z_i - c^{(k)} \bigr\|_2^2,
+\qquad
+c^{(k)} = \sum_{v_j \in C_k} \frac{y_j}{|C_k|},
+\]
+where $c^{(k)}$ is the center of cluster $C_k$.
+\end{theorem}
+
+The spectral work sits in producing $Y$: a truncated Neumann series
+$(I - Z)^{-1} = \sum_{t \ge 0} Z^t$, valid since the dominant eigenvalue obeys
+$|\lambda| < 1$, with truncation error after $L$ terms decaying geometrically (on the
+order of $(\alpha/(1+\alpha))^{L+1}$) at a rate governed by an eigengap; the supporting
+lemmas are that expansion, the Weyl/Lidskii-type inequality
+$\lambda_{\max}(A + B) \le \lambda_{\max}(A) + \lambda_{\max}(B)$ for Hermitian
+matrices, and a CountSketch estimate of residual Frobenius norms.
+\cite{sigmod26-303}
+
+\subsection*{Subspace collision for high-dimensional approximate nearest neighbor search}
+
+$k$-ANNS by counting ``collisions'' of points with the query across many
+$s$-dimensional subspaces needs projections that preserve neighbor orderings.
+
+\begin{theorem}[ordering preservation]
+Let $B = [\,B_1 \ \dots\ B_{N_s}\,] \in \mathbb{R}^{d \times (N_s \cdot s)}$ with
+$N_s \cdot s \le d$ have orthonormal columns, i.e.\ eigenvectors of the covariance, so
+that $B B^{\top}$ is an orthogonal projection.  Suppose the local difference vectors
+satisfy $\|(I_d - B B^{\top})(o_i - o_j)\|^2 \le \varepsilon\, \|o_i - o_j\|^2$ for
+some $\varepsilon \in (0,1)$.  Then
+$\|B^{\top}(o_i - o_j)\|^2 \ge (1 - \varepsilon)\, \|o_i - o_j\|^2$.
+Consequently, whenever
+$\|o_i - o_j\|^2 < (1 - \varepsilon)\, \|o_i - o_z\|^2$,
+the ordering survives the transformation:
+$\|B^{\top}(o_i - o_j)\| < \|B^{\top}(o_i - o_z)\|$.
+\end{theorem}
+
+The load-bearing facts are Pythagoras and interlacing: the lower bound is the
+decomposition $\|x\|^2 = \|B^{\top}x\|^2 + \|(I - BB^{\top})x\|^2$ plus the hypothesis,
+the upper bound the non-expansiveness of orthogonal projections.  Design is settled by
+Poincar\'e separation: since the eigenvalues of each compressed covariance
+$B_j^{\top} \Sigma B_j$ interlace those of $\Sigma$, monotonicity of the logarithm
+turns log-determinant subspace allocation into an eigenvalue assignment.
+\cite{sigmod26-235}
+
+\subsection*{Weighted Fourier factorizations for private marginal queries (PODS)}
+
+Under $\mu$-GDP Gaussian noise, all marginal queries induced by a collection
+$\mathcal{S}$ of subsets of $[d]$ must be answered, with weights and a factorization
+chosen to minimize weighted error.
+
+\begin{theorem}[weighted factorization attains $\gamma_{2,F}$]
+With workload matrix $W$ for the marginal workload $Q_{\mathcal{S}}$ over
+$U = U_1 \times \dots \times U_d$, $U_i = \{0, \dots, m_i - 1\}$, weights
+$p : \mathcal{S} \to \mathbb{R}_{\ge 0}$, and $P$ the diagonal matrix having entries
+$P_{(S,t),(S,t)} = p(S)/|U_S|$ for $t \in U_S$, the factorization $LR = W$ of the
+paper's Algorithm~1 satisfies
+\[
+\gamma_{2,F}(PW) = \|PL\|_F \, \|R\|_{1 \to 2}
+= \Biggl(\ \sum_{R \in \mathcal{S}^{\downarrow}}\ \
+\sum_{\substack{T \in \mathcal{S} \\ T \supseteq R}}\,
+\sqrt{\ \sum_{j \in R} \frac{p(T)}{|U_T|}\, (m_j - 1)^2\ }\ \Biggr)^{\!\!1/2},
+\]
+where $\mathcal{S}^{\downarrow}$ is the downward closure of $\mathcal{S}$.  Moreover,
+for the weights $p^*$ maximizing the right-hand side over the simplex
+$\{\, p \ge 0 : \sum_{S} p(S) = 1 \,\}$, the resulting mechanism is $\mu$-GDP for all
+of $Q_{\mathcal{S}}$, its worst-case error equals $1/\mu$ times the same expression at
+$p^*$, and this bound is optimal among all factorization mechanisms.
+\end{theorem}
+
+Nothing here is spectral in the eigenvalue sense---the machinery is \emph{factorization
+norms}: the error of a Gaussian-noise factorized release is governed by
+$\|PL\|_F \|R\|_{1 \to 2}$, identified with the factorization norm $\gamma_{2,F}$;
+first-order (KKT) conditions on the weight LP pin $p^*$, and Gaussian concentration
+lifts average error to worst-case error. \cite{sigmod26-253}\pods
+
+\begin{reachbox}{When to reach for spectral tools}
+\begin{itemize}
+\item \textbf{Relaxing a combinatorial objective.} Eigenvectors of the
+(Sinkhorn-balanced, doubly stochastic) affinity turn NP-hard partitioning into
+$k$-means on an embedding; Neumann series and eigengaps control the approximation.
+\item \textbf{Certifying invertibility of a structured matrix.} For Kronecker sums and
+$I - Z$, localize the spectrum (pairwise sums; spectral radius below one); positivity
+or contraction yields existence, geometric approximation, convergence rates.
+\item \textbf{Choosing or defending a subspace.} Interlacing says compressions inherit
+sandwiched eigenvalues---use it to optimize what to project onto; Davis--Kahan bounds
+the drift of the chosen subspace by perturbation over eigengap.
+\item \textbf{Making distances cheap.} Random orthogonal projections are approximate
+isometries with chi-square tails (distributional JL), so projected thresholds separate
+near from far with controlled error probabilities.
+\item \textbf{Bounding error of a noisy linear mechanism.} When the strategy is a
+factorization $LR = W$, error is a product of operator norms
+($\|PL\|_F \|R\|_{1 \to 2} = \gamma_{2,F}$); when noise is a sum of independent random
+matrices, matrix Bernstein takes over.
+\item \textbf{Caveats.} Weyl, Davis--Kahan, and interlacing need symmetric structure---
+otherwise argue about singular values or a Schur form; eigengap hypotheses are
+load-bearing; JL dimensions $d = \Theta(\varepsilon^{-2} \log(1/\beta))$ decide whether
+projecting is actually cheaper.
+\end{itemize}
+\end{reachbox}

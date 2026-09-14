@@ -1,0 +1,13 @@
+# sigmod26-313 — Fast Optimal Group Steiner Tree Search using GPUs
+
+flag=True score=6 stmts=1 proofs=1 chars=94153
+kinds: {"theorem": 1}
+counts: {"np_hard": 2, "lower_bound": 5, "upper_bound": 4, "big_o": 0, "omega": 0, "theta": 18, "approx_ratio": 6, "whp": 0, "regret": 0, "dp": 0, "invariant": 0, "convergence": 0, "competitive": 0, "worst_case": 4, "sketch": 0, "cost_model": 0, "cardinality": 0, "learned": 0}
+
+## Statements
+**Theorem 1.** Given a graph 𝐺 (𝑉 , 𝐸, 𝑤) and a set Γ of vertex groups, TrimCDP-WB can find an optimal solution to Problem 1.
+
+## Proofs
+**Proof.** We prove that TrimCDP-WB returns 𝑤 (Θ) of an optimal solution tree Θ. Without loss of generality, consider an edge (𝑢, 𝑣) in Θ such that, by removing (𝑢, 𝑣) from Θ, we obtain two sub-trees Θ𝑢 and Θ𝑣 , which contains 𝑢 and 𝑣, respectively, and we have 𝑤 (Θ) . (10) 2 That is to say, (𝑢, 𝑣) evenly divides Θ with respect to weights. Consider a leaf 𝑥 of Θ𝑣 , and 𝑥 ≠ 𝑣. Removing 𝑥 from Θ must induce that Θ does not cover some groups in Γ. Let Γ𝑥 be the set of these groups, i.e., groups that are uniquely covered by 𝑥. Further let 𝑦 be the neighbor of 𝑥 in Θ. We illustrate an example in Figure 5. TrimCDP-WB initially computes 𝑤 ′ (𝑥, Γ𝑥 ) = 0 in Line 5 of Algorithm 1. After that, TrimCDPWB obtains 𝑤 ′ (𝑦, Γ𝑥 ) = 𝑤 (𝑥, 𝑦) via the growing process in Lines 13-21. Further let Γ𝑥 𝑦 be the set of groups that are uniquely covered by the collection of 𝑥 and 𝑦 in Θ, i.e., eliminating 𝑥 and 𝑦 from Θ induces that Θ does not cover Γ𝑥 𝑦 any more. We have Γ𝑥 ⊆ Γ𝑥 𝑦 . Moreover, for each 𝑔 ∈ Γ𝑥 𝑦 \ Γ𝑥 , we have 𝑦 ∈ 𝑔. Therefore, TrimCDP-WB initializes 𝑤 ′ (𝑦, Γ𝑥 𝑦 \ Γ𝑥 ) = 0 in Line 5. The conditional tree merging theorem in [37] shows that TrimCDP-WB conducts Lines 22-26 to merge 𝑤 ′ (𝑦, Γ𝑥 ) = 𝑤 (𝑥, 𝑦) and 𝑤 ′ (𝑦, Γ𝑥 𝑦 \ Γ𝑥 ) = 0 to produce 𝑤 ′ (𝑦, Γ𝑥 𝑦 ) = 𝑤 (𝑥, 𝑦). Hence, after the above process, we can consider 𝑥 and 𝑦 as an integrated new leaf that has the weight of 𝑤 (𝑥, 𝑦) and uniquely covers Γ𝑥 𝑦 in Θ. Iteratively, TrimCDP-WB gets 𝑤 ′ (𝑣, ΓΘ𝑣 ) = 𝑤 (Θ𝑣 ), where ΓΘ𝑣 is the set of groups that are uniquely covered by the collection of vertices in Θ𝑣 . Via a similar growing and merging process, TrimCDP-WB can dynamically obtain 𝑤 ′ (𝑢, Γ \ ΓΘ𝑣 ) = 𝑤 (Θ𝑢 ). Subsequently, via the growing process on edge (𝑢, 𝑣), TrimCDP-WB produces 𝑤 ′ (𝑢, ΓΘ𝑣 ) = 𝑤 (Θ𝑣 ) + 𝑤 (𝑢, 𝑣). Then, through the computation of 𝑤 2 in Lines 10-11, TrimCDP-WB computes max{𝑤 (Θ𝑣 ), 𝑤 (Θ𝑢 )} < 𝑤𝑏𝑒𝑠𝑡 = 𝑤 ′ (𝑢, Γ) = 𝑤 ′ (𝑢, Γ \ ΓΘ𝑣 ) + 𝑤 ′ (𝑢, ΓΘ𝑣 ) = 𝑤 (Θ𝑢 ) + 𝑤 (Θ𝑣 ) + 𝑤 (𝑢, 𝑣) = 𝑤 (Θ). Hence, TrimCDP-WB returns 𝑤 (Θ). This theorem holds. 6.5 (11) □
+
+## Bound sentences

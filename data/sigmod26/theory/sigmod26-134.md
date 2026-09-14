@@ -1,0 +1,17 @@
+# sigmod26-134 — IDAP++: Advancing Divergence-Aware Pruning with Joint Filter and Layer Optimization
+
+flag=True score=6 stmts=3 proofs=1 chars=94304
+kinds: {"lemma": 1, "theorem": 2}
+counts: {"np_hard": 0, "lower_bound": 0, "upper_bound": 0, "big_o": 1, "omega": 0, "theta": 0, "approx_ratio": 1, "whp": 0, "regret": 0, "dp": 0, "invariant": 4, "convergence": 0, "competitive": 0, "worst_case": 0, "sketch": 0, "cost_model": 0, "cardinality": 0, "learned": 2}
+
+## Statements
+**Lemma 3.** 1 (Scale Invariance). For any 𝛼 > 0: D𝑙 (𝛼T𝑙 , 𝛼T𝑙+1 ) = D𝑙 (T𝑙 , T𝑙+1 ). (6)
+
+**Theorem 3.** 3 (Additive Composition). For independent attention heads, the total divergence equals the sum of head-specific divergences: multi Dattn (X) = 𝐻 ∑︁ ℎ Dattn (X). (29) ℎ=1
+
+**Theorem 3.4.** For any network N0 compressed with IDAP++, the compressed network N ∗ satisfies: ∥N0 (x) − N ∗ (x) ∥ 2 ≤ Δmax ∥N0 (x) ∥ 2 ∀x ∈ Dval, (37) while achieving maximal sparsity under the given constraints. 4 Experimental Setup and Results We developed a unified experimental platform to rigorously evaluate our information-aware iterative pruning method. This platform enables direct comparison across diverse models and datasets, assessing the impact of pruning on performance. Proc. ACM Manag. Data, Vol. 4, No. 1, Article 45. Publication date: February 2026. IDAP++: Advancing Divergence-Aware Pruning with Joint Filter and Layer Optimization 45:17 Our extensive validation demonstrates the method’s universality across architectural paradigms (CNNs, Transformers, hybrids) and tasks (classification, generation, NLP). This broad scope, spanning discriminative and generative models, confirms robustness beyond narrow benchmarks. The infrastructure integrates three core components: an information flow analyzer that quantifies each layer’s contribution; an intelligent pruning optimizer for controlled, stepwise parameter reduction; a standardized testing module ensuring reproducible evaluation across architectures. Fig. 2. Pruning Results for Different Architectures Using IDAP++: Base vs. Pruned Models (Acc@1, GFlops, Inference Time) Proc. ACM Manag. Data, Vol. 4, No. 1, Article 45. Publication date: February 2026. 45:18 Aleksei Samarin et al. Fig. 3. Model Compression Dynamics Using IDAP++ Fra …
+
+## Proofs
+**Proof.** Follows from the linearity of the Frobenius norm and the block-diagonal structure of multi-head projections. □
+
+## Bound sentences

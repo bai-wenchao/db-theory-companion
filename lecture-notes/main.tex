@@ -1,0 +1,216 @@
+\PassOptionsToPackage{numbers,sort&compress,sectionbib}{natbib}
+\PassOptionsToPackage{colorlinks=true}{hyperref}
+\documentclass[symmetric,justified]{tufte-book}
+% ------------------------------------------------------------------
+% Theoretical Tools in Database Systems Research
+% Lecture notes distilled from the SIGMOD 2026 full-corpus survey
+% (385 papers, 228 tagged; PODS'26-issue exemplars marked with \pods)
+% Template: panbook's tufte-book side (boazbk/panbook, MIT) — class files
+% tufte-book.cls / tufte-common.def / tufte.bst / xifthen.sty copied from it;
+% those originate in the Tufte-LaTeX project (Apache 2.0) — notices in
+% THIRD-PARTY-NOTICES.md. Layout conventions follow boazbk/tcs (its text is
+% CC BY-NC-ND 4.0; we borrow conventions only, no content).
+% Build: pdflatex main && (bibtex chapters/<tool>-all ... see 13_build_notes.sh)
+% ------------------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,graphicx,microtype}
+\usepackage[most]{tcolorbox}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{chapterbib}   % every \include'd chapter gets its own reference list
+\usepackage{newunicodechar}
+\hypersetup{allcolors=accent}   % tufte preloads hyperref; pass options via the class
+
+% tufte's \cite wraps every citation in a sidenote listing \bibentry{key} (the
+% Tufte-style full-reference margin note). Under chapterbib + numeric natbib the
+% \bibentry items come out EMPTY, leaving "; ; and" joiner junk, phantom numbered
+% margin notes, and in-text numbers taken from the sidenote counter rather than
+% the bibliography. \citep is plain natbib (untouched by the class) -> alias it.
+% Aliasing \cite alone is NOT enough: every \sidenote rebinds \cite to the
+% in-sidenote variant on entry and does \let\cite\@tufte@normal@cite on exit
+% (tufte-common.def, \@tufte@sidenote), clobbering this \renewcommand. Alias BOTH
+% tufte variants to \citep as well: then the rebind and the restore are harmless,
+% \cite inside \sidenote bodies works too, and the cite-queue marginpar stays
+% empty (an empty \marginpar is invisible).
+\renewcommand{\cite}{\citep}
+\makeatletter
+\renewcommand{\@tufte@normal@cite}[2][0pt]{\citep{#2}}
+\renewcommand{\@tufte@infootnote@cite}[1]{\citep{#1}}
+% belt-and-braces: never print the (empty) tufte cite-queue marginpar
+\renewcommand{\@tufte@print@citations}[1][0pt]{}
+\makeatother
+
+% ---- round-2 fix: float captions that cannot overlap -----------------------
+% tufte's figure*/table* typeset the caption inside \smash (zero height), so
+% multi-line captions hang into the text below the float (the page-7/8
+% overlaps). tufte never redefines the kernel's \@makecaption (its own
+% redefinition in tufte-common.def is commented out), so the `caption'
+% package plus plain KERNEL floats gives captions their real height.
+% widefigure/widetable = kernel floats widened via tufte's OWN fullwidth env
+% (adjustwidth* under the `symmetric' class option flips the overhang into the
+% LEFT margin on even pages --- raw \advance\linewidth is parity-blind and
+% pushed content off the right paper edge on verso pages). Wrapping pattern is
+% the one \@tufte@float itself uses (tufte-common.def:1275-1277):
+% fullwidth > minipage{\linewidth} shifts box AND captions by page parity.
+\usepackage{caption}
+\makeatletter
+\newenvironment{widefigure}[1][htbp]
+  {\@float{figure}[#1]%
+   \begin{fullwidth}\begin{minipage}{\linewidth}\centering}
+  {\end{minipage}\end{fullwidth}\end@float}
+\newenvironment{widetable}[1][htbp]
+  {\@float{table}[#1]%
+   \begin{fullwidth}\begin{minipage}{\linewidth}\centering\small}
+  {\end{minipage}\end{fullwidth}\end@float}
+\makeatother
+\captionsetup{font=small,labelfont={bf},labelsep=colon,skip=8pt,position=auto}
+
+% end-of-statement / end-of-proof marker (tcs convention: solid black square)
+\newcommand{\eop}{\leavevmode\unskip\nobreak\hfill\penalty50\hskip1em\null\nobreak\hfill
+  \mbox{\rule{1.1ex}{1.1ex}}\parfillskip=0pt\finalhyphendemerits=0\par}
+% display-math variant: use INSIDE \[ ...\] / align* when the statement ends
+% with the display (\eop is paragraph-level and cannot go in math mode).
+% \tag* puts the marker flush RIGHT on the display line (tcs convention) ---
+% \qquad\mbox{...} left it hugging the formula instead.
+\newcommand{\eopm}{\tag*{\rule{1.1ex}{1.1ex}}}
+\renewcommand{\qedsymbol}{\mbox{\rule{1.1ex}{1.1ex}}}
+
+% tufte sets secnumdepth=-1 (unnumbered chapters); we want numbered chapters,
+% sections and Theorem 2.1-style numbering instead of Theorem 0.1
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{1}
+
+% tufte-book deliberately leaves \subsubsection UNDEFINED (class error if
+% used). Re-arm it as an unnumbered, displayed, italic heading --- the
+% per-proof entries of the chapter appendices ("Proof of Theorem 1.4") use it.
+% \raggedright is mandatory: kernel headings justify, so a title that wraps
+% to two lines gets its words stretched across the full measure (ugly).
+\makeatletter
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+  {-3.25ex\@plus-1ex\@minus-.2ex}{1.5ex\@plus.2ex}%
+  {\normalfont\normalsize\itshape\bfseries\raggedright}}
+% sections number from 0 within every chapter (matches chapters-from-0):
+% section x.0 introduces the tool, exemplars start at x.1. There is NO
+% safe global hook: hyperref's \@chapter is parameterless and forwards
+% to \Hy@org@chapter (defined only at \begin{document}), so neither
+% \let+\def, \appto\@chapter, nor \appto\Hy@org@chapter works. Instead,
+% every chapter file starts with the two-line convention
+%   \chapter{...}\setcounter{section}{-1}
+% (same style as the \setcounter{chapter}{-1} after \tableofcontents).
+% REQUIRED in every chapter file at rollout.
+\makeatother
+
+% per-chapter reference lists render as a section INSIDE the chapter,
+% not as a standalone "Bibliography" chapter on its own page
+\renewcommand{\bibsection}{\section*{References}}
+
+% running heads (user spec, round 2): folio FIRST in both heads ---
+%   even pages: <page#>  book title   (flush left)
+%   odd  pages: <page#>  chapter name (flush right)
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\enspace\itshape Theoretical Tools in DB research}
+\fancyhead[RO]{\small\thepage\enspace\itshape\nouppercase{\leftmark}}
+% chapter-opening pages use the `plain' style, where tufte leaves the folio
+% unexpressed; re-arm it in the lower OUTSIDE corner (tufte-common.def's own
+% commented-out suggestion) so no page loses its number.
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[LE,RO]{\small\thepage}
+}
+
+\definecolor{accent}{HTML}{1F4E8C}
+\definecolor{softbg}{HTML}{F0F4FA}
+\definecolor{ocre}{RGB}{150,75,0}   % panbook's theorem accent, darkened for print
+\definecolor{boxteal}{HTML}{2A7F7F}   % "when to reach for it" theme
+
+\makeatletter
+\newtheoremstyle{ocrenumbox}
+{1em}{1ex}{\normalfont}{}{\small\bfseries\sffamily\color{ocre}}{\;}
+{0.25em}{\small\sffamily\color{ocre}\thmname{#1}\nobreakspace
+  \thmnumber{\@ifnotempty{#1}{}\@upn{#2}}%
+  \thmnote{\nobreakspace---\nobreakspace\bfseries\color{black}#3.}}
+\makeatother
+
+\theoremstyle{ocrenumbox}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+% exemplar from the PODS'26 issue inside PACMMOD Vol 4 No 2
+\newcommand{\pods}{\ensuremath{^{\textsf{PODS}}}}
+
+% chapter-top learning objectives, tcs style: typeset in the SIDENOTE column
+% at the top of the chapter's first page, not in the text flow. Bullets are
+% collected into a savebox and shipped as one \marginnote lifted next to the
+% chapter head (negative offset raises; tune per visual check). Keep bullets
+% SHORT --- the margin column is narrow.
+\newsavebox{\objectivesbox}
+\newenvironment{objectives}
+  {\begin{lrbox}{\objectivesbox}\begin{minipage}{\marginparwidth}%
+   {\color{accent}\rule{\linewidth}{2pt}}\\[4pt]%
+   {\footnotesize\sffamily\bfseries\color{accent}LEARNING OBJECTIVES}\\[3pt]%
+   \footnotesize\raggedright\begin{itemize}\itemsep2pt\parskip0pt}
+  {\end{itemize}\end{minipage}\end{lrbox}%
+   \marginnote[-7\baselineskip]{\usebox{\objectivesbox}}}
+
+% themed blocks: exactly THREE box semantics (kept deliberately small) ---
+%   remarkbox (slate): low-salience asides incl. "Notation"
+%   reachbox  (teal) : practitioner guidance ("when to reach" + recipe)
+%   recap     (ocre) : chapter-end summary
+% Theorems/lemmas use the ocre numbered style above; learning objectives live
+% in the margin column. Pseudocode, when needed, is a numbered list inside a
+% reachbox --- a separate algorithm-box theme is not warranted in a
+% methods book (procedures here are checklists, not algorithms).
+% chapter-end recap (ocre theme); bullets go directly inside (bare \item)
+\newtcolorbox{recap}{enhanced, breakable, colback=ocre!6, colframe=ocre,
+  fonttitle=\bfseries\sffamily, coltitle=white, title={Chapter Recap},
+  left=2mm, right=2mm, before upper=\begin{itemize}, after upper=\end{itemize}}
+% "when to reach for this tool" box (teal theme); own title
+\newtcolorbox{reachbox}[1]{enhanced, breakable, colback=boxteal!6, colframe=boxteal,
+  fonttitle=\bfseries\sffamily, coltitle=white, title={#1}, left=2mm, right=2mm}
+% remark box (slate theme), title defaults to "Remark"
+\newtcolorbox{remarkbox}[1][Remark]{enhanced, breakable, colback=black!4,
+  colframe=black!55, fonttitle=\bfseries\sffamily, coltitle=white,
+  title={#1}, left=2mm, right=2mm}
+
+% safety net for stray unicode from extracted text
+\newunicodechar{ℓ}{\ensuremath{\ell}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{∞}{\ensuremath{\infty}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{∼}{\ensuremath{\sim}}
+
+\title{Theoretical Tools in DB research}
+\author{Wenchao Bai}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+% chapters number from 0: the Introduction is Chapter 0, and the tool
+% chapters (concentration onwards) count from 1 --- matching ch0's map table
+\setcounter{chapter}{-1}
+
+\include{chapters/ch0}
+\include{chapters/concentration-ineq}
+\include{chapters/reduction}
+\include{chapters/induction}
+\include{chapters/estimation-theory}
+\include{chapters/adversarial-construction}
+\include{chapters/dp-composition}
+\include{chapters/exchange-greedy}
+\include{chapters/amortized-potential}
+\include{chapters/spectral-matrix}
+\include{chapters/online-decisions}
+
+\end{document}

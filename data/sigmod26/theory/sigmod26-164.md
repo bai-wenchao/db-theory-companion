@@ -1,0 +1,11 @@
+# sigmod26-164 — MUFASA: Fast and Accurate Multivariate Time-Series Clustering
+
+flag=False score=2 stmts=0 proofs=0 chars=111121
+kinds: {}
+counts: {"np_hard": 3, "lower_bound": 0, "upper_bound": 1, "big_o": 14, "omega": 0, "theta": 0, "approx_ratio": 1, "whp": 0, "regret": 0, "dp": 0, "invariant": 1, "convergence": 5, "competitive": 0, "worst_case": 0, "sketch": 0, "cost_model": 0, "cardinality": 0, "learned": 0}
+
+## Statements
+## Proofs
+## Bound sentences
+- Unfortunately, the solution is nontrivial—in Euclidean space, it is NP-hard for the number of clusters 𝐾 ≥ 2, even for a small dimension of 𝐷 = 2 [4, 68].
+- Convergence triggers early termination, while the iteration limit serves solely as a conservative upper bound, following common practice in [79, 84], where a small iteration limit (e.g., 100) is used to balance convergence stability and runtime.

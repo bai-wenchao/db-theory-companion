@@ -1,0 +1,206 @@
+\chapter{Exchange and Greedy Arguments}
+\label{ch:exchange-greedy}
+
+Few tools rose as sharply through our SIGMOD'26 corpus as this one: exchange/greedy
+arguments tagged 4 papers in the arXiv-visible cohort and jumped to 17 once the ACM-only
+mass arrived---one of the largest risers in the survey. The reason is a uniform paper
+shape: prove your selection problem NP-hard by reduction, then buy a polynomial-time
+algorithm back with a provable approximation factor. In our tag co-occurrences the tool
+pairs with hardness 10 times and with an approximation-ratio property 9 times---the
+signature of ``NP-hard, but structured.'' When the structure is submodularity, a covering
+constraint, or a metric, the greedy (or local-search) algorithm comes with a ready-made
+certificate, and the paper's theory section shrinks to checking the hypothesis.
+
+\section{The Tool: Exchange Arguments and Their Guarantees}
+
+An exchange argument certifies a greedy choice by showing that any solution avoiding it
+can be \emph{transformed} into one that makes it, at no loss. In a matroid, independent
+sets admit pairwise exchanges (if $S$ is independent and smaller than independent $S'$,
+some $x \in S' \setminus S$ keeps $S \cup \{x\}$ independent), so greedy is \emph{exact}
+for any linear objective~\cite{exchange-greedy-bg1}. Outside matroids exactness dies, but
+three structures keep a quantitative exchange certificate alive.
+
+\begin{definition}[submodularity]
+$f : 2^U \to \mathbb{R}_{\ge 0}$ is \emph{submodular} if
+$f(S \cup \{x\}) - f(S) \ge f(T \cup \{x\}) - f(T)$ whenever $S \subseteq T$ and
+$x \in U \setminus T$; it is \emph{monotone} if $S \subseteq T \Rightarrow f(S) \le f(T)$.
+\end{definition}
+
+\begin{itemize}
+\item \textbf{Monotone submodular, cardinality $k$.} Diminishing returns let greedy's
+next pick match the average marginal value of the optimum's remaining elements; $k$
+geometric decay steps compound to
+$f(S_{\mathrm{gre}}) \ge (1 - 1/e) \cdot \max_{|B| = k} f(B)$, and $1 - 1/e$ is tight
+unless $P = NP$~\cite{exchange-greedy-bg2}.
+\item \textbf{Submodular without monotonicity.} Randomized greedy variants retain a
+$1/2$ guarantee (exactly, via double greedy in the unconstrained case) and degrade
+gracefully under cardinality constraints~\cite{exchange-greedy-bg5}.
+\item \textbf{Covering constraints (set cover).} To cover a universe at minimum weight,
+charge each newly covered element the amortized cost of the set covering it; the
+averaging step against an optimal cover yields the harmonic factor
+$H(n) = \sum_{i=1}^{n} 1/i$~\cite{exchange-greedy-bg3}.
+\item \textbf{Metric structure.} With triangle-inequality distances, exchanging one
+center for another (local search) reassigns points through two triangle inequalities:
+single swaps give $(3+\varepsilon)$ for $k$-median, multi-swaps $(2+\varepsilon)$%
+~\cite{exchange-greedy-bg4}.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[
+  every node/.style={font=\scriptsize, align=center},
+  box/.style={draw, rounded corners=2pt, inner sep=3pt},
+  root/.style={box, fill=black!10},
+  arr/.style={->, shorten >=3pt, shorten <=3pt}]
+  \node[root] (np) at (0,0) {NP-hard selection problem\\ (reduction in hand)};
+  \node[box] (sub) at (-4.5,-1.7) {monotone submodular\\ greedy: $1-1/e$};
+  \node[box] (cov) at (-1.5,-1.7) {covering constraint\\ greedy: $H(n)$};
+  \node[box] (met) at (1.5,-1.7) {metric distances\\ swap search: $3+\varepsilon$};
+  \node[box] (mat) at (4.5,-1.7) {matroid independence\\ greedy: exact};
+  \draw[arr] (np) -- (sub);
+  \draw[arr] (np) -- (cov);
+  \draw[arr] (np) -- (met);
+  \draw[arr] (np) -- (mat);
+\end{tikzpicture}\\[2pt]
+{\scriptsize Which structure earns which guarantee; non-monotone objectives fall to
+randomized variants at $1/2$.}
+\end{center}
+
+\section{Five Views from the Corpus}
+
+\subsection{Monotone Submodular Diversity: Greedy at $1-1/e$}
+
+Selecting the $k$ most \emph{diverse} answers to a fixed conjunctive query, where
+diversity is defined through a volume assignment $\Omega$ over a universe $U$ of
+possible solutions.
+
+\begin{theorem}[volume-based diversity]
+Let $\Omega$ be any volume assignment over a universe $U$ of possible solutions. Then
+$\delta_\Omega$ is always monotone and submodular. Since $Q$ is fixed and $Q(D)$ is
+computable in polynomial time over $D$, the greedy strategy that starts from
+$S = \emptyset$ and in each iteration adds the tuple $t \in Q(D)$ maximizing the
+marginal diversity $\delta_\Omega(S \cup \{t\})$ returns a $k$-subset $S$ with
+\[
+\delta_\Omega(S) \;\ge\; \Bigl(1 - \frac{1}{e}\Bigr) \cdot
+\max_{B \subseteq Q(D),\, |B| = k} \delta_\Omega(B).
+\]
+\end{theorem}
+
+The factor is earned by pure Nemhauser--Wolsey--Fisher structure: a measure-algebra
+argument shows every volume assignment makes $\delta_\Omega$ monotone and submodular,
+and greedy inherits $1-1/e$---which is tight (maximum coverage is hard beyond $1-1/e$
+unless $P = NP$). The contrast is instructive: for the paper's distance-based analogues
+under Hamming or Euclidean metrics the best known ratios are strictly worse and degrade
+with $\varepsilon$ or $k$, while every polynomial-time-computable volume assignment gets
+the clean factor~\cite{sigmod26-350}.
+
+\subsection{NP-Hard Representative Sampling: Lazy Greedy at $1-1/e$}
+
+Choosing a representative subset of large-scale vector data under a budget: the paper
+first proves its Problem~1 (Representative Sampling) NP-hard, then turns the budgeted
+objective into submodular form.
+
+\begin{lemma}[submodularity of the sampling objective]
+Let $F$ be the sampling objective, built from per-point gains $g_s$ that are each
+nondecreasing and concave. Then $F : 2^U \to \mathbb{R}_{\ge 0}$ is nondecreasing and
+submodular.
+\end{lemma}
+
+\begin{theorem}[greedy guarantee]
+Let $B$ be the budget and let $A_{\mathrm{gre}}$ be the size-$B$ output of
+(lazy-)greedy. Then
+\[
+F(A_{\mathrm{gre}}) \;\ge\; \Bigl(1 - \frac{1}{e}\Bigr) \max_{|A| \le B} F(A).
+\]
+\end{theorem}
+
+Concavity of every per-point gain $g_s$ is the whole proof: sums of concave lifts of
+coverage are submodular, and the classical bound then prices the greedy output at
+$1-1/e$---a one-page certificate for a problem the reduction just declared hopeless
+exactly~\cite{sigmod26-031}.
+
+\subsection{Greedy Risk Coverage: A Set-Cover-Sized Coreset}
+
+Robust query optimization: given a workload distribution $W$ and plan space $\Pi$,
+select a small set of plans whose risk \emph{covers} the workload, forming a coreset
+that supports local plan inference.
+
+\begin{lemma}[greedy termination]
+Assuming the concentration conditions of the sampling lemmas hold in every round, the
+greedy cover terminates with $k_r \le 2\kappa^{*}$.
+\end{lemma}
+
+\begin{theorem}[risk coreset via greedy cover]
+Let $W$ be a workload distribution. Given plans $\Pi$ with $|\Pi| = N$ and parameters
+$\varepsilon \in (0,1]$, $\tau \ge 1$, $\delta \in (0,1)$, let $\kappa^{*}$ denote the
+size of the smallest $(\varepsilon, \tau, \delta|W|)$-coreset for risk. Fix any
+constants $c_1, c_2 > 1$. There exists an algorithm that samples
+$O\bigl((\kappa^{*}/\delta^{2}) \ln N \ln(\delta^{-1})\bigr)$ queries from $W$ and
+computes, in time $O\bigl((\kappa^{*}/(\varepsilon^{2}\delta^{2})) \cdot N \ln^{3} N
+\ln(\delta^{-1})\bigr)$, a set $C \subseteq \Pi$ of size $O(\kappa^{*} \ln
+\delta^{-1})$ such that, with high probability, $C$ is a
+$(c_{1}\varepsilon, \tau, c_{2}\delta|W|)$-coreset for risk.
+\end{theorem}
+
+This is the set-cover pattern in the wild: risk coverage is submodular, each greedy
+round shrinks the residual failure probability geometrically (the termination lemma
+caps rounds at twice the optimum), and the price of coverage is the familiar
+logarithmic slack $\ln(\delta^{-1})$ in the coreset size. Hoeffding and union bounds
+merely ensure the greedy cover runs on faithful proxy risks rather than true
+ones~\cite{sigmod26-053}\pods.
+
+\subsection{Kruskal Edge-Exchange: Exact Indexing for Temporal Graphs}
+
+Answering cohesive-subgraph queries (connected components, $k$-core) over \emph{all}
+time windows of a temporal graph, from one spanning-forest index built Kruskal-style
+with amortized union-find.
+
+\begin{lemma}[affiliated-forest invariant]
+Given a spanning edge $e = (u, v, t_1, t_2)$, let $\tau(e)$ be the timestamp such that
+$e \in F_{t_1,\tau(e)}$ and $e \notin F_{t_1,\tau(e)+1}$. An affiliated forest
+$(V, F_{x,y})$ built by $\mathsf{BuildAF}$ contains $e$ if and only if
+$0 \le x \le t_1$ and $t_2 \le y \le \tau(e)$.
+\end{lemma}
+
+Here the exchange is exact, not approximate: graphic-matroid cycles let the
+construction swap an arriving edge for an expiring one while keeping a forest valid
+for every window simultaneously---Lemma~above is the invariant those exchanges
+preserve. The certificate is completeness, not a factor: an $O(m \log m)$ construction
+and $O(m)$-space index answer any window exactly, with queries in
+$O(n + \log^{2} m)$~\cite{sigmod26-200}.
+
+\subsection{Swap Exchanges for Symmetry Breaking in Exact Search}
+
+Exact branch-and-bound for maximum common induced subgraph (MCIS), NP-hard, with
+branches pruned using vertex and value symmetries.
+
+\begin{theorem}[soundness of symmetry breaking]
+Variable symmetry breaking does not violate the correctness or completeness of the
+MCIS solution.
+\end{theorem}
+
+The proof is a pure swap: exchanging the conflicting pairs $(v_1,u_2),(v_2,u_1)$ for
+$(v_1,u_1),(v_2,u_2)$ maps any pruned branch to a symmetric one considered
+\emph{earlier} in the fixed branching order, so some optimal mapping always survives
+the pruning. The exchange partner is supplied by automorphisms---two vertices are
+modular-symmetric exactly when their transposition is an automorphism of the
+graph---turning group symmetry into a completeness certificate for exact
+search~\cite{sigmod26-009}.
+
+\begin{reachbox}{When to reach for exchange--greedy}
+\begin{itemize}
+\item Your selection, covering, or clustering problem is proved NP-hard by reduction,
+and the objective has \emph{checkable} structure: diminishing returns
+(submodularity), a covering constraint, metric distances, or matroid independence.
+\item You want the algorithm's quality to be a theorem, not a benchmark: the exchange
+proof is usually a page, and the factor ($1-1/e$, $H(n)$, $3+\varepsilon$, $1/2$, or
+exact) is inherited, not re-derived.
+\item Audit the hypotheses, not the algorithm: pairwise marginal tests or a
+concave-gain decomposition for submodularity; the triangle inequality for metrics; the
+exchange axiom for matroids. Near-modular or noisy objectives void the certificate.
+\item $1-1/e$ needs \emph{monotone} submodular; without monotonicity fall back to
+randomized variants ($1/2$ unconstrained).
+\item The same idea certifies \emph{exactness}: forest exchanges and symmetry swaps
+prove that pruning or one-pass construction loses nothing---completeness with no
+approximation factor at all.
+\end{itemize}
+\end{reachbox}

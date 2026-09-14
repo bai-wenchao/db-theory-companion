@@ -1,0 +1,245 @@
+\chapter{Amortized Analysis and Potential Functions}
+\label{ch:amortized-potential}
+
+Amortized analysis is the systems community's favorite certificate that
+rebuilds, compression, merges, and splits are \emph{free}: a single operation
+may detonate an $O(n)$ reorganization, but if many cheap operations must
+accumulate before the next detonation becomes possible, the cost per operation
+stays $O(1)$. Eleven papers in this corpus reach for the
+amortized/potential toolbox, and they own one of the most lopsided
+tool--property pairings in the survey: the pair
+\emph{upper-bound} $\times$ \emph{amortized-potential} occurs in ten of the
+eleven. The tool almost always arrives to certify a per-operation time or
+space bound that an honest worst-case statement could not quote.
+
+\section{The tool}
+
+Three equivalent framings \cite{amortized-potential-bg3}:
+\begin{itemize}
+\item \textbf{Aggregate method}: bound the total cost $T(n)$ of the worst
+  sequence of $n$ operations and report $T(n)/n$.
+\item \textbf{Accounting (banker's) method}: charge each operation a fictitious
+  amortized price; cheap operations bank the surplus, expensive operations
+  spend it, and the balance must never go negative.
+\item \textbf{Potential (physicist's) method}: fix a function $\Phi$ from
+  data-structure states to $\mathbb{R}_{\ge 0}$ and define the amortized cost
+  $\hat{a}_i = c_i + \Phi(D_i) - \Phi(D_{i-1})$. Telescoping gives
+  $\sum_i c_i \le \sum_i \hat{a}_i$ whenever $\Phi(D_n) \ge \Phi(D_0)$.
+\end{itemize}
+
+The design recipe for $\Phi$ has three canonical rules:
+\begin{enumerate}
+\item \textbf{Nonnegativity.} $\Phi(D)\ge 0$ for every reachable state
+  (typically $\Phi(D_0)=0$) --- this is what makes the telescoping inequality
+  safe for every prefix of the sequence.
+\item \textbf{Deposits.} Every cheap operation raises $\Phi$ by at most its
+  amortized cost: $+O(1)$ per insertion into a counter, a slack variable, or a
+  size-excess budget.
+\item \textbf{Withdrawals.} Every expensive event consumes a \emph{large}
+  accumulated $\Phi$: it can fire only once some measurable quantity
+  (counter, excess, rounding slack) has crossed a threshold, and $\Phi$ then
+  drops by at least the event's cost.
+\end{enumerate}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=0.95]
+  \draw[->] (0,0) -- (9.6,0);
+  \node[font=\small, below left] at (9.6,0) {operations};
+  \draw[->] (0,0) -- (0,3.5);
+  \node[font=\small, left] at (0,3.5) {$\Phi$};
+  \draw[very thick, blue!55!black] (0,0) -- (1,0.8);
+  \draw[very thick, red!70!black] (1,0.8) -- (1,0);
+  \draw[very thick, blue!55!black] (1,0) -- (3,1.6);
+  \draw[very thick, red!70!black] (3,1.6) -- (3,0);
+  \draw[very thick, blue!55!black] (3,0) -- (7,3.2);
+  \draw[very thick, red!70!black] (7,3.2) -- (7,0);
+  \draw[very thick, blue!55!black] (7,0) -- (9.3,1.05);
+  \node[font=\scriptsize, blue!55!black] at (4.75,1.15)
+    {cheap ops: $\Phi$ rises by $O(1)$ each};
+  \node[font=\scriptsize, red!70!black, anchor=west] at (7.15,2.95)
+    {expensive event:};
+  \node[font=\scriptsize, red!70!black, anchor=west] at (7.15,2.55)
+    {cost $\le$ accumulated $\Phi$};
+  \node[font=\scriptsize, below] at (1,0) {$t_1$};
+  \node[font=\scriptsize, below] at (3,0) {$t_2$};
+  \node[font=\scriptsize, below] at (7,0) {$t_3$};
+\end{tikzpicture}
+\caption{The sawtooth: cheap operations deposit into $\Phi$; an expensive
+event fires only when enough has accumulated, and its cost is paid entirely by
+the drop in $\Phi$. Doubling the event cost doubles the inter-event gap.}
+\label{fig:amortized-sawtooth}
+\end{figure}
+
+Amortized bounds beat worst-case bounds exactly when expensive events are rare
+\emph{because they require accumulation}: a worst-case bound must quote the
+burst cost $C$ for every operation, while the amortized bound divides $C$ by
+the $\Theta(\text{accrual})$ operations that had to precede it. The classic
+showcases are dynamic tables, Fibonacci heaps, and splay trees, where $\Phi$
+is a sum of imbalance terms
+\cite{amortized-potential-bg1,amortized-potential-bg2}; periodic global
+rebuilding is the degenerate special case ``rebuild cost over $\ell$'' for
+period $\ell$ \cite{amortized-potential-bg5}. The signature recipe in this
+corpus is \emph{rare-event bounding by a potential function}: a GK-style
+quantile sketch holds at most $2s\ln(n/s+2)$ tuples because every compaction
+spends accumulated error slack \cite{amortized-potential-bg4}, and a B-tree
+root split needs amortized $\Omega(b^{h+2})$ insertions before it can recur.
+The price of the method: the bound is a promise about \emph{sequences}, not
+single operations --- latency- or adversary-sensitive settings require
+deamortized variants.
+
+\section{Five views from the corpus}
+
+The five exemplars below exhibit progressively looser readings of the method:
+an explicit sawtooth potential, an implicit batching argument, potential as
+rounding slack, amortization imported as a black box, and potential as a
+progress measure.
+
+\subsection{SplineSketch: the sawtooth, literally}
+
+A streaming quantile sketch maintains $k$ buckets over the keys seen so far,
+each with a counter $b_i$ of absorbed items; arrivals increment counters, a
+bucket whose counter violates its budget ($b_i > C_b\cdot n/k$) must
+\emph{split}, and adjacent buckets are \emph{joined} to reclaim space. The
+maintenance question is how many splits a stream of $n$ items can force.
+
+\begin{lemma}[Split budget]
+Combining the lower bound on the decrease due to a split with the upper bound
+on the total potential, the number of splits during $(t',t]$ is at most
+\[
+\frac{t}{\beta\cdot C_b\cdot \frac{t}{2.5k}}
+ \;=\; \frac{2.5\,k}{\beta\cdot C_b}\;\le\;\frac{k}{18},
+\]
+where $C_b$ is chosen based on $\beta$.
+\end{lemma}
+
+The potential is a function of the bucket counters --- their excess over the
+budget $C_b\cdot n/k$: every arrival deposits $O(1)$, and the expensive event,
+a split, consumes a constant fraction $\beta$ of what has accumulated, which is
+literally the sawtooth of Figure~\ref{fig:amortized-sawtooth}. The split
+budget then lets the rank error be charged along the split history, giving
+$\varepsilon^{n}(\sigma_i)\le O(\log\alpha\cdot n/k)$ for any threshold
+$\sigma_i$ of the final sketch \cite{sigmod26-363}.
+
+\subsection{AeroSketch: batching the re-decomposition}
+
+Tracking a covariance sketch of a row stream requires repeatedly extracting
+the top eigenvectors of a $d\times d$ matrix --- far too expensive to redo on
+every arrival.
+
+\begin{theorem}
+The algorithm solves the ATTP matrix-sketch problem with space complexity
+$O(d\log\|A\|_F^{2})$ and amortized time complexity $O(d\log d)$ per update;
+with probability amplification it achieves amortized time complexity
+$O(d\log d\,\log^{2}\tfrac{1}{\delta})$ per update while guaranteeing success
+probability at least $1-\delta$, where $\delta$ is a tunable parameter.
+\end{theorem}
+
+There is no explicit $\Phi$ here: the expensive event is the
+eigen-decomposition of the accumulated covariance, executed by simultaneous
+iteration in $O(d\log d)$ using $\log_2 d + 1$ power-iteration steps, and it
+fires only when a dump threshold $\theta$ is crossed; each arriving row pays
+its share of the burst, i.e.\ the amortized cost is burst$/\ell$ for batch
+length $\ell$. A decomposability lemma --- per-site sketches compose
+additively in covariance error --- then carries the same accounting to sliding
+windows and distributed sites \cite{sigmod26-015}.
+
+\subsection{Approximate query processing under updates: slack as potential}
+
+For free-connex conjunctive queries over a semiring, exact incremental view
+maintenance is blocked by dynamic lower bounds outside the tiny
+q-hierarchical class. The escape is to keep auxiliary views only
+approximately: each cached annotation is rounded up within a multiplicative
+factor $b$ and refreshed lazily when the true value outgrows the cache.
+
+\begin{theorem}
+For any $b>1$ and any free-connex query $Q(H,F)$, all auxiliary views can be
+updated in amortized $O(\log_b M)$ time under an insertion-only update
+sequence, where $M=\max_{i,e}\max_{t\in R^{i}_{e}} A^{i}_{R_e}(t)$. Applied to
+maintaining the join size of a 3-way join, which has $M=O(N^{2})$, the
+amortized update cost is thus $O(\log_b N)$.
+\end{theorem}
+
+The potential is the total rounding slack $\sum_t \log_b A_R(t)$: an insertion
+deposits $O(1)$, and the expensive event --- a cascading recomputation up the
+view hierarchy, triggered when a tuple's annotation exceeds its cached value
+by the factor-$b$ slack --- consumes a unit, so each tuple can fire at most
+$\log_b M$ times. The insertion-only hypothesis is essential: fully-dynamic
+sequences face an amortized $\Omega(\sqrt{N})$ lower bound for
+non-q-hierarchical queries, and it holds even under approximation
+\cite{sigmod26-274}.
+
+\subsection{Subset sampling over joins: amortization imported}
+
+One-shot and dynamic subset sampling over an acyclic join $Q$ must draw each
+result tuple $u\in\mathrm{Join}(Q)$ independently with probability $p(u)$,
+where $p$ factorizes over the relations of $Q$; the index shards tuples into
+weight buckets --- each sub-instance is either light or near-uniform --- with a
+meta-index steering rejection sampling across buckets.
+
+\begin{theorem}
+Given an acyclic join instance $Q$ and a set of associated weight functions
+$\{p^{R}_{j}\}_{j\in Q}$, we can maintain a dynamic index under tuple
+insertions using $O(N\log N)$ space, with amortized update time
+$O(\log^{3} N\,\log\log N)$, while supporting the subset sampling query in
+$O(1+\mu_{\Psi}\log N)$ expected time, where $N$ is the total number of
+insertions.
+\end{theorem}
+
+The expensive events are index rebalancing and the periodic re-derivation of
+per-bucket statistics as insertions shift tuples across weight classes; the
+amortized $O(\log N)$ maintenance primitive is imported rather than re-proved
+(the paper's Lemma~5.1, from prior work: the direct-access join index over
+real and dummy tuples updates in amortized $O(\log N)$ per inserted tuple).
+The composability lesson: a data structure with an amortized guarantee can
+serve as a black-box component inside a larger amortized analysis
+\cite{sigmod26-232}\pods
+
+\subsection{Jaguar: potential as progress measure}
+
+Jaguar evaluates conjunctive queries in submodular-width time by recursively
+decomposing the instance; at each node, \textsc{Calibrate} re-derives size
+bounds $g(Z)$ for subsets $Z$ of the query variables --- in fact a
+shortest-path computation on a weighted graph whose vertices are the subsets
+of $V$.
+
+\begin{theorem}
+Let $\varepsilon>0$ be an arbitrary constant. Given a CQ $Q$, a set of
+statistics $(\Sigma,n)$, and a database instance $D_0$ that matches the schema
+of $Q$ and satisfies the statistics $(\Sigma,n)$, Jaguar correctly computes
+$Q(D_0)$ in time $O(N^{\mathrm{subw}(Q,\Sigma,n)+\varepsilon}+\mathrm{OUT})$
+in data complexity, where $N=|D_0|$ and $\mathrm{OUT}$ is the output size. In
+particular, after a preprocessing time of
+$O(N^{\mathrm{subw}(Q,\Sigma,n)+\varepsilon})$, Jaguar supports constant-delay
+enumeration of the output tuples.
+\end{theorem}
+
+Here the potential is not a bank but a \emph{progress measure}: the
+log-relation-size bound $g$. Light recursion edges leave the statistics intact
+(a light path has length at most $2^{|V|}=O(1)$), while each heavy edge
+decreases the potential by at least $\varepsilon$ --- so any root-to-leaf path
+carries at most $O(1)$ heavy edges and the recursion tree has $O(1)$ depth in
+data complexity. The expensive event is the heavy, statistics-tightening
+recursive call: it can fire only while potential remains to burn, and with
+linear-time \textsc{Calibrate} plus the invariant
+$c\le\mathrm{subw}(Q,\Sigma,n)$ on every calibrated bound, no level of the
+constant-depth tree exceeds the advertised
+$N^{\mathrm{subw}(Q,\Sigma,n)+\varepsilon}$ \cite{sigmod26-141}\pods
+
+\begin{reachbox}{When to reach for amortized analysis}
+\begin{itemize}
+\item You need a \emph{per-operation} time or space bound, and the algorithm
+  has an occasional expensive structural event --- split, merge, rebuild,
+  compression, re-decomposition, full scan --- that only many cheap operations
+  can set up.
+\item The trigger is measurable: some counter, excess, or slack that rises by
+  $O(1)$ per cheap operation and drops sharply when the event fires. If you
+  can write it as a $\Phi$ obeying the three rules, the bound follows by
+  telescoping --- and you get to tune the regime (batch length $\ell$, slack
+  ratio $b$, bucket budget $C_b$) to trade burst size against frequency.
+\item Sequences, not single operations: if the deployment cares about tail
+  latency or faces an adversary who inspects timings, budget for deamortized
+  variants; and remember that insert-only analyses can shatter under deletions
+  (the $\Omega(\sqrt{N})$ fully-dynamic lower bound above).
+\end{itemize}
+\end{reachbox}

@@ -1,0 +1,25 @@
+# sigmod26-149 — LM-Tree: A Hybrid Learned Index for Similarity Search in Metric Spaces
+
+flag=True score=12 stmts=4 proofs=4 chars=102767
+kinds: {"theorem": 4}
+counts: {"np_hard": 0, "lower_bound": 0, "upper_bound": 0, "big_o": 22, "omega": 0, "theta": 0, "approx_ratio": 0, "whp": 0, "regret": 0, "dp": 0, "invariant": 0, "convergence": 0, "competitive": 0, "worst_case": 0, "sketch": 0, "cost_model": 0, "cardinality": 8, "learned": 18}
+
+## Statements
+**Theorem 1.** Given a pivot 𝑝 𝑣 in a leaf node 𝑒, and a range query 𝑀𝑅𝑄 (𝑞, 𝑟𝑞 ), if either 𝑑𝑝𝑐 𝑣+1 < 𝑑 (𝑞, 𝑒.𝑐) − 𝑟𝑞 or 𝑑𝑝𝑐 𝑣 > 𝑑 (𝑞, 𝑒.𝑐) + 𝑟𝑞 holds, 𝑝 𝑣 and the objects within its corresponding 𝑃𝐷𝐿𝑣 are out of the query range.
+
+**Theorem 2.** Given a pivot 𝑝 𝑣 in an inner node 𝑒, and a range query 𝑀𝑅𝑄 (𝑞, 𝑟𝑞 ), if 𝑑𝑝𝑐 𝑣 > 𝑑 (𝑞, 𝑒.𝑐) + 𝑟𝑞 , 𝑝 𝑣 and all child nodes within its corresponding 𝑃𝐷𝐿𝑣 are out of the query range.
+
+**Theorem 3.** Given any two adjacent objects 𝑜𝑖 and 𝑜𝑖+1 within the same segment, where 𝑑𝑖 and 𝑑𝑖+1 represent their respective distances to the node center 𝑒.𝑐, 𝑑𝑖+1 − 𝑑𝑖 remains within the range [max{0, (1 − 2𝜖)/𝑎}, (1 + 2𝜖)/𝑎].
+
+**Theorem 4.** Assuming 𝑒𝑖 and 𝑒 𝑗 only have one pivot, 𝑒 𝑗 cannot be merged with 𝑒𝑖 if 𝑖 (𝑑 (𝑒 𝑗 .𝑐,𝑒 𝑖 .𝑐 ) −𝑒 𝑗 .𝑟 ) −0 𝜖 𝜖 falls outside range [𝐹 .𝑎 − 𝑑𝑝 max , 𝐹 .𝑎 + 𝑑𝑝 max ], with 𝐹 being the linear model 𝐹 of 𝑒𝑖 . 𝐹 (𝑑 (𝑒 .𝑐,𝑒 .𝑐 ) −𝑒 .𝑟 ) −0
+
+## Proofs
+**Proof.** As demonstrated in Section 3.1.2, ∀𝑜𝑢 ∈ 𝑃𝐷𝐿𝑣 , 𝑑𝑝𝑐 𝑣 ≤ 𝑑 (𝑜𝑢 , 𝑒.𝑐) < 𝑑𝑝𝑐 𝑣+1 is guaranteed. If 𝑑𝑝𝑐 𝑣+1 < 𝑑 (𝑞, 𝑒.𝑐)−𝑟𝑞 or 𝑑𝑝𝑐 𝑣 > 𝑑 (𝑞, 𝑒.𝑐)+𝑟𝑞 , it follows that ∀𝑜𝑢 ∈ 𝑃𝐷𝐿𝑣 , 𝑑 (𝑜𝑢 , 𝑒.𝑐) < 𝑑 (𝑞, 𝑒.𝑐)−𝑟𝑞 or ∀𝑜𝑢 ∈ 𝑃𝐷𝐿𝑣 , 𝑑 (𝑜𝑢 , 𝑒.𝑐) > 𝑑 (𝑞, 𝑒.𝑐) + 𝑟𝑞 , which implies that all objects in 𝑃𝐷𝐿𝑣 are out of the query range. □
+
+**Proof.** As stated in Section 3.1.2, ∀𝑐ℎ𝑖𝑙𝑑𝑢 ∈ 𝑃𝐷𝐿𝑣 , 𝑑𝑝𝑐 𝑣 < 𝑑 (𝑐ℎ𝑖𝑙𝑑𝑢 .𝑐, 𝑒.𝑐) − 𝑐ℎ𝑖𝑙𝑑𝑢 .𝑟 is ensured. Thus, if 𝑑𝑝𝑐 𝑣 > 𝑑 (𝑞, 𝑒.𝑐) + 𝑟𝑞 , ∀𝑐ℎ𝑖𝑙𝑑𝑢 ∈ 𝑃𝐷𝐿𝑣 , we have, 𝑑 (𝑐ℎ𝑖𝑙𝑑𝑢 .𝑐, 𝑒.𝑐) − 𝑐ℎ𝑖𝑙𝑑𝑢 .𝑟 > 𝑑 (𝑞, 𝑒.𝑐) + 𝑟𝑞 . It implies all child nodes in 𝑃𝐷𝐿𝑣 are outside the query range. □
+
+**Proof.** Given a segment with linear mapping function 𝑓 (𝑑) = 𝑎 · 𝑑 + 𝑏 and error threshold 𝜖, the storage positions 𝑝𝑜𝑠𝑖 and 𝑝𝑜𝑠𝑖+1 of objects 𝑜𝑖 and 𝑜𝑖+1 must satisfy the constraints 𝑝𝑜𝑠𝑖 − 𝜖 ≤ 𝑓 (𝑑𝑖 ) ≤ 𝑝𝑜𝑠𝑖 + 𝜖 and 𝑝𝑜𝑠𝑖+1 − 𝜖 ≤ 𝑓 (𝑑𝑖+1 ) ≤ 𝑝𝑜𝑠𝑖+1 + 𝜖. By the monotonicity of 𝑓 , 𝑝𝑜𝑠𝑖 − 𝜖 ≤ 1+2𝜖 𝑓 (𝑑𝑖 ) ≤ 𝑓 (𝑑𝑖+1 ) ≤ 𝑝𝑜𝑠𝑖+1 + 𝜖 is satisfied, which implies 1−2𝜖 𝑎 ≤ 𝑑𝑖+1 − 𝑑𝑖 ≤ 𝑎 . Since distances fromobjects in 𝑒 to its center 𝑒.𝑐 are monotonically increasing (𝑑𝑖+1 − 𝑑𝑖 ≥ 0 for all 𝑖 ≥ 0), we have ≤ 𝑑𝑖+1 − 𝑑𝑖 ≤ 1+2𝜖 □
+
+**Proof.** According to the ShrinkingCone strategy, if the slope 𝑎 ′ = (𝑑 (𝑒 𝑗 𝑗.𝑐,𝑒𝑖 𝑖.𝑐 ) −𝑒 𝑗 𝑗.𝑟 ) −0 falls outside the slope range [𝐹 .𝑎 − 𝑑𝑝𝜖max , 𝐹 .𝑎 + 𝑑𝑝𝜖max ], we should form at least additional one segment (also pivot). Since 𝑒 𝑗 only has a single pivot, merging 𝑒𝑖 and 𝑒 𝑗 in this case would result in at least 2 Proc. ACM Manag. Data, Vol. 4, No. 1 (SIGMOD), Article 51. Publication date: February 2026. 51:14 Yaqi Wang, Bin Wang, Rui Zhu, Wenli Sun, and Xiaochun Yang a 1 :7 a 2 :16 o1 ... o16 distance: (e1, e2) : 2.0 (e1, e3) : 2.6 (e1, e4) : 3.3 (e2, e3) : 3.1 (e2, e4) : 4.7 (e3, e4) : 1.6 e ... e2 e3 e4 e1 a 1 :13.6 o17 ... o29 ei r a 1 :15 a 1 :15 o30 ... o44 o45 ... o61 |e i | |P| e 1 1.5 16 2 e 2 1.1 12 1 e 3 1.0 14 1 e 4 1.0 16 1 a 1 :7 a 2 :17 e ... e12 e43 o1 ... o29 Gain Table T : E1: {e12, e43} 1 -2 / / 0 / / 3 / / 0 0 4 -1 / 1 0 ei e12 e43 r 3.1 2.6 |e i | 28 30 |P| 2 1 1 1 0 2 (a) intialization 2 3 4 a 1 :15 o30 ... o61 T1 : 1 1 0 2 / 2 -2 0 (b) e after mering Fig. 3. An example of node merging (𝜖 = 1, / means no merge cost calculation needed). pivots. Due to we only perform the merge when 𝑒𝑖 .|𝑃 | + 𝑒 𝑗 .|𝑃 | − 𝑒𝑖 𝑗 .|𝑃 | > 0, 𝑒 𝑗 could not merge with 𝑒𝑖 . □
+
+## Bound sentences
