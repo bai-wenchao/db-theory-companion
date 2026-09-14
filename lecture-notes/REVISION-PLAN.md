@@ -12,26 +12,29 @@ Goal: all 13 tool chapters at pilot spec, then ch0 refresh + index + v1.0.
 
 ## Waves (≤4 agents, quota-gated: `scripts/quota_check.py` before each)
 
+Chapter order = corpus frequency (user round-6 feedback): reductions (50) is
+Chapter 1, concentration (38) Chapter 2, … (see ch0 map table).
+
 | Wave | Chapters (book #) | Kind |
 |---|---|---|
-| 1 | reduction (2), induction (3), estimation-theory (4), adversarial-construction (6) | revise |
-| 2 | information-theory (5, NEW), communication-complexity (7, NEW), dp-composition (8), exchange-greedy (9) | 2 new + 2 revise |
-| 3 | amortized-potential (10), spectral-matrix (11), coresets-rnla (12, NEW), online-decisions (13) | 1 new + 3 revise |
+| 1 | reduction (1), induction (3), estimation-theory (4), adversarial-construction (5) | revise |
+| 2 | dp-composition (6), exchange-greedy (7), spectral-matrix (8), amortized-potential (9) | revise |
+| 3 | coresets-rnla (10, NEW), information-theory (11, NEW), communication-complexity (12, NEW), online-decisions (13, hand-picked exemplars) | 3 new + 1 revise |
 
 ## Per-chapter exemplars (plan.json slices; PODS capped ≤1 per chapter, 2 for communication-complexity)
 
-- **reduction** (50 papers): 136(PODS), 289, 350, 357, 264, 375
-- **induction** (36): 114(PODS), 371, 307, 153, 233, 290
-- **estimation-theory** (27): 115(PODS), 231, 102, 373, 293, 377
-- **adversarial-construction** (21): 166(PODS), 306, 349, 123, 150, 179
-- **information-theory** (5, NEW): 185(PODS), 079, 231, 279, 237
-- **communication-complexity** (4, NEW): 115(PODS), 243(PODS), 357, 070 — PODS cap = 2 here
-- **dp-composition** (18): 298, 178(PODS), 337, 263, 073, 214
-- **exchange-greedy** (16): 053(PODS), 200, 031, 009, 224, 229
-- **amortized-potential** (11): 177(PODS), 015, 180, 363, 274, 203
-- **spectral-matrix** (13): 038(PODS), 303, 235, 190, 101, 265
-- **coresets-rnla** (8, NEW; merged coresets-geometry + randomized-nla): 289, 053(PODS), 303, 349, 052, 127
-- **online-decisions** (4; plan.json empty → hand-picked): 242 "To Adapt or
+- **reduction** (50 papers, Ch. 1): 136(PODS), 289, 350, 357, 264, 375
+- **induction** (36, Ch. 3): 114(PODS), 371, 307, 153, 233, 290
+- **estimation-theory** (27, Ch. 4): 115(PODS), 231, 102, 373, 293, 377
+- **adversarial-construction** (21, Ch. 5): 166(PODS), 306, 349, 123, 150, 179
+- **dp-composition** (18, Ch. 6): 298, 178(PODS), 337, 263, 073, 214
+- **exchange-greedy** (16, Ch. 7): 053(PODS), 200, 031, 009, 224, 229
+- **spectral-matrix** (13, Ch. 8): 038(PODS), 303, 235, 190, 101, 265
+- **amortized-potential** (11, Ch. 9): 177(PODS), 015, 180, 363, 274, 203
+- **coresets-rnla** (8, Ch. 10, NEW; merged coresets-geometry + randomized-nla): 289, 053(PODS), 303, 349, 052, 127
+- **information-theory** (5, Ch. 11, NEW): 185(PODS), 079, 231, 279, 237
+- **communication-complexity** (4, Ch. 12, NEW): 115(PODS), 243(PODS), 357, 070 — PODS cap = 2 here
+- **online-decisions** (4, Ch. 13; plan.json empty → hand-picked): 242 "To Adapt or
   Not to Adapt, That is the Ski Question", 094 "Enumerating Graph Pattern
   Matches with ML Oracles", 221 "SHoCLean: Bridging Soft and Hard
   Constraints for Multivariate Time Series Cleaning", 140 "Interpretable
