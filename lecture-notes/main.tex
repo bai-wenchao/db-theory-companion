@@ -10,7 +10,9 @@
 % those originate in the Tufte-LaTeX project (Apache 2.0) — notices in
 % THIRD-PARTY-NOTICES.md. Layout conventions follow boazbk/tcs (its text is
 % CC BY-NC-ND 4.0; we borrow conventions only, no content).
-% Build: pdflatex main && (bibtex chapters/<tool>-all ... see 13_build_notes.sh)
+% Build: ./build.sh [pilot|main]  (writes buildstamp.tex, wipes aux, reruns
+% pdflatex/bibtex until the PDF is BYTE-STABLE -- the ToC needs the extra
+% pass: its adjustwidth* parity resolves from the previous run's aux)
 % ------------------------------------------------------------------
 \usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{booktabs,graphicx,microtype}
@@ -193,8 +195,44 @@
 \author{Wenchao Bai}
 \date{September 2026}
 
+% book version, printed on the verso-of-title page (bump at milestones):
+\newcommand{\bookversion}{0.6}
+\newcommand{\bookstatus}{Round-6 revision in progress}
+% compile stamp written by build.sh; \today fallback for raw pdflatex runs
+\IfFileExists{buildstamp.tex}{\input{buildstamp.tex}}{%
+  \newcommand{\buildstamp}{\today}}
+
 \begin{document}
 \maketitle
+
+% ---- verso of title: version + copyright + license (round-6 spec) --------
+\clearpage
+\thispagestyle{empty}
+\null\vfill
+\begin{center}
+{\Large\itshape Theoretical Tools in DB research}\\[3ex]
+{\large Lecture notes distilled from the SIGMOD~2026 full-corpus survey}\\[7ex]
+{\small
+Version \bookversion{} --- \bookstatus.\\
+Compiled \buildstamp{} (pdf\LaTeX{}; sources under version control).\\[7ex]
+\begin{minipage}{0.74\linewidth}
+\raggedright
+\copyright{} 2026 Wenchao Bai. This work is licensed under the Creative
+Commons Attribution--NonCommercial 4.0 International Public License
+(\textsc{cc\,by-nc\,4.0}): you may share and adapt it for any non-commercial
+purpose with attribution --- see
+\url{https://creativecommons.org/licenses/by-nc/4.0/} for details.\\[2ex]
+Typeset with the \texttt{tufte-book} class of the Tufte-\LaTeX{} project
+(Apache~2.0), as bundled in Boaz Barak's \texttt{panbook} (MIT); layout
+conventions follow Barak's \emph{Introduction to Theoretical Computer
+Science} lecture notes (text \textsc{cc\,by-nc-nd\,4.0}; conventions only,
+no content). Third-party license notices ship with the sources
+(\texttt{THIRD-PARTY-NOTICES.md}).
+\end{minipage}}
+\end{center}
+\vfill
+\clearpage
+
 \tableofcontents
 
 % chapters number from 0: the Introduction is Chapter 0, and the tool
@@ -206,11 +244,14 @@
 \include{chapters/reduction}
 \include{chapters/induction}
 \include{chapters/estimation-theory}
+\include{chapters/information-theory}
 \include{chapters/adversarial-construction}
+\include{chapters/communication-complexity}
 \include{chapters/dp-composition}
 \include{chapters/exchange-greedy}
 \include{chapters/amortized-potential}
 \include{chapters/spectral-matrix}
+\include{chapters/coresets-rnla}
 \include{chapters/online-decisions}
 
 \end{document}
