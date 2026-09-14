@@ -82,6 +82,30 @@
 \setcounter{secnumdepth}{2}
 \setcounter{tocdepth}{1}
 
+% ---- round-6 fix: ToC page numbers RIGHT-ALIGNED --------------------------
+% tufte's \titlecontents filler is `\qquad\thecontentspage' -- the page number
+% sits one quad after the title instead of at the right edge (user round-6
+% feedback). Override chapter/section with titletoc's dotted leader +
+% \contentspage (titletoc stretches the leader, so the number lands flush
+% right). Fonts and the fullwidth wrapper are kept identical to tufte's --
+% the wrapper's adjustwidth* parity is why build.sh compiles until
+% byte-stable. Chapter lines: leader + number at \normalsize (the LARGE
+% title survives from the `above' arg).
+\titlecontents{chapter}%
+  [0em] % distance from left margin
+  {\vspace{1.5\baselineskip}\begin{fullwidth}\LARGE\rmfamily\itshape} % above
+  {\hspace*{0em}\contentslabel{2em}} % before w/label (label = ``2'')
+  {\hspace*{0em}} % before w/o label
+  {\rmfamily\upshape\normalsize\titlerule*[0.75em]{.}\contentspage} % filler + page
+  [\end{fullwidth}] % after
+\titlecontents{section}%
+  [0em] % distance from left margin
+  {\vspace{0\baselineskip}\begin{fullwidth}\Large\rmfamily\itshape} % above
+  {\hspace*{2em}\contentslabel{2em}} % before w/label (label = ``2.6'')
+  {\hspace*{2em}} % before w/o label
+  {\rmfamily\upshape\normalsize\titlerule*[0.75em]{.}\contentspage} % filler + page
+  [\end{fullwidth}] % after
+
 % tufte-book deliberately leaves \subsubsection UNDEFINED (class error if
 % used). Re-arm it as an unnumbered, displayed, italic heading --- the
 % per-proof entries of the chapter appendices ("Proof of Theorem 1.4") use it.
@@ -239,19 +263,22 @@ no content). Third-party license notices ship with the sources
 % chapters (concentration onwards) count from 1 --- matching ch0's map table
 \setcounter{chapter}{-1}
 
+% chapters ordered by corpus frequency (user round-6 feedback): reductions
+% (50 papers) leads; concentration (38) is Chapter 2 -- counts from the
+% ch0 map table (tagged papers per tool)
 \include{chapters/ch0}
-\include{chapters/concentration-ineq}
 \include{chapters/reduction}
+\include{chapters/concentration-ineq}
 \include{chapters/induction}
 \include{chapters/estimation-theory}
-\include{chapters/information-theory}
 \include{chapters/adversarial-construction}
-\include{chapters/communication-complexity}
 \include{chapters/dp-composition}
 \include{chapters/exchange-greedy}
-\include{chapters/amortized-potential}
 \include{chapters/spectral-matrix}
+\include{chapters/amortized-potential}
 \include{chapters/coresets-rnla}
+\include{chapters/information-theory}
+\include{chapters/communication-complexity}
 \include{chapters/online-decisions}
 
 \end{document}
