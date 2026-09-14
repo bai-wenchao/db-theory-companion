@@ -1,78 +1,189 @@
-\chapter{Reductions: Importing Hardness into Database Problems}
+\chapter{Reductions}
+\setcounter{section}{-1}   % sections start at 1.0 (see main.tex comment)
 \label{ch:reduction}
+
+\begin{objectives}
+\item Recognize claims that need \emph{imported} hardness, and pick the source problem.
+\item Match the rung to the currency: decision, ratio, count, time, space.
+\item Audit a gadget: instances forward, quality backward, parameters in every regime.
+\item Run reductions backwards to certify tractability --- then glue both sides into a dichotomy.
+\end{objectives}
 
 Most ``impossible'' statements in database research are not proved from scratch: they are
 \emph{imported}. A reduction exhibits a computable translation from a problem already
 believed hard --- CLIQUE, Set Cover, inner-product estimation, hyperclique detection ---
 into the problem at hand, so that any algorithm, approximation, private mechanism, or
-sampler for the target would also solve the source. Reductions are the most used
-theoretical tool in our SIGMOD'26 corpus: 50 of 228 tagged papers rely on them, and 32 of
-those pair a reduction with an explicit hardness claim. They matter in both directions:
-they delimit what any system can do (lower bounds, dichotomies, inapproximability) and,
-run backwards, they turn new problems into old ones with known algorithms.
+sampler for the target would also solve the source. The translation is a two-way conduit:
+instances travel forward through the gadget, and whatever the paper cares about --- running
+time, approximation ratio, output count, memory, accuracy --- travels backward, inheriting
+the source's hardness. Run in the constructive direction, the same machinery turns new
+problems into old ones with known algorithms. Reductions are the most used theoretical
+tool in our SIGMOD'26 corpus: 50 of 228 tagged papers rely on them, 32 of those pair the
+reduction with an explicit hardness claim, and the heaviest concentration is graph
+analytics (14 papers).
 
-\section{The tool: mappings that preserve what you care about}
+This chapter builds the ladder of reduction types first --- each rung named by the
+\emph{currency} it preserves --- and walks four corpus exemplars up it;
+Section~\ref{sec:red-advanced} adds the advanced rungs (fine-grained hypotheses,
+reduction chains, algebraic transfer lemmas) as extension reading.
 
-\begin{definition}[Polynomial-time many-one reduction]
+\section{The tool: reductions}
+\label{sec:red-tool}
+
+The problem class is uniform across applications. Somewhere there is a source problem
+$H$ that a community has already failed to solve --- CLIQUE, Set Cover, Disjointness,
+Hamiltonian path --- together with evidence of its hardness: a proof (NP-completeness),
+a widely believed conjecture (the Unique Games Conjecture), or a quantitative hypothesis
+(SETH, combinatorial Boolean matrix multiplication, communication lower bounds). The
+paper's target problem $P$ is the one the reader actually cares about. What a reduction
+supplies is a pair of polynomial-time maps: a \emph{gadget} $f$ that builds an instance
+of $P$ out of every instance of $H$, and a \emph{decoder} $g$ that reads a solution of
+quality $q$ for $f(x)$ back into a solution of quality $g(q)$ for $x$. Composing the
+two, any solver for $P$ of quality $q$ is a solver for $H$ of quality $g(q)$; if $H$'s
+hardness statement rules that out, it rules out the solver for $P$.
+Figure~\ref{fig:red-skeleton} schematizes the two halves.
+
+\begin{remarkbox}[Hypotheses and currencies]
+Throughout, the \emph{source} $H$ carries a hardness statement at some resolution:
+qualitative (NP-hardness, \#P-completeness), ratio-quantitative (no $r$-approximation
+under the Unique Games Conjecture), or fully quantitative (no $O(n^{2-\varepsilon})$
+algorithm under SETH; no $o(m)$-communication protocol for Disjointness). The
+\emph{currency} of a reduction is the quantity that travels backward through the
+decoder: yes/no membership, objective value (hence approximation ratio), output count,
+running time, memory, or estimation error. The target inherits exactly the source's
+resolution --- no more: an NP-hardness source cannot yield an inapproximability ratio,
+and a conditional source yields a conditional bound.
+\end{remarkbox}
+
+\subsection{The ladder}
+\label{sec:red-ladder}
+
+The classical rung preserves decision membership
+\citep{reduction-bg2,reduction-bg1,reduction-bg3}.
+
+\begin{definition}[Polynomial-time many-one reduction]\label{def:red-manyone}
 Let $L_1, L_2$ be decision problems. We write $L_1 \le_m^p L_2$ if there is a
 polynomial-time computable function $f$ with $x \in L_1 \iff f(x) \in L_2$ for all $x$.
-If some NP-hard $L_1$ reduces to $L_2$, then $L_2$ is NP-hard: a polynomial-time
-algorithm for $L_2$, composed with $f$, would decide $L_1$.
+\eop
 \end{definition}
 
-This is the classical core \cite{reduction-bg2,reduction-bg1,reduction-bg3}, and it
-already reaches into databases.
+\begin{proposition}[Hardness transfer]\label{prop:red-hardness}
+If $L_1$ is NP-hard and $L_1 \le_m^p L_2$, then $L_2$ is NP-hard. \eop
+\end{proposition}
 
-\begin{example}[Conjunctive-query evaluation is NP-complete]
-Given $(G,k)$, build in polynomial time the database $D_G$ holding the edge relation of
-$G$, and let $Q_k$ be the conjunctive query
+\begin{proof}
+A polynomial-time algorithm for $L_2$, composed with $f$, decides $L_1$; a polynomial
+composition of polynomials is polynomial.
+\end{proof}
+
+This rung already reaches into databases, at the very origin of query-evaluation
+complexity \citep{reduction-bg6}:
+
+\begin{example}[Conjunctive-query evaluation is NP-complete]\label{ex:red-cq}
+Given a graph $G$ and $k$, build in polynomial time the database $D_G$ holding the edge
+relation of $G$, and let $Q_k$ be the conjunctive query
 \[
-Q_k \;=\; \exists v_1 \dots \exists v_k \,.\, \bigwedge_{1 \le i < j \le k} E(v_i, v_j).
+Q_k \;=\; \exists v_1 \dots \exists v_k \,.\,
+\bigwedge_{1 \le i < j \le k} E(v_i, v_j). \eopm
 \]
-Then $G$ has a $k$-clique iff $Q_k(D_G) \ne \emptyset$. Since CLIQUE is NP-complete, CQ
-evaluation is NP-hard (and it lies in NP) --- the starting point of query-evaluation
-complexity \cite{reduction-bg6}.
+Then $G$ has a $k$-clique iff $Q_k(D_G) \ne \emptyset$. Since CLIQUE is NP-complete,
+CQ evaluation is NP-hard (and it lies in NP).
 \end{example}
 
-Decision-hardness is often not enough: DB problems carry objectives (cost, error,
-latency), so the reduction must preserve \emph{quality}, not just yes/no membership.
+Database problems, however, usually carry objectives --- cost, error, latency --- so the
+reduction must preserve \emph{quality}, not just membership. The standard rung is the
+approximation-preserving, or $L$-, reduction \citep{reduction-bg4,reduction-bg1}:
 
-\begin{definition}[$L$-reduction, i.e., approximation-preserving reduction]
-Optimization problem $A$ L-reduces to $B$ if there are polynomial-time maps $f$
+\begin{definition}[$L$-reduction]\label{def:red-lred}
+An optimization problem $A$ L-reduces to $B$ if there are polynomial-time maps $f$
 (instances) and $g$ (solutions) and constants $\alpha, \beta > 0$ such that, for every
 instance $x$ of $A$, writing $c_A, c_B$ for the objective values:
 (i)~$\mathrm{OPT}_B(f(x)) \le \alpha \cdot \mathrm{OPT}_A(x)$; and
 (ii)~every solution $y$ of $f(x)$ maps to a solution $g(y)$ of $x$ with
 $|c_A(g(y)) - \mathrm{OPT}_A(x)| \le \beta \cdot |c_B(y) - \mathrm{OPT}_B(f(x))|$.
+\eop
 \end{definition}
 
-\begin{proposition}
+\begin{proposition}[Ratio transfer]\label{prop:red-ratio}
 If $A$ L-reduces to $B$ with constants $\alpha,\beta$ and $B$ admits a polynomial-time
-$r$-approximation, then $A$ admits an $\alpha\beta r$-approximation. Hence hardness of
-\emph{approximating} $A$ --- e.g., Set Cover's $\log n$ threshold under the Unique Games
-Conjecture --- transfers to $B$ \cite{reduction-bg4,reduction-bg1}.
+$r$-approximation, then $A$ admits an $\alpha\beta r$-approximation. Hence
+inapproximability of $A$ --- e.g.\ Set Cover's $\ln n$ threshold --- transfers to $B$.
+\eop
 \end{proposition}
 
-\begin{remark}[Fine-grained and conditional reductions]
-When polynomial versus exponential time is too coarse, the source problem $H$ carries a
-quantitative hypothesis (SETH, combinatorial Boolean matrix multiplication, hyperclique
-detection, listing lower bounds) \cite{reduction-bg5}. The reduction must then track
-parameters: an algorithm for $P$ with cost $c_P$ on instances produced by $f$ yields an
-algorithm for $H$ of cost (cost of $f$) $+$ (number of calls) $\cdot\, c_P$, and the
-hypothesis transfers whenever this beats the assumed lower bound in every parameter
-regime.
-\end{remark}
+\begin{proof}
+Apply the $B$-solver to $f(x)$ and decode by $g$: chaining (i) and (ii), the excess of
+$c_A(g(y))$ over $\mathrm{OPT}_A(x)$ is at most $\alpha\beta$ times the excess of
+$c_B(y)$ over $\mathrm{OPT}_B(f(x))$, so the achieved cost is within a $1 +
+\alpha\beta(r-1)$, hence an $\alpha\beta r$, factor of the optimum.
+\end{proof}
 
-The same skeleton covers quantitative guarantees: replace ``algorithm'' by ``mechanism
-or estimator with error $\alpha$,'' and the reduction lifts accuracy instead of time.
-Figure~\ref{fig:reduction-skeleton} schematizes the two halves.
+\sidenote{A \emph{gap} reduction is the same idea with the ratio built into the gadget:
+$f$ maps yes-instances to solutions of cost $\le c$ and no-instances to instances where
+every solution costs $> \gamma c$, so any $(\gamma-\varepsilon)$-approximation for $B$
+would decide $H$. Gap form and $L$-form are interchangeable currency for ratios; the
+corpus exemplar of Section~\ref{sec:red-outliers} uses the $L$-form against Set Cover.}
 
-\begin{figure}[t]
-\centering
+When polynomial versus exponential time is too coarse, the source carries a quantitative
+hypothesis, and the reduction must \emph{audit parameters} \citep{reduction-bg5}:
+
+\begin{proposition}[Fine-grained transfer]\label{prop:red-fine}
+Suppose a polynomial-time gadget $f$ translates instances of $H$ with parameters $\pi$
+into instances of $P$, and a solver for $P$ can be leveraged (with polynomial
+postprocessing) using $N(\pi)$ calls on produced instances of size $s(\pi)$. Then any
+algorithm for $P$ running in time $T$ on size-$s(\pi)$ inputs yields an algorithm for
+$H$ of cost $\operatorname{poly}(\pi) + N(\pi)\cdot T(s(\pi))$. In particular, if this
+beats the time lower bound assumed for $H$ \emph{in every parameter regime}, the
+translated bound holds for $P$ under the same hypothesis. \eop
+\end{proposition}
+
+\begin{proof}[Proof idea]
+Count the cost of the emulation; the caveat is the whole point --- a gadget whose
+parameter blow-up is benign in one regime and wild in another proves nothing there
+(cf.\ Section~\ref{sec:red-continual} for the audit done right).
+\end{proof}
+
+Two further rungs complete the ladder. For counting problems the currency is the output
+count, and the natural notion is oracle access:
+
+\begin{definition}[Counting (Turing) reduction]\label{def:red-count}
+A counting problem $\#A$ reduces to $\#B$, written $\#A \le_\#^T \#B$, if $\#A(x)$ is
+computable in polynomial time given oracle access to $\#B$ on instances constructible
+in polynomial time. \eop
+\end{definition}
+
+\begin{proposition}[\#P-hardness transfer]\label{prop:red-sharp}
+If $\#A$ is \#P-complete and $\#A \le_\#^T \#B$, then $\#B$ is \#P-hard. \eop
+\end{proposition}
+
+\begin{proof}
+Substitute the oracle: a polynomial-time algorithm computing $\#B$ turns the Turing
+reduction into a polynomial-time algorithm for the \#P-complete $\#A$.
+\end{proof}
+
+Finally, for streaming algorithms the classical bridge converts space into
+communication:
+
+\begin{proposition}[One pass, one message]\label{prop:red-comm}
+If a one-pass streaming algorithm with $s$ bits of memory computes a stream function
+$F$, then the two-party problem ``Alice holds a stream prefix $x$, Bob holds the
+suffix $y$, compute $F(x \cdot y)$'' has a deterministic protocol of communication
+$s$. A $t$-pass algorithm gives communication $O(s \cdot t)$. Consequently, any
+$\Omega(c)$ communication lower bound for the two-party problem forces
+$\Omega(c)$ (resp.\ $\Omega(c/t)$) space for one-pass (resp.\ $t$-pass) streams. \eop
+\end{proposition}
+
+\begin{proof}
+Alice simulates the algorithm on her prefix and sends Bob the final memory state ---
+$s$ bits, from which Bob resumes and finishes the pass. Multiple passes cross the
+channel once per pass per direction.
+\end{proof}
+
+\begin{widefigure}[t]
 \begin{tikzpicture}[every node/.style={font=\footnotesize, align=center}]
   \node (xl) at (0,1.1) {$x$: instance of\\ hard problem $H$};
   \node (fl) at (6.2,1.1) {$f(x)$: instance of\\ database problem $P$};
-  \node (al) at (6.2,0) {algorithm or mechanism $\mathcal{A}$};
+  \node (al) at (6.2,0) {algorithm, mechanism\\ or sampler $\mathcal{A}$};
   \node (dl) at (6.2,-1.1) {answer for $f(x)$\\ with quality $q$};
   \node (bl) at (0,-1.1) {answer for $x$\\ with quality $g(q)$};
   \draw[->] (xl) -- node[above] {gadget $f$ (poly time)} (fl);
@@ -82,116 +193,656 @@ Figure~\ref{fig:reduction-skeleton} schematizes the two halves.
   \draw[->,dashed] (bl) to[bend left=20] node[left] {contradiction} (xl);
 \end{tikzpicture}
 \caption{Every reduction has two halves: instances travel forward through the gadget;
-solutions --- or accuracy, or privacy --- travel backward, so quality achieved for $P$
-becomes quality for $H$.}
-\label{fig:reduction-skeleton}
-\end{figure}
+the currency --- membership, cost ratio, count, time, space, or accuracy --- travels
+backward, so quality achieved for $P$ becomes quality for $H$, which the source's
+hardness forbids.}
+\label{fig:red-skeleton}
+\end{widefigure}
 
-\section{Reductions at work in the SIGMOD'26 corpus}
+\subsection{How to choose the rung}
+\label{sec:red-choose}
 
-\subsection{Gadget reductions: privacy under continual release}
+The selection procedure is mechanical once two questions are answered. \emph{First,
+what must the claim rule out?} An algorithm (any quality) --- rung of
+Definition~\ref{def:red-manyone}; an approximation at some ratio ---
+Definition~\ref{def:red-lred} or its gap form; a fast algorithm at a refined running
+time --- Proposition~\ref{prop:red-fine} under a quantitative hypothesis; a counter ---
+Definition~\ref{def:red-count}; a memory-frugal streaming algorithm ---
+Proposition~\ref{prop:red-comm} against a communication bound. \emph{Second, what does
+the source's hardness actually say?} The target inherits the source's resolution
+exactly: from Set Cover one may import a $\ln n$ inapproximability (under UGC) but not
+NP-hardness of approximation beyond it; from Disjointness, an $\Omega(m)$ space bound
+but nothing about time; from SETH, quantitative time bounds conditioned on the
+hypothesis. Picking the source closest in \emph{shape} to the target is what keeps the
+gadget small: covering structure suggests Set Cover, subgraph patterns suggest CLIQUE
+or hypercliques, private estimation suggests InnerProduct, enumeration suggests
+Hamiltonian path.
 
-A stream of edge updates arrives over $T$ timesteps, and an $(\varepsilon,
-\delta)$-differentially private mechanism must continually report, on $n$-node graphs,
-the size of the maximum matching, the degree histogram, or the core number of a vertex.
+\begin{reachbox}{When to Reach for Reductions}
+Reach whenever a claim of the form ``no system can do X'' or ``doing X requires
+resource Y'' must be justified --- or, constructively, whenever a new problem should
+inherit an existing algorithm. Then run the recipe:
+\begin{enumerate}
+\item Pick the canonical source problem closest in shape: Set Cover for covering and
+  outlier budgets, CLIQUE/biclique for subgraph patterns, InnerProduct for private
+  estimation, \#Set Cover or the permanent for counting, Disjointness for stream space,
+  Hamiltonian path for exact combinatorial targets.
+\item Build the gadget $f$ (instances forward) and the decoder $g$ (quality backward);
+  fix the currency and the matching rung of the ladder.
+\item State explicitly which hypothesis the reader inherits: a proof (NP-, \#P-), a
+  conjecture (UGC), or a quantitative hypothesis (SETH, combinatorial BMM, a
+  communication bound). Conditional claims must wear their conditions.
+\item Audit the parameter blow-up of the gadget in \emph{every} regime, and the ratio
+  algebra ($\alpha\beta r$, Proposition~\ref{prop:red-ratio}) --- a sloppy parameter
+  map makes the bound vacuous somewhere.
+\item Run the machinery backwards for the upper-bound side (reduce to LP feasibility,
+  submodular maximization, dynamic programming); a dichotomy is two reductions glued
+  at a common frontier.
+\end{enumerate}
+\end{reachbox}
 
-\begin{theorem}[Continual-release lower bound]
+\section{Gadget reductions: privacy under continual release}
+\label{sec:red-continual}
+
+The exemplar is a PODS'26 paper on differential privacy for streaming graphs
+\citep{sigmod26-136}\pods. When sensitive data arrives as a stream --- friendship edges,
+transactions, sensor readings --- a private system cannot wait for the stream to end:
+it must keep answering queries while the data grows, and every published answer leaks
+a little. The \emph{continual release} model asks how accurate such a stream of answers
+can be while satisfying differential privacy throughout. Prior work had established
+lower bounds only in restricted settings; this paper improves them to polynomial bounds
+for three graph statistics systems actually maintain --- the maximum matching size, the
+degree histogram, and the $k$-core number --- proving that any private incremental
+mechanism must incur additive error polynomial in the stream length $T$ or the graph
+size $n$. It also gives the first lower bounds for Top-$K$ norm estimation, extends the
+technique to monotone symmetric norms, and matches the lower bounds with binary-tree
+mechanisms whose error is polynomial with better-behaved constants --- so the frontier
+it draws is essentially tight.
+
+\paragraph{Problem.}
+Work in the continual-release streaming model: an $n$-vertex graph evolves over $T$
+timesteps through a stream of edge insertions (\emph{incremental} streams), and at every
+timestep the mechanism must output an estimate of a graph statistic $g$
+(\emph{maintaining} it). Privacy is event-level differential privacy: any two streams
+differing in a single update event must yield indistinguishable output distributions.
+The mechanism has \emph{additive error} $\alpha$ if, with probability at least $2/3$,
+at every timestep its estimate is within $\alpha$ of the true value $g(G)$ of the
+current graph.
+
+\sidenote{The ``exact setting'' in the paper's statements means the mechanism maintains
+the exact statistic up to this additive error --- no multiplicative slack is allowed.
+The exponents $a, b$ are problem-specific: $1/4$ and $1/4$ for matching, $1/4$ and
+$1/2$ for the degree histogram, $1/8$ and $1/4$ for $k$-core.}
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Continual-release lower bound, Theorem~1 of the paper]\label{thm:red-continual}
 Let $\varepsilon \in [0,1]$ and $\delta \in [0,1/3]$. Any $(\varepsilon, \delta)$-DP
 incremental mechanism in the exact setting for maintaining the size of the maximum
 matching, the degree histogram, or the core number of a vertex must have additive error
-$\alpha = \Omega\bigl(\min\{ T^{a},\, n^{b} \}\bigr)$, for problem-specific constants
-$a, b \in [1/8, 1/2]$.
+\[
+\alpha \;=\; \Omega\bigl(\min\{\, T^{a},\, n^{b} \,\}\bigr),
+\]
+for problem-specific constants $a, b \in [1/8, 1/2]$. \eop
 \end{theorem}
 
-The reduction embeds an \textsc{InnerProduct} instance of dimension $d$ into the update
-stream via \emph{extendable bitwise-AND gadgets} with $v(d)$ vertices and $t(d)$ edges
-(for matching, $v(d) = t(d) = O(d^2)$): a mechanism with additive error $\alpha$ would
-answer the inner product within $2\alpha$, forcing
-$\alpha = \Omega(\min\{ t^{-}(T), v^{-}(n) \})$ for generalized inverses, with $d$ chosen
-exactly as that minimum. Binary-tree mechanisms with DP composition give near-matching
-upper bounds, so the reduction is essentially tight. \cite{sigmod26-136}\pods
+\paragraph{How the reduction is applied.}
+The source problem is \textsc{InnerProduct}: a secret dataset $x \in \{0,1\}^d$ and
+queries $q^1, \dots, q^m \in \{0,1\}^d$, with the mechanism answering every
+$\langle x, q^j \rangle$; a packing argument shows any $(\varepsilon,\delta)$-DP
+mechanism for it has error $\widetilde{\Omega}(\sqrt{d})$. The gadget is an
+\emph{extendable bitwise-AND gadget}: a family of graphs $H_{x}^{j}$ and $Q_{x}^{j}$,
+built from $v(d)$ vertices and $t(d)$ edges, in which the statistic's value jumps by
+exactly $\langle x, q^j\rangle$ between two queryable stream prefixes, and flipping one
+bit of $x$ changes one stream event --- event-level neighboring streams, so privacy of
+the graph mechanism implies privacy of the inner-product answers. The transfer is the
+paper's workhorse lemma:
 
-\subsection{Gap reductions: clustering with set outliers}
+\begin{lemma}[Gadget transfer, Lemma~1 of the paper, notation cleaned]\label{lem:red-gadget}
+Let $g$ be a graph problem that admits an extendable bitwise-AND gadget with $v(d)$
+vertices and $t(d)$ edges per inner-product dimension. Any $(\varepsilon, \delta)$-DP
+event-level mechanism that maintains $g$ in the exact setting, on $n$-node graphs over
+$T$ timesteps, with additive error $\alpha$, satisfies
+\[
+\alpha \;=\; \widetilde{\Omega}\bigl(\min\{\, t^{-}(T),\, v^{-}(n) \,\}\bigr),
+\qquad f^{-}(x) = \sup\{\, d \mid f(d) \le x \,\}. \eopm
+\]
+\end{lemma}
 
-Points are clustered while whole \emph{sets} may be discarded as outliers: given points
-$P$, a family $\mathcal{H}$ of candidate outlier sets (hyper-rectangles, or sets induced
-by a relational join), and budgets $k, z$, choose at most $k$ centers and at most $z$
-outlier sets so as to minimize the cost of the uncovered points.
+\begin{proof}[Proof sketch]
+Query the mechanism just before and just after inserting the edges that encode $q^j$;
+the two estimates differ by $\langle x, q^j \rangle$ up to $2\alpha$, so the graph
+mechanism is an $(\varepsilon,\delta)$-DP mechanism for \textsc{InnerProduct} with
+error $2\alpha$; the packing bound $\widetilde{\Omega}(\sqrt d)$ forces $\alpha \ge
+\widetilde{\Omega}(\sqrt d)$ with $d$ set to the largest dimension the budget
+$T, n$ admits. (Full proof in Section~\ref{sec:red-appendix}.)
+\end{proof}
 
-\begin{theorem}[Inapproximability under the Unique Games Conjecture]
+The $\delta$-tuning analogue is the \emph{parameter audit}: $d$ is chosen exactly as
+$d = \min\{t^{-}(T), v^{-}(n)\}$, the largest dimension whose gadget fits both the
+timestep budget $T$ and the vertex budget $n$. Lemma~2 of the paper supplies the
+gadgets --- $v(d) = t(d) = O(d^2)$ for matching, $v(d) = O(d)$ and $t(d) = O(d^2)$ for
+the degree histogram, $v(d) = O(d^2)$ and $t(d) = O(d^4)$ for $k$-core --- and the audit
+turns them into exponents: matching gives $\alpha =
+\widetilde{\Omega}(\min\{T^{1/4}, n^{1/4}\})$, the histogram $\alpha =
+\widetilde{\Omega}(\min\{T^{1/4}, n^{1/2}\})$, and $k$-core $\alpha =
+\widetilde{\Omega}(\min\{T^{1/8}, n^{1/4}\})$ --- the constants $a, b \in [1/8, 1/2]$
+of Theorem~\ref{thm:red-continual}, with the polylogarithmic factors absorbed.
+
+\paragraph{What it buys.}
+The system designer learns that continually maintaining these statistics privately is
+polynomially expensive, \emph{and where the escape hatches are}: the paper's companion
+upper bounds (Theorem~2 of the paper) achieve error $O_{\varepsilon,\delta}(
+\min\{T^{c}, n^{d}\})$ with $c, d \in [1/6, 1/2]$ via binary-tree mechanisms and DP
+composition, while relaxing to the static setting --- or allowing a $(1+\zeta)$
+multiplicative approximation --- admits mechanisms with polylogarithmic error. The
+reduction did not just import hardness; it located the exact regime where hardness
+lives.
+
+\section{Gap reductions: clustering with set outliers}
+\label{sec:red-outliers}
+
+The exemplar is a SIGMOD'26 paper on robust clustering \citep{sigmod26-289}. Clustering
+with outliers is a workhorse of robust analytics: alongside the $k$ centers, the system
+may discard some data as unrepresentative. Prior models discard individual points; this
+paper discards whole \emph{sets} from a candidate family --- hyper-rectangles covering
+a spatial region (a maintenance window, a blackout area), or sets of tuples induced by
+a relational join, so that clustering can run directly over the join without
+materializing it. The paper develops near-linear-time $(2+\varepsilon, 2, O(1))$-
+approximation algorithms, coresets that shrink the instance to
+$O(\min\{n, k^2 z, km\})$ points, and high-probability algorithms for the relational
+variants --- and justifies the shape of these guarantees with a hardness result: under
+the Unique Games Conjecture, no polynomial-time algorithm can keep all three quality
+dials at their optimum, and the outlier budget in particular cannot escape a
+logarithmic blow-up.
+
+\paragraph{Problem.}
+In \emph{clustering with set outliers}, the input is a set $P$ of $n$ points, a family
+$\mathcal{H}$ of $m$ subsets of $P$ whose union covers $P$, and integer budgets
+$k, z > 0$. A solution picks at most $k$ centers and at most $z$ \emph{outlier sets}
+from $\mathcal{H}$; all points covered by the chosen sets are discarded, and the goal
+is to minimize the clustering cost (here, the $k$-center objective) of the remaining
+points. An $(\alpha, \beta, \gamma)$-\emph{approximation} inflates the cost by at most
+$\alpha$ and the two budgets by at most $\beta$ and $\gamma$. The relational variant
+takes $P$ to be the answer set of an acyclic join query accessed through counting and
+sampling oracles.
+
+\sidenote{The \emph{Unique Games Conjecture} (UGC) asserts that a certain two-prover
+game is hard to distinguish with high probability; taken with it, Set Cover admits no
+polynomial-time $(1-\varepsilon)\ln n$-approximation for any $\varepsilon > 0$. It is
+the standard conditional source for covering-type inapproximability.}
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Inapproximability under UGC, Theorem of the paper]\label{thm:red-ugc}
 If the Unique Games Conjecture is true, there exists no $(1, f - \varepsilon,
-\gamma)$-approximation algorithm that runs in polynomial time for the problem, whenever
-$f = o(\log n)$, where the triple bounds the clustering-cost factor and the allowed
-violation of the center and outlier budgets.
+\gamma)$-approximation algorithm that runs in polynomial time for the problem, where
+$f = o(\log n)$, $\gamma = o(|\mathcal{H}|)$ is any sublinear value, and
+$\varepsilon$ any positive real number. \eop
 \end{theorem}
 
-The reduction is a line--point encoding of Set Cover: element $x_i$ becomes the point
-$p_i$ at coordinate $i$, each set $y$ becomes the outlier set $\{ p_i : x_i \in y \}$,
-and singleton sets pad the family, so covering the element-points with at most $z$
-outlier sets is exactly a set cover --- and Set Cover's UGC-conditional $\log n$
-threshold crosses over. The same paper runs the machinery constructively: LP feasibility
-with greedy rounding, weight-charging, and coresets yield $(2 + \varepsilon, 2,
-O(1))$-approximations, including over acyclic joins. \cite{sigmod26-289}
+\paragraph{How the reduction is applied.}
+The source is Set Cover, on the ratio rung: the outlier-set budget is the coordinate
+that carries the Set-Cover ratio, because inflating the budget by a factor $f$ is
+exactly allowing $f \cdot z^{*}$ sets to cover the elements. The transfer is clean
+enough to state in full:
 
-\subsection{Coupon-collector reductions: sampling join--project queries}
+\begin{lemma}[Set-Cover transfer, Lemma of the paper]\label{lem:red-cover}
+If $\mathrm{Alg}$ is a polynomial-time $(1, f - \varepsilon, \gamma)$-approximation
+algorithm for the set-outlier clustering problem, with $\gamma = o(|\mathcal{H}|)$
+sublinear, then there exists a polynomial-time $(f - \varepsilon)$-approximation
+algorithm for Set Cover. \eop
+\end{lemma}
 
-For a join--project query $Q$ (a join followed by projection, so duplicates disappear),
-with input size $N$ and output size $\mathsf{OUT}$, the paper asks what uniform sampling
-from, and approximate counting of, $Q(I)$ must cost after indexing.
+\begin{proof}[Proof sketch]
+The gadget is a line--point encoding: element $x_i$ becomes the point $p_i$ at
+coordinate $i$ of the real line; each set $y$ becomes the outlier set $\{p_i : x_i \in
+y\}$; padding points, each with its own singleton outlier set, complete the family.
+With no centers, the cost is zero exactly when the chosen outlier sets cover every
+element-point, so a clustering solution within the inflated budgets is a set cover of
+the corresponding size. (Full proof in Section~\ref{sec:red-appendix}.)
+\end{proof}
 
-\begin{theorem}[Conditional bound for star queries]
-For the star query $Q_k$, assuming the combinatorial hardness of listing star-join
-results (any combinatorial listing algorithm requires
-$\Omega(N \cdot \mathsf{OUT}^{1-1/k})$ time, under the property-testing model), no
-combinatorial algorithm can preprocess an instance of input size $N$ and output size
-$\mathsf{OUT}$ in $O(N \cdot \mathsf{OUT}^{1/k-\gamma})$ time and then return a uniform
-sample from $Q(I)$ in $O(\mathsf{OUT}^{1/k+\gamma})$ expected time, for any constant
-$\gamma > 0$.
+The UGC-conditional $(1-\varepsilon)\ln n$ threshold for Set Cover then crosses over:
+no $f = o(\log n)$ outlier-budget factor, even with sublinear center-budget slack.
+The same paper runs the machinery constructively --- the run-backwards half of the
+recipe: an LP feasibility relaxation with greedy rounding and a weight-charging
+argument delivers $(2 + \varepsilon, 2f, 2 + \varepsilon)$-approximations, coresets
+shrink the instance, and the relational variant reuses the LP through join sampling
+and counting oracles, with high-probability guarantees.
+
+\paragraph{What it buys.}
+The lower bound tells the system \emph{which budget must pay}: the paper's algorithms
+inflate the outlier budget by a logarithmic factor, and Theorem~\ref{thm:red-ugc}
+certifies that (conditioned on UGC) essentially nothing better is possible --- so the
+practitioner can treat $\Theta(\log n)$ outlier slack as the price of admission rather
+than an artifact of the analysis, and the join-based variants inherit the same
+frontier.
+
+\section{Both directions at once: volume-based answer diversity}
+\label{sec:red-diversity}
+
+The exemplar is a SIGMOD'26 paper on diversifying query answers \citep{sigmod26-350}.
+When a query returns millions of tuples, a system shows the user a few
+\emph{diverse} answers rather than the top ones; choosing them means maximizing a
+diversity function over answer sets. The familiar diversity measures are
+distance-based --- pairs of answers compared under Hamming or Euclidean distance ---
+but these functions fail to be submodular, so the greedy heuristics systems actually
+run come without guarantees, and the best provable ratios depend on the metric. The
+paper proposes \emph{volume-based} diversity: each answer maps to a measurable set (its
+``volume''), and the diversity of an answer set is the measure of its union --- a
+direct generalization of the classic multi-attribute notion. The payoff is a single
+theorem pair: diversity is always monotone and submodular, so one greedy routine
+delivers the optimal $(1 - 1/e)$ approximation for \emph{every} polynomially computable
+volume assignment --- and a matching Max-Coverage reduction shows no better ratio is
+possible.
+
+\paragraph{Problem.}
+Fix a query $Q$ over a database $D$ with answer set $Q(D)$. A \emph{volume assignment}
+attaches to every answer $s$ a measurable set $\beta(s)$ in a measure space
+$(\mathcal{U}, \mu)$:
+
+\begin{definition}[Volume-based diversity, Definition of the paper]\label{def:red-volume}
+Given a volume assignment $\Omega = (\mathcal{U}, \mu, \beta)$, the diversity of a
+finite answer set $S$ is
+\[
+\delta_\Omega(S) \;=\; \mu\Bigl(\, \bigcup_{s \in S} \beta(s) \Bigr). \eopm
+\]
+\emph{DiverseSet} asks for $S \subseteq Q(D)$ with $|S| = k$ maximizing
+$\delta_\Omega(S)$; \emph{DiverseTopk} asks for ranked enumeration.
+\end{definition}
+
+\paragraph{Guarantee.}
+
+\begin{proposition}[Diversity is submodular, Proposition of the paper]\label{prop:red-submod}
+Let $\Omega$ be any volume assignment over a universe $\mathcal{U}$ of possible
+solutions. Then $\delta_\Omega$ is monotone and submodular: for
+$S_1 \subseteq S_2$ and any answer $a$,
+\[
+\delta_\Omega(S_1 \cup \{a\}) - \delta_\Omega(S_1) \;\ge\;
+\delta_\Omega(S_2 \cup \{a\}) - \delta_\Omega(S_2). \eopm
+\]
+\end{proposition}
+
+\begin{corollary}[One ratio for all volumes, results of the paper]\label{cor:red-greedy}
+For every volume assignment $\Omega$ computable in polynomial time and every $k \ge 1$,
+the greedy algorithm computes $S$ with $\delta_\Omega(S) \ge (1 - \tfrac{1}{e}) \cdot
+\max_{|S'| = k} \delta_\Omega(S')$ in polynomial time. No polynomial-time algorithm
+achieves ratio $(1 - \tfrac{1}{e} + \varepsilon)$ for all volume assignments unless
+$\mathrm{P} = \mathrm{NP}$. \eop
+\end{corollary}
+
+\paragraph{How the reduction is applied.}
+This exemplar runs the tool in \emph{both directions}. Backwards, it reduces
+DiverseSet to monotone submodular maximization: Proposition~\ref{prop:red-submod}
+certifies the structure, and the classical greedy analysis of Nemhauser, Wolsey, and
+Fisher supplies the algorithm and the $(1 - 1/e)$ ratio --- one inherited theorem for
+the whole family of measures. Forwards, it imports hardness from Max Coverage on the
+ratio rung: the reduction encodes a coverage instance into a volume assignment over
+the atom algebra of the sets, so that each tuple's volume is exactly what it covers
+and $\delta_\Omega(S)$ is the covered mass --- and since Max Coverage cannot be
+approximated beyond $(1 - 1/e)$ unless $\mathrm{P} = \mathrm{NP}$, neither can
+volume-based diversity. A second, purely combinatorial gadget handles the exact
+variant: for the acyclic path query $Q(x_1,\dots,x_n) \,{:\!-}\, E(x_1,x_2), \dots,
+E(x_{n-1},x_n)$, answers are walks in the input graph and the diversity of a single
+answer counts the distinct vertices it visits, so a walk of diversity $n$ exists
+exactly when the graph has a Hamiltonian path --- NP-hardness already for $k = 1$. The
+workhorse is the measure-algebra proof of Proposition~\ref{prop:red-submod}: the
+marginal gain of adding $a$ is $\mu(\beta(a) \setminus \bigcup_{s \in S}\beta(s))$,
+which shrinks as $S$ grows (full proof in Section~\ref{sec:red-appendix}).
+
+\sidenote{For acyclic CQs the greedy step itself reduces further: finding the answer
+that maximizes marginal diversity is cast as a sum-product query over the tropical
+semiring, solvable in $O(|Q| \cdot |D|)$ time --- so $k$ greedy steps cost
+$O(k \cdot |Q| \cdot |D|)$, with ranked-enumeration preprocessing for DiverseTopk.}
+
+\paragraph{What it buys.}
+The system keeps \emph{one} diversification operator --- greedy marginal-diversity ---
+with a single certified ratio $(1 - 1/e)$ for every volume measure a user may define,
+instead of per-metric heuristics with per-metric guarantees; the matched lower bound
+certifies the ratio is optimal, and the tropical-semiring evaluation makes each step
+run in linear time over acyclic joins.
+
+\section{Counting reductions: Shapley values for aggregate queries}
+\label{sec:red-shapley}
+
+The exemplar is a SIGMOD'26 paper on explaining query answers \citep{sigmod26-375}.
+When an aggregate answer surprises a user --- why is this average so high? --- the
+natural question is \emph{which input facts drove it}. The Shapley value, imported
+from cooperative game theory, is the canonical fair answer: it averages a fact's
+marginal contribution over all orders in which the endogenous facts could have
+arrived. Prior work pinned the complexity of Shapley values for Boolean conjunctive
+queries; this paper extends the analysis to \emph{aggregate} queries --- sum, max,
+min, and quantiles, with value functions applied at head positions --- and draws the
+full frontier: computation is polynomial for hierarchical queries and \#P-complete
+just past the frontier, with \#P-completeness already for concrete small queries.
+Along the way it derives closed-form Shapley formulas for averages and quantiles, and
+uses the axioms of the Shapley value itself as an algorithmic tool on the tractable
+side.
+
+\paragraph{Problem.}
+A database $D$ splits into an exogenous part $D_{\mathrm{ex}}$ (fixed) and an
+endogenous part $D_{\mathrm{endo}}$ (the facts that may be added or removed). For an
+aggregate query $A$ the attribution question is:
+
+\begin{definition}[Shapley value of a fact, Definition of the paper]\label{def:red-shapley}
+For $f \in D_{\mathrm{endo}}$, let $\sigma_{<f}$ be the endogenous facts preceding $f$
+in a uniformly random permutation $\sigma$. The Shapley value of $f$ is
+\[
+\varphi(f, A) \;=\; \frac{1}{|D_{\mathrm{endo}}|!}
+\sum_{\sigma \in \Sigma(D_{\mathrm{endo}})}
+\Bigl[\, A(D_{\mathrm{ex}} \cup \sigma_{<f} \cup \{f\}) -
+A(D_{\mathrm{ex}} \cup \sigma_{<f}) \,\Bigr], \eopm
+\]
+the expected amount by which inserting $f$ changes the aggregate.
+\end{definition}
+
+The aggregate queries are $A_\alpha = \alpha \circ Q$ for a self-join-free
+conjunctive query $Q$ and $\alpha \in \{\mathrm{sum}, \mathrm{max}, \mathrm{min}\}$
+or a fixed quantile, composed with a \emph{localized} value function applied to the
+values at head positions of $Q$.
+
+\sidenote{A query is \emph{hierarchical} if whenever two variables share an atom, the
+variables of one are contained in the other's atom set --- equivalently, the
+connected-variable sets form a laminar family. It is the classical frontier between
+easy and hard conjunctive-query evaluation, and this paper shows the same line governs
+explanation.}
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Tractability frontier, Theorems of the paper, notation cleaned]
+\label{thm:red-shapley}
+Let $Q$ be a CQ without self-joins, $A_\alpha = \alpha \circ Q$ with $\alpha \in
+\{\mathrm{sum}, \mathrm{max}, \mathrm{min}\}$ or a fixed quantile. If $Q$ is
+hierarchical, then $\varphi(f, A_\alpha)$ is computable in polynomial time, given $D$
+and a fact $f$, for every localized value function. Otherwise, there is a localized
+value function such that computing $\varphi(f, A_\alpha)$, given $D$ and a fact $f$,
+is \#P-complete. \eop
 \end{theorem}
 
-The reduction runs the coupon collector backwards: a sampler this fast would list all
-$\mathsf{OUT}$ results after $\mathsf{OUT} \log \mathsf{OUT}$ draws and thereby beat the
-assumed listing lower bound. For the matrix query the hypothesis is instantiated by the
-combinatorial hardness of Boolean matrix multiplication (the case $k=2$), and any
-randomized algorithm that outputs an $O(1)$-approximation of $\mathsf{OUT}$ with high
-probability requires at least $\Omega(N / \sqrt{\mathsf{OUT}})$ time; heavy/light
-partitioning with Hoeffding intersection estimation gives matching upper bounds.
-\cite{sigmod26-243}\pods
+\paragraph{How the reduction is applied.}
+The currency is a \emph{count}, so the rung is Definition~\ref{def:red-count} --- the
+number of set covers, a \#P-complete quantity, must be recoverable from Shapley
+values. The source is \#Set-Cover:
 
-\subsection{Fine-grained reductions: direct access with min/max aggregates}
+\begin{lemma}[\#Set-Cover transfer, Lemma of the paper, notation cleaned]\label{lem:red-shapley}
+There is a polynomial-time algorithm that, given a \#Set-Cover instance $(X,
+\mathcal{Y})$ with $|X| = n$, $|\mathcal{Y}| = m$, constructs databases $D_{q,r}$,
+$q \in [n]$, $r \in [m]$, each with a distinguished fact $f$, such that the numbers
+\[
+Z_{i,j} \;=\; \#\bigl\{\, \mathcal{Z} \subseteq \mathcal{Y} \;:\;
+|\mathcal{Z}| = j,\; \textstyle\bigcup_{Z \in \mathcal{Z}} Z \text{ covers exactly } i
+\text{ elements of } X \,\bigr\}
+\]
+--- in particular the number of set covers, $\sum_j Z_{n,j}$ --- are computable in
+polynomial time from the Shapley values $\varphi(f, A)$ over the $D_{q,r}$. Hence
+computing Shapley values is \#P-hard. \eop
+\end{lemma}
 
-In direct access, the database is preprocessed once so that answers to an acyclic
-free-connex conjunctive query can be enumerated in a user-chosen order with constant
-delay; the question is which aggregate-driven orders, such as sorting by $\min X$, admit
-quasilinear-time preprocessing.
+\begin{proof}[Proof sketch]
+Each database is built so that a coalition's aggregate encodes how much of $X$ the
+corresponding subfamily covers: chosen sets become endogenous facts, sentinel facts
+weight each covered element, and the fact $f$ flips the answer exactly when the
+subfamily covers everything --- so $\varphi(f, A)$ is a known linear combination of
+the $Z_{i,j}$, and the family $D_{q,r}$ provides enough independent combinations to
+solve for all of them. Theorem~\ref{thm:red-shapley}'s hardness side follows, together
+with a sibling reduction from the permanent (counting exact covers) for average-type
+aggregates.
+\end{proof}
 
-\begin{theorem}[Hard side of the dichotomy]
-Direct access according to $\min X$ is not possible in quasilinear time if $Q$ has a
-chordless $k$-path ($k \ge 3$) between two variables in $X$, assuming the Hyperclique
-hypothesis and SETH.
-\end{theorem}
+On the tractable side the reduction runs backwards, through the axioms of the Shapley
+value itself: linearity decomposes an aggregate into indicator queries, symmetry
+equalizes the values of interchangeable facts, and null players --- facts that never
+flip the answer --- contribute zero; for hierarchical $Q$ these identities collapse
+the sum of Definition~\ref{def:red-shapley} into a polynomial-time dynamic program
+over the query's variable tree.
 
-The reduction encodes triangle and hyperclique detection so that a quasilinear-time
-direct-access structure for $\min X$ would decide hyperclique existence faster than the
-hypothesis permits. The easy side of the dichotomy is algorithmic: strict total orders
-are partitioned into partial orders that suitably rearranged join trees enforce, after
-existential variables are eliminated in linear time. \cite{sigmod26-109}\pods
+\paragraph{What it buys.}
+An explanation engine learns exactly when fact-ranking is cheap: within the
+hierarchical fragment, responsibility scores come at evaluation cost, and one step
+outside it they are \#P-complete even for two-atom queries --- so a system should
+either restrict explanations to the fragment or budget for approximation, and the
+classical query-tractability map doubles as the explanation-tractability map.
 
-\begin{reachbox}{When to reach for reductions}
+\section{Advanced usage and further reading}
+\label{sec:red-advanced}
+
+Three refinements round out the toolbox: quantitative hypotheses when the target claim
+is a refined running time, chained reductions when one hop is not enough, and transfer
+lemmmas when the reduction's purpose is to build an algorithm. This section states the
+pattern, sketches two harder exemplars, and points to the literature.
+
+\subsection{Fine-grained and conditional reductions}
+\label{sec:red-finegrained}
+
+When the claim is not ``no polynomial algorithm'' but ``no
+$O(N^{2-\varepsilon})$ / quasilinear / constant-delay algorithm'', the source must be
+quantitative: SETH, the hyperclique hypothesis, combinatorial Boolean matrix
+multiplication, or listing lower bounds. The machinery is
+Proposition~\ref{prop:red-fine} with the parameter audit as the proof of correctness.
+The corpus uses it for query-evaluation dichotomies: direct access to conjunctive
+query answers in aggregate-driven orders admits quasilinear preprocessing exactly when
+the query has no chordless path between order variables --- the hard side encodes
+hyperclique detection under the Hyperclique hypothesis and SETH
+\citep{sigmod26-109}\pods. A second shape runs the reduction against a
+\emph{randomized} solver: for uniform sampling from join--project queries, a sampler
+restarted $O(\mathsf{OUT}\log\mathsf{OUT})$ times would list all answers --- the
+coupon-collector argument turned backwards --- so the assumed listing lower bound
+rules out fast samplers, and combinatorial BMM instantiates the hypothesis for matrix
+queries \citep{sigmod26-243}\pods.
+
+\subsection{Two advanced exemplars, sketched}
+\label{sec:red-sketches}
+
+Both exemplars of this section push past a single many-one hop; each is sketched in
+one paragraph, and the reduction chain of the first is transcribed in the
+Appendix (Section~\ref{sec:red-appendix}).
+
+\paragraph{Reduction chains: pseudodeterministic streaming \citep{sigmod26-357}.}
+A streaming algorithm is \emph{pseudodeterministic} if on every input it outputs a
+\emph{canonical} value with probability at least $2/3$ --- the reproducibility a
+debugger or an audit needs --- and \emph{representation oblivious} if its output
+distribution depends only on the multiset of stream elements, not their order. The
+paper proves that any one-pass representation-oblivious pseudodeterministic (ROPD)
+algorithm $(\varepsilon,\delta)$-approximating $F_0$ (the number of distinct elements)
+requires $\Omega(n)$ space --- against the $O(\operatorname{polylog} n)$ classics ---
+and $\Omega(n/t(n))$ for $t(n)$ passes, matching a deterministic algorithm. The
+argument is a \emph{chain} on the communication rung (Proposition~\ref{prop:red-comm}):
+an ROPD $F_0$ estimator becomes an ROPD protocol for Promise-Union (do Alice's and
+Bob's sets union to more than $3n/4$ of the universe?), which becomes a
+pseudodeterministic protocol for Disjointness, contradicting the classical
+$\Omega(m)$ communication bound; obliviousness is what carries equivalence classes of
+streams through each hop, and pseudodeterminism is what makes the final contradiction
+deterministic. The constructive side checks that the classical sketches (BJKST, AMS,
+linear sketches) \emph{are} representation oblivious --- the restriction bites exactly
+where canonical outputs are impossible.
+
+\paragraph{Transfer lemmas: one algorithm for many query problems \citep{sigmod26-264}.}
+Counting satisfying subsets, evaluating tuple-independent probabilistic databases, and
+maximizing a repaired query's multiplicity under bag-set semantics look like three
+problems, but over hierarchical queries they are one: the paper annotates facts in a
+\emph{two-monoid} algebra of decomposable provenance trees and runs a single
+variable-elimination algorithm (eliminate private variables, merge duplicate atoms).
+Correctness is itself a reduction statement --- a transfer lemma: any map $\varphi$
+from provenance trees to another two-monoid that commutes with the two operations on
+decomposable trees carries the algorithm's output to the correct value for the target
+problem, so each application (probability, counting, repair) is a homomorphism
+instantiation rather than a new algorithm, and the whole runs with a linear number of
+monoid operations. The frontier is closed with a many-one reduction in the other
+direction: for every non-hierarchical query, the repair problem is NP-complete via a
+biclique gadget --- a full dichotomy in the reachbox's sense.
+
+\subsection{Further reading}
+
 \begin{itemize}
-\item \textbf{Lower bounds without a from-scratch proof.} Pick the canonical hard
-problem closest in shape (Set Cover for covering and outlier budgets, InnerProduct for
-private estimation, hyperclique detection for join patterns, listing for enumeration),
-build a gadget, and state explicitly which hypothesis the reader inherits.
-\item \textbf{Hardness of approximating, not just deciding.} Make the reduction
-gap-preserving (an $L$-reduction), so the source's inapproximability threshold --- not
-merely its NP-hardness --- crosses over to your objective.
-\item \textbf{Fine-grained statements.} When the target is a refined running time
-(sublinear, output-sensitive, constant delay), condition on a quantitative hypothesis
-and audit the parameter blow-up of the gadget; a sloppy parameter map makes the bound
-vacuous in some regime.
-\item \textbf{Reductions also certify tractability.} The same machinery run backwards
---- encoding your problem into LP feasibility, matchings, or coresets --- builds the
-upper-bound side of a dichotomy.
+\item Garey and Johnson \citep{reduction-bg1} --- the NP-completeness handbook; the
+  gadget-construction craft of Sections~\ref{sec:red-continual}
+  and~\ref{sec:red-outliers} is their subject in the small.
+\item Karp's twenty-one problems \citep{reduction-bg2} --- the original demonstration
+  that one reduction technique spans seemingly unrelated problems.
+\item Papadimitriou \citep{reduction-bg3} --- computational complexity including the
+  counting classes behind Section~\ref{sec:red-shapley}.
+\item Vazirani \citep{reduction-bg4} --- $L$-reductions and the approximation-preserving
+  technology of Section~\ref{sec:red-outliers}.
+\item Vassilevska Williams and Williams \citep{reduction-bg5} --- the fine-grained
+  equivalences program underlying Section~\ref{sec:red-finegrained}.
+\item Chandra and Merlin \citep{reduction-bg6} --- conjunctive queries and
+  homomorphisms, where database reduction arguments begin
+  (Example~\ref{ex:red-cq}).
 \end{itemize}
-\end{reachbox}
+
+\begin{recap}
+\item \textbf{What the tool is.} A reduction is a two-way conduit: a polynomial gadget
+  carries instances of a hard source problem into the target, and a decoder carries
+  quality backward --- so any solver for the target solves the source, importing the
+  source's hardness at exactly its resolution.
+\item \textbf{Which rung when.} Ruling out algorithms: many-one (Definition~\ref{def:red-manyone}).
+  Ruling out approximations: $L$-/gap reductions against a covering source
+  (Definition~\ref{def:red-lred}). Ruling out counters: \#P Turing reductions
+  (Definition~\ref{def:red-count}). Refined time bounds: fine-grained transfer under
+  SETH/BMM/hyperclique hypotheses (Proposition~\ref{prop:red-fine}). Stream space:
+  one-pass-to-communication conversion (Proposition~\ref{prop:red-comm}).
+\item \textbf{Why the audit matters.} The gadget's parameter blow-up must be checked in
+  every regime --- the privacy gadget of Section~\ref{sec:red-continual} chose its
+  dimension $d = \min\{t^{-}(T), v^{-}(n)\}$ exactly so that both budgets bind, turning
+  gadget sizes directly into the exponents of Theorem~\ref{thm:red-continual}.
+\item \textbf{What the corpus showed.} Continual-release privacy
+  (Section~\ref{sec:red-continual}): InnerProduct gadgets import error bounds into DP
+  stream maintenance. Set-outlier clustering (Section~\ref{sec:red-outliers}): a
+  line--point encoding transfers Set Cover's UGC threshold to the outlier budget.
+  Answer diversity (Section~\ref{sec:red-diversity}): one problem reduced to submodular
+  maximization (algorithm) and from Max Coverage (hardness) --- both directions at
+  once. Shapley attribution (Section~\ref{sec:red-shapley}): \#Set-Cover counting
+  reductions draw a dichotomy at the hierarchical frontier.
+\item \textbf{Advanced usage.} Fine-grained dichotomies under SETH/hyperclique/BMM
+  hypotheses and coupon-collector reversals against randomized solvers
+  (Section~\ref{sec:red-finegrained}); reduction chains for pseudodeterministic
+  streaming and algebraic transfer lemmas that unify algorithms
+  (Section~\ref{sec:red-sketches}). Deferred proofs live in the
+  Appendix (Section~\ref{sec:red-appendix}).
+\end{recap}
+
+\section{Appendix}
+\label{sec:red-appendix}
+
+Proofs omitted from the main text are collected here.
+
+\subsubsection*{Proof of Lemma~\ref{lem:red-gadget} (gadget transfer,
+Section~\ref{sec:red-continual})}
+{\itshape Statement (recalled).} Any $(\varepsilon, \delta)$-DP event-level mechanism
+maintaining exactly a graph problem $g$ that admits an extendable bitwise-AND gadget
+with $v(d)$ vertices and $t(d)$ edges, on $n$-node graphs over $T$ timesteps, has
+additive error $\alpha = \widetilde{\Omega}(\min\{t^{-}(T), v^{-}(n)\})$, where
+$f^{-}(x) = \sup\{d \mid f(d) \le x\}$.\eop
+
+\begin{proof}
+Let $\mathcal{A}$ be such a mechanism with additive error $\alpha$, and let
+$(x, q^1, \dots, q^m)$ be an \textsc{InnerProduct} instance of dimension $d$, with
+$d$ chosen as $d = \min\{t^{-}(T), v^{-}(n)\}$, so the gadget's $v(d)$ vertices and
+$t(d)$ edges fit the budgets $n$ and $T$. Emulate an $(\varepsilon,\delta)$-DP
+mechanism for \textsc{InnerProduct}: initialize the stream with the gadget's
+$H_{\mathrm{init}}$; insert the edge $e_i$ iff the data bit $x_i = 1$, giving the
+graph $H_x^1$; then, for each query $q^j$, (i) query $\mathcal{A}$, obtaining an
+estimate $\hat e^j$ of $g(H_x^j)$; (ii) insert the query edges $S^j$ (those whose
+index corresponds to a query bit set to one), giving $Q_x^j$, query $\mathcal{A}$
+again, obtaining $\hat q^j$; (iii) output $\hat q^j - \hat e^j$ as the estimate of
+$\langle x, q^j \rangle$; (iv) insert the neutral edges $T^j$, giving $H_x^{j+1}$,
+ready for the next query. By the gadget's guarantee, the true values satisfy
+$\mathrm{dec}_j(g(Q_x^j)) - \mathrm{dec}_j(g(H_x^j)) = \langle x, q^j \rangle$, and
+the accuracy guarantee gives $|\hat q^j - g(Q_x^j)| \le \alpha$ and
+$|\hat e^j - g(H_x^j)| \le \alpha$ simultaneously with probability $2/3$, so every
+inner product is answered within $2\alpha$. Changing one bit of $x$ changes one event
+of the stream (edge $e_i$ inserted or not), so event-level DP of $\mathcal{A}$ makes
+the emulation $(\varepsilon,\delta)$-DP --- contradicting the packing lower bound
+$\widetilde{\Omega}(\sqrt{d})$ for privately answering \textsc{InnerProduct} unless
+$\alpha \ge \widetilde{\Omega}(\sqrt{d}) = \widetilde{\Omega}(\min\{t^{-}(T),
+v^{-}(n)\}^{1/2})$.
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:red-cover} (Set-Cover transfer,
+Section~\ref{sec:red-outliers})}
+{\itshape Statement (recalled).} A polynomial-time $(1, f-\varepsilon,
+\gamma)$-approximation for set-outlier clustering with sublinear $\gamma$ yields a
+polynomial-time $(f-\varepsilon)$-approximation for Set Cover.\eop
+
+\begin{proof}
+Given a Set Cover instance $(X, \mathcal{Y})$, $X = \{x_1, \dots, x_{n'}\}$, build the
+clustering instance: for each element $x_i$, a point $p_i$ at coordinate $i$ of the
+real line; $\ell$ additional padding points $q_1, \dots, q_\ell$ at coordinates
+$2n' + 1, \dots, 2n' + \ell$; for each set $y \in \mathcal{Y}$, the outlier set
+$H_y = \{p_i : x_i \in y\}$; and singleton outlier sets $\{q_j\}$ for the padding
+points. Set the center budget to zero, so the objective is to cover all points by
+outlier sets, and the cost of any uncovered point exceeds any cover-based optimum
+(with the padding singletons forcing $\ell$ of the budget to be spent
+canonically, $\ell$ chosen polynomially bounded).
+\emph{Yes to yes:} if $\mathcal{C} \subseteq \mathcal{Y}$ covers $X$ with
+$|\mathcal{C}| \le z$, then choosing the outlier sets $\{H_y\}_{y \in \mathcal{C}}$
+plus the $\ell$ padding singletons covers every point within budget $z + \ell$, at
+cost zero. \emph{Solution to cover:} conversely, any solution of cost zero (the cost
+factor $1$ forces this) covers every element-point using some outlier sets; discarding
+the padding singletons, the corresponding sets $y$ form a cover of $X$ whose size is
+within the outlier-budget factor of the optimum cover size. Running the assumed
+$(1, f - \varepsilon, \gamma)$-approximation on this instance (the sublinear center
+inflation $\gamma$ is spent only on the padding construction) therefore returns a
+cover of size at most $(f - \varepsilon)$ times the optimum --- a polynomial-time
+$(f - \varepsilon)$-approximation to Set Cover, which the UGC-conditional
+$(1-\varepsilon)\ln n$ threshold rules out for $f = o(\log n)$.
+\end{proof}
+
+\subsubsection*{Proof of Proposition~\ref{prop:red-submod} (submodularity,
+Section~\ref{sec:red-diversity})}
+{\itshape Statement (recalled).} For every volume assignment $\Omega = (\mathcal{U},
+\mu, \beta)$, the diversity $\delta_\Omega(S) = \mu(\bigcup_{s \in S} \beta(s))$ is
+monotone and submodular.\eop
+
+\begin{proof}
+\emph{Monotonicity:} $S_1 \subseteq S_2$ implies $\bigcup_{s \in S_1} \beta(s)
+\subseteq \bigcup_{s \in S_2} \beta(s)$, and $\mu$ is monotone. \emph{Submodularity:}
+let $S_1 \subseteq S_2$ and $a \notin S_2$ (if $a \in S_2$ both sides are zero). For
+any $S$,
+\[
+\delta_\Omega(S \cup \{a\}) - \delta_\Omega(S)
+\;=\; \mu\Bigl(\beta(a) \setminus \bigcup_{s \in S} \beta(s)\Bigr),
+\]
+by disjoint decomposition of the measure ($\mu(B \cup C) = \mu(B) + \mu(C \setminus
+B)$). Since $\bigcup_{s \in S_1} \beta(s) \subseteq \bigcup_{s \in S_2} \beta(s)$, we
+have $\beta(a) \setminus \bigcup_{s \in S_2}\beta(s) \subseteq \beta(a) \setminus
+\bigcup_{s \in S_1} \beta(s)$, and monotonicity of $\mu$ gives
+$\mu(\beta(a) \setminus \bigcup_{s \in S_2} \beta(s)) \le \mu(\beta(a) \setminus
+\bigcup_{s \in S_1} \beta(s))$, which is the stated inequality. (This is the paper's
+proof; the Corollary~\ref{cor:red-greedy} guarantee then follows from the classical
+greedy analysis of monotone submodular maximization.)
+\end{proof}
+
+\subsubsection*{From estimator to protocol (Section~\ref{sec:red-sketches})}
+{\itshape Statement (recalled).} If a one-pass ROPD streaming algorithm
+$(\varepsilon, \delta)$-approximates $F_0$ over universe $[n]$ using $s$ bits, then
+there is a pseudodeterministic protocol of communication $O(s)$ for a
+Promise-Union$_n$ problem whose communication complexity is $\Omega(n)$; hence
+$s = \Omega(n)$ (Theorem 3.1 of the paper), and $t$-pass algorithms similarly need
+$\Omega(n/t)$ space.\eop
+
+\begin{proof}
+\emph{Estimator to protocol.} Alice holds $A \subseteq [n]$, Bob holds $B \subseteq
+[n]$. Alice converts $A$ to its canonical stream $D(A)$ (the elements in
+lexicographic order), runs the estimator on it, and sends Bob the final memory state
+--- $s$ bits, exactly Proposition~\ref{prop:red-comm}. Bob continues the execution
+with $D(B)$, so the algorithm processes the stream of $A \cup B$, and outputs $1$ iff
+the returned estimate is at least $n/2$. On the promise (unions of size $\ge 3n/4$
+versus $\le n/4$), any $(\varepsilon, \delta)$-approximation of $F_0 = |A \cup B|$
+with $\varepsilon, \delta \le 1/3$ decides correctly with probability $\ge 2/3$.
+\emph{Obliviousness carries the class:} $D(A) \cdot D(B)$ is a canonical
+representative of the $R_0$-equivalence class of streams over $A \cup B$, so
+representation obliviousness makes the output distribution depend only on the union;
+pseudodeterminism supplies a canonical value $g$, and Bob's output equals the fixed
+predicate $h(A,B) = \mathbf{1}[g(D(A)\cdot D(B)) \ge n/2]$ with probability $2/3$ ---
+the protocol itself is pseudodeterministic. \emph{The final hop:} disjointness
+embeds into the promise gap by padding both players' inputs so that disjoint inputs
+land above the high threshold and intersecting ones below it, yielding a
+pseudodeterministic protocol for Disj$_m$ with communication $o(m)$ --- contradicting
+the classical $\Omega(m)$ bound. The multi-pass bound ships the state back and
+forth once per pass: communication $O(s \cdot t)$, so $s = \Omega(n/t)$.
+\end{proof}
+
+\bibliographystyle{plainnat}
+\bibliography{chapters/reduction-all}
