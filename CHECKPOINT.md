@@ -1,70 +1,61 @@
-# CHECKPOINT — 2026-09-14 14:2x (round-5 pilot DONE + verified; awaiting user confirmation)
+# CHECKPOINT — 2026-09-14 15:45 (wave 1 = 3/4 done; QUOTA TRIPPED, idling)
 
-Weekly 26% > soft 25.6% (frozen cap until 15:00 9/14). Master idles; no
-subagent launches until headroom returns AND user confirms pilot.
+Weekly 40% ≥ soft 39.9% (3d bound) at 15:34 → policy enforced: estimation
+agent killed (mid-write, file UNTOUCHED — still pre-pilot 153 lines, builds
+fine), no further subagent launches. Next relief: day 4 completes
+~15:05 9/15 → bound 54.14% (headroom ~14pt).
+
+## Cost calibration (IMPORTANT for wave planning)
+Chapter-revision agents cost **~1–1.3pt each** (750–850-line rewrites, 27–37
+tool uses), NOT the 0.4–0.5pt of note batches. Wave 1 (4 agents + master)
+≈ 5pt total (35%→40% in 25 min). Plan around ~5pt/wave + 1pt master.
 
 ## State
-- **Pilot round-5 feedback: ALL 3 items done, rebuilt, verified (vision + bbox)**
-  — `lecture-notes/pilot-chapter2.pdf` (26pp, 362,479 bytes, 0 errors,
-  same 2 pre-existing overfulls):
-  1. **Sections from 0**: every `\chapter{...}` is followed by
-     `\setcounter{section}{-1}` (convention documented in main.tex lines
-     92–100). x.0 = tool intro, exemplars from x.1. ToC verified: ch0 =
-     0.0–0.8; ch1 = 1.0 "The tool: …" (1.0.1, 1.0.2), 1.1 Trimmed,
-     1.2 MaxRS, 1.3 S4S, 1.4 Advanced (1.4.1–1.4.3), 1.5 Appendix.
-     There is NO safe global hook (hyperref `\@chapter` is parameterless,
-     forwards to `\Hy@org@chapter` defined only at `\begin{document}`) —
-     per-chapter `\setcounter` is REQUIRED at rollout.
-  2. **Richer exemplar leads**: all 5 exemplar intros (§1.1–1.3 + the two
-     in 1.4.2) rewritten as fuller plain-language background paragraphs
-     sourced from the papers' abstracts — venue, what problem the paper
-     attacks, headline results, in reader-friendly wording — before
-     `\paragraph{Problem.}`.
-  3. **Map table de-ID'd**: Table 1 now 4 columns (Ch. / Tool / Papers /
-     Ex.), star-exemplar ID column REMOVED; §0.7 prose no longer cites
-     sigmod26-IDs. Verified: no "sigmod26-" strings on the table page.
-- **BUILD RULE (new, from the ToC regression)**: tufte's `\titlecontents`
-  wraps EVERY ToC entry in `fullwidth` = `adjustwidth*` (changepage),
-  which resolves page parity from aux data written by the PREVIOUS run.
-  After `rm -f main-pilot.{aux,toc,out}`, **3 pdflatex runs are NOT
-  enough**: most ToC entries land 167.4pt left of the text edge (off
-  paper). FIX = run pdflatex until the PDF is **byte-stable (≥4 runs)**.
-  The stable build is clean (only chapter numbers "0"/"1" left of the
-  text edge, as tufte intends).
-- Build: `cd lecture-notes && rm -f main-pilot.{aux,toc,out} &&
-  pdflatex -interaction=nonstopmode main-pilot.tex &&
-  bibtex chapters/concentration-ineq && pdflatex ×3+ (until byte-stable)`.
-- Visual check loop: `pdftoppm -r 110 -png -f N -l N main-pilot.pdf /tmp/rX`
-  → Read PNG → CDN URL → `mcp__4_5v_mcp__analyze_image` (signatures
-  per-URL; 400 = stale, re-Read for a fresh one). Prefer
-  `pdftotext -f N -l N -bbox` for spacing/alignment questions — geometric
-  ground truth beats vision judgment (vision false alarms this round:
-  "table missing" = it floated to the next page; "[8]PODS" = the intended
-  `\pods` superscript).
+- Committed this round: `82a2550` ToC right-align (vision-verified),
+  `22a74ae` frequency chapter order (reductions = Ch.1), `0613ec7` bib
+  seeding (all 12 chapters' `-all.bib` hold their planned exemplar corpus
+  entries verbatim from refs.bib — agents only add classic bg refs),
+  `9592cb1` reduction, `f16bdc0` induction, `1998330` adversarial-construction.
+- Wave 1 acceptance: 3/3 revised chapters PASS (opener/objectives/boxes/
+  recap/bib-tail/\citep-only/keys-resolve/PODS≤1; anatomy = \paragraph{
+  Problem./Guarantee./How …/What it buys.}). One build error found+fixed:
+  induction had a text-mode `\eopm` → `\eop` (amsmath \tag error).
+- Full book: `./build.sh main` → **123pp, 0 errors, 21 overfulls, 76
+  unresolved citations — ALL in unrevised chapters** (estimation 20,
+  dp-composition 18, online-decisions 12, spectral 11, exchange-greedy 10,
+  amortized 5). Revised chapters resolve 100%. 9 overfulls sit in the 3
+  new chapters (cosmetic; polish pass AFTER all waves, before ch0 refresh).
+- estimation-theory agent was killed mid-rewrite; its context is resumable
+  via SendMessage to its task (don't relaunch fresh — resume is cheaper).
+  If resuming fails: relaunch with the wave-1 prompt (exemplars 115(PODS),
+  231, 102, 373, 293, 377; note the current draft has an env-form reachbox
+  workaround that R3 replaces).
 
-## Resume (in order)
-1. User confirms pilot-chapter2.pdf → then rollout (quota permitting, after
-   15:00 9/14).
-2. Rollout = rewrite 12 remaining chapters to pilot spec (structure per
-   concentration-ineq.tex: two-line opener `\chapter{...}` +
-   `\setcounter{section}{-1}` → margin objectives → tool-intro (x.0) w/
-   ladder + proofs + bg refs → self-contained exemplar sections from x.1
-   with abstract-sourced plain-language lead paragraphs → "Advanced usage
-   and further reading" → recap → Appendix w/ short single-line
-   "Proof of Theorem N" subsubsections + \eop/\eopm → per-chapter
-   `\bibliography{chapters/<tool>-all}`). Waves ≤4, `quota_check.py`
-   before EVERY launch (exit 3 = stop + this checkpoint).
-3. Round-3/4/5 rules to PROPAGATE at rollout: exactly 3 box semantics (NO
-   algorithmblock); recap BEFORE appendix; `\citep` everywhere;
-   widefigure/widetable for wide floats; `\eopm` via `\tag*` (never
-   `\qquad\mbox`); appendix titles single-line ≤~52 chars; exemplar leads
-   = venue + what-it-does + abstract-sourced plain-language background,
-   no curation meta; appendix intro one sentence; **sections number from
-   x.0 via per-chapter `\setcounter{section}{-1}`**; **build until
-   byte-stable (≥4 pdflatex runs after rm aux)**.
-4. Known gaps at rollout: plan.json `online-decisions` exemplars EMPTY
-   (hand-pick 242/094/221/140 per ch0 table or relax dedup); 3 new chapters
-   (information-theory, communication-complexity, coresets-rnla) need
-   `-all.bib` + includes; main.tex → 13-chapter include order.
-5. After chapters: script-generated Index part, final ch0 refresh, update
-   CLAUDE.md runbook + memory.
+## Resume (in order, after quota GO)
+1. `python3 scripts/quota_check.py` — GO when headroom > ~4pt (a full wave
+   + margin). Expected ~15:05 9/15.
+2. Resume/relaunch estimation-theory (Ch.4), THEN wave 2 (dp-composition
+   Ch.6: 298,178(PODS),337,263,073,214; exchange-greedy Ch.7:
+   053(PODS),200,031,009,224,229; spectral-matrix Ch.8:
+   038(PODS),303,235,190,101,265; amortized-potential Ch.9:
+   177(PODS),015,180,363,274,203) — same agent prompt template as wave 1.
+   If headroom < 9pt at wave-2 gate, split: 2 chapters now, 2 on day 5.
+3. Wave 3 (coresets-rnla Ch.10 NEW: 289,053(PODS),303,349,052,127;
+   information-theory Ch.11 NEW: 185(PODS),079,231,279,237;
+   communication-complexity Ch.12 NEW: 115(PODS),243(PODS),357,070 —
+   PODS cap 2; online-decisions Ch.13: 242,094,221,140 hand-picked).
+   New-chapter agents: replace stub file, add `<tool>.bib` bg refs;
+   `-all.bib` corpus entries already seeded.
+4. After each wave: acceptance greps → `./build.sh main` → commit per
+   chapter → fresh quota check.
+5. Post-rollout (LAST): overfull polish pass, ch0 refresh (reconcile
+   §0.3 trinity 52/39 vs table 50/38), Index part, `\bookversion{1.0}`,
+   update CLAUDE.md runbook + memory.
+
+## Standing rules (unchanged)
+Byte-stable build (≥4 pdflatex runs after aux wipe; `./build.sh` loops
+until PDF md5 identical twice). Vision loop: pdftoppm → Read →
+analyze_image (per-URL signatures; prefer pdftotext -bbox for geometry).
+Sections from x.0 via per-chapter `\setcounter{section}{-1}`. Exactly 3
+box semantics; no algorithmblock. Master reads only CLAUDE.md/index/
+report + ≤120-line spot checks; theory/ is subagent-only.
