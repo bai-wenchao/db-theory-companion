@@ -327,13 +327,13 @@ worst-case error at most $\delta$.
 
 \begin{proposition}[Information is bounded by communication]\label{pro:cc-icbound}
 For every protocol $\Pi$ and distribution $\mu$,
-\[
+\begin{gather*}
 \mathrm{IC}^{\mathrm{ext}}_\mu(\Pi) \;\le\; H\bigl(\Pi(X,Y)\bigr) \;\le\;
-\operatorname{cost}(\Pi),
-\qquad\text{hence}\qquad
+\operatorname{cost}(\Pi),\\[2pt]
+\text{hence}\quad
 R_\delta(f) \;\ge\; \mathrm{IC}^{\mathrm{ext}}_{\mu,\delta}(f)
 \text{ for every } \mu. \eopm
-\]
+\end{gather*}
 \end{proposition}
 
 \begin{proof}
@@ -997,10 +997,12 @@ one input, i.e.\ $2^c \ge 2^m$.
 
 \subsubsection*{Proof of Lemma~\ref{lem:cc-243-reduction} (matrix-query bound)}
 {\itshape Statement (recalled).} For the matrix query
-$Q_{\mathrm{m}} = \pi_{A,C}(R_1(A,B) \Join R_2(B,C))$, any randomized algorithm that
-outputs any multiplicative-factor approximation of $\mathrm{OUT}$ with high
-probability requires $\Omega\bigl(\min\{n, N/\sqrt{\mathrm{OUT}}\}\bigr)$ queries in
-the query model.\eop
+\[
+Q_{\mathrm{m}} \;=\; \pi_{A,C}\bigl(R_1(A,B) \Join R_2(B,C)\bigr),
+\]
+any randomized algorithm that outputs any multiplicative-factor approximation of
+$\mathrm{OUT}$ with high probability requires
+$\Omega\bigl(\min\{n,\, N/\sqrt{\mathrm{OUT}}\}\bigr)$ queries in the query model.\eop
 
 \begin{proof}
 The proof (of the paper's two-party lemma, transcribed with cleaned notation)

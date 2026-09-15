@@ -66,6 +66,9 @@
   {\end{minipage}\end{fullwidth}\end@float}
 \makeatother
 \captionsetup{font=small,labelfont={bf},labelsep=colon,skip=8pt,position=auto}
+% paragraph-level relief for justified text: TeX's emergency pass can then loosen
+% a problem line instead of overrunning the measure (overfull polish pass).
+\setlength{\emergencystretch}{3em}
 
 % end-of-statement / end-of-proof marker (tcs convention: solid black square)
 \newcommand{\eop}{\leavevmode\unskip\nobreak\hfill\penalty50\hskip1em\null\nobreak\hfill

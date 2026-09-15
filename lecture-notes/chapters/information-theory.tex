@@ -149,9 +149,13 @@ the log-sum inequality \citep{information-theory-bg2} and both recur in the exem
 \item (Convexity in the mixture.) If $P_i, Q_i$ are distributions and $\beta_i \ge
 0$, $\sum_i \beta_i = 1$, then $D(\sum_i \beta_i P_i \,\|\, \sum_i \beta_i Q_i)
 \le \sum_i \beta_i\,D(P_i \| Q_i)$.
-\item (Chain rule.) $D(p(x)P(z|x) \,\|\, p(x)Q(z|x)) = \sum_x p(x)\,
-D(P(\cdot|x) \,\|\, Q(\cdot|x))$: with the same mixing distribution on both sides,
-the joint divergence is the average of the conditional divergences. Consequently
+\item (Chain rule.) With the same mixing distribution on both sides, the joint divergence
+is the average of the conditional divergences:
+\[
+D(p(x)P(z|x) \,\|\, p(x)Q(z|x)) \;=\; \sum_x p(x)\,
+D(P(\cdot|x) \,\|\, Q(\cdot|x)).
+\]
+Consequently
 (data processing for a partition) $D(p\|q) \ge d(p(E) \| q(E))$ for every event $E$,
 with $d$ the two-point divergence. \eop
 \end{enumerate}
@@ -334,8 +338,11 @@ $O(N \log N + B \log N)$, recovering fractional hypertree-width and submodular-w
 runtimes as corollaries.
 
 \paragraph{Problem.}
-Queries are \emph{disjunctive datalog rules} (DDRs) $Q(Z) :- \bigvee_{R(X) \in
-\Sigma_{\mathrm{in}}} R(X)$: an output \emph{model} assigns tuples to the atoms
+Queries are \emph{disjunctive datalog rules} (DDRs)
+\[
+Q(Z) \;:\!-\; \bigvee_{R(X) \in \Sigma_{\mathrm{in}}} R(X)
+\]
+An output \emph{model} assigns tuples to the atoms
 $Q(Z) \in \Sigma_{\mathrm{out}}$ so that every tuple $t$ of the natural join
 $\Join_{\Sigma_{\mathrm{in}}}$ is covered, i.e.\ $t_Z \in Q(Z)$ for some $Z$; the goal
 is a \emph{small} model. The instance satisfies \emph{degree constraints}
@@ -361,7 +368,7 @@ $(\lambda, w)$, PANDAExpress computes a model $\Sigma_{\mathrm{out}}$ for the DD
 size
 \[
 \|\Sigma_{\mathrm{out}}\| \;=\; O(B)
-\qquad\text{in time}\qquad
+\quad\text{in time}\quad
 O\bigl(N\log N + B\log N\bigr),
 \qquad B \;=\; \prod_{\delta\in\Delta} N_\delta^{w_\delta}. \eopm
 \]
@@ -497,14 +504,14 @@ order by order). The per-component divergence is Gaussian, closed-form:
 \begin{lemma}[Gaussian R\'enyi divergence; Lemma of the paper, notation cleaned]
 \label{lem:inf-gauss-renyi}
 For $\mu_1, \mu_2 \in \mathbb{R}^d$ and i.i.d.\ noise,
-\[
+\begin{align*}
 D_\alpha\bigl(\mathcal{N}(\mu_1, \sigma_1^2 I_d) \,\|\, \mathcal{N}(\mu_2, \sigma_2^2
 I_d)\bigr)
-\;=\; \frac{\alpha \,\|\mu_1 - \mu_2\|_2^2}{2\sigma^2_\mathrm{mix}}
-\;+\; \frac{d}{2}\,(\alpha - 1)\,
+\;&=\; \frac{\alpha \,\|\mu_1 - \mu_2\|_2^2}{2\sigma^2_\mathrm{mix}}\\
+\;&+\; \frac{d}{2}\,(\alpha - 1)\,
 \ln \frac{\sigma_1^{\,2(1-\alpha)}\,\sigma_2^{\,2\alpha}}{\sigma^2_\mathrm{mix}},
 \eopm
-\]
+\end{align*}
 where $\sigma^2_\mathrm{mix} = (1-\alpha)\sigma_1^2 + \alpha\sigma_2^2$; the
 divergence is infinite if $\sigma^2_\mathrm{mix} \le 0$. For equal scales $\sigma$,
 only the first term survives: $D_\alpha = \alpha\|\mu_1 - \mu_2\|_2^2 / 2\sigma^2$.

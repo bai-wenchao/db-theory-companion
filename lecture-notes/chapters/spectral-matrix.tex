@@ -433,14 +433,13 @@ Truncating at $L$ terms gives the scalable solver:
 cleaned]\label{lem:spec-mrg-trunc}
 Let $Z^L$ be the $L$-term truncation of the Neumann expansion of
 $\frac{1}{1+\alpha}\bigl(I - \frac{\alpha}{1+\alpha}S\bigr)^{-1} Z^0$. Then
-\[
+\begin{gather*}
 \|Z - Z^L\|_F \;\le\;
 \Bigl(\frac{\alpha}{1+\alpha}\Bigr)^{\!L+1} \|Z^0\|_F \cdot \max_{j \ge 1}
-\mu_{L, L+j},
-\qquad
+\mu_{L, L+j},\\
 \mu_{\ell_1, \ell_2} = \max_i \bigl|\lambda_i(S)^{\ell_1} -
 \lambda_i(S)^{\ell_2}\bigr|,
-\]
+\end{gather*}
 so the error decays geometrically at rate $\alpha/(1+\alpha)$, modulated by
 the eigengap quantity $\mu$ --- itself decaying since $\lambda_i(S) \in [0,1]$
 ($\|S^{L+j} - S^L\|_2 = \mu_{L,L+j}$ exactly). \eop
@@ -757,8 +756,10 @@ Let $W = \operatorname{span}(B)$; $y \mapsto By$ is an isometry onto $W$,
 and the Rayleigh quotient of the compression at $y$ equals $R(By)$.
 \emph{Upper bound:} by Courant--Fischer, $\mu_i = \max_{\dim U = i}
 \min_{0 \ne y \in U} R(By)$; each image $BU$ is an $i$-dimensional
-subspace of $\mathbb{R}^d$, so the inner min is at most $\max_{\dim V =
-i}\min_{0 \ne x \in V} R(x) = \lambda_i(A)$.
+subspace of $\mathbb{R}^d$, so the inner min is at most
+\[
+\max_{\dim V = i}\min_{0 \ne x \in V} R(x) \;=\; \lambda_i(A).
+\]
 \emph{Lower bound:} $\mu_i = \min_{\dim U = s-i+1} \max_{0 \ne y \in U}
 R(By)$, where the images $BU$ form a \emph{subfamily} of the
 $(s-i+1)$-dimensional subspaces (those inside $W$); a minimum over a

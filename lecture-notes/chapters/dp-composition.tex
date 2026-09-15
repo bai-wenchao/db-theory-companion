@@ -349,12 +349,12 @@ $\sum_{i=1}^m \alpha_i \Delta_i$. \eop
 
 \begin{proof}
 For neighboring $D \sim D'$, the triangle inequality gives
-\[
+\begin{align*}
 \bigl|f(D) - f(D')\bigr|
-\;=\;\Bigl|\textstyle\sum_i \alpha_i f_i(D) - \sum_i \alpha_i f_i(D')\Bigr|
-\;\le\; \sum_i \alpha_i \bigl|f_i(D) - f_i(D')\bigr|
+\;&=\;\Bigl|\textstyle\sum_i \alpha_i f_i(D) - \sum_i \alpha_i f_i(D')\Bigr|\\
+\;&\le\; \sum_i \alpha_i \bigl|f_i(D) - f_i(D')\bigr|
 \;\le\; \sum_i \alpha_i \Delta_i. \eopm
-\]
+\end{align*}
 \end{proof}
 
 Since $\psi_\lambda$ is a convex combination (weights summing to one) of three
@@ -805,12 +805,12 @@ $Q(D) + \operatorname{Lap}(GS_Q/\varepsilon)$ satisfies $\varepsilon$-DP.\eop
 Let $b = GS_Q/\varepsilon$ and write $p_D$ for the density of
 $Q(D) + \operatorname{Lap}(b)$ at a point $y$. For every coordinate $j$,
 $|(Q(D) - y_j) - (Q(D') - y_j)| \le |Q(D) - Q(D')| \le GS_Q$, so the density ratio is
-\[
+\begin{align*}
 \frac{p_D(y)}{p_{D'}(y)}
-= \prod_j \exp\!\Bigl(\frac{|Q(D')_j - y_j| - |Q(D)_j - y_j|}{b}\Bigr)
-\le \exp\!\Bigl(\frac{\|Q(D)-Q(D')\|_1}{b}\Bigr)
-\le e^{GS_Q/b} = e^{\varepsilon}.
-\]
+&= \prod_j \exp\!\Bigl(\frac{|Q(D')_j - y_j| - |Q(D)_j - y_j|}{b}\Bigr)\\
+&\le \exp\!\Bigl(\frac{\|Q(D)-Q(D')\|_1}{b}\Bigr)
+&\le e^{GS_Q/b} \;=\; e^{\varepsilon}.
+\end{align*}
 Integrating over any measurable $S$ gives
 $\Pr[\mathcal{M}(D) \in S] \le e^{\varepsilon}\Pr[\mathcal{M}(D') \in S]$.
 \end{proof}
@@ -834,12 +834,12 @@ Let $T = \{y : p_D(y) \le e^{\varepsilon_1} p_{D'}(y)\}$; by the DP bound on
 $\mathcal{M}_1$ (applied to the complement), $\Pr[\mathcal{M}_1(D) \notin T] \le
 \delta_1$. Splitting the integral at $T$ and using the two per-mechanism bounds on each
 part,
-\[
+\begin{align*}
 \Pr[\mathcal{M}_3(D) \in S]
-\;\le\; e^{\varepsilon_2}\!\int_T q_{D'}(S\mid y)\, d p_D(y) + \delta_2
-\;\le\; e^{\varepsilon_2} e^{\varepsilon_1}\!\int q_{D'}(S\mid y)\, d p_{D'}(y)
+&\;\le\; e^{\varepsilon_2}\!\int_T q_{D'}(S\mid y)\, d p_D(y) + \delta_2\\
+&\;\le\; e^{\varepsilon_2} e^{\varepsilon_1}\!\int q_{D'}(S\mid y)\, d p_{D'}(y)
 + e^{\varepsilon_2}\delta_2 + \delta_1,
-\]
+\end{align*}
 which is at most $e^{\varepsilon_1+\varepsilon_2}
 \Pr[\mathcal{M}_3(D') \in S] + (\delta_1+\delta_2)$ for $\varepsilon_2 \ge 0$.
 Iteration over $k$ adaptive stages is this argument unrolled along the chain.
@@ -855,8 +855,8 @@ Induction on $\lambda$; $\lambda = 1$ is DP itself. For the step, fix intermedia
 $G = G_0 \sim G_1 \sim \dots \sim G_\lambda = G'$ and apply DP twice:
 \[
 \Pr[\mathcal{M}(G_0) \in S]
-\;\le\; e^{\varepsilon}\Pr[\mathcal{M}(G_1) \in S] + \delta
-\;\le\; e^{2\varepsilon}\Pr[\mathcal{M}(G_2) \in S] + e^{\varepsilon}\delta + \delta.
+\le e^{\varepsilon}\Pr[\mathcal{M}(G_1) \in S] + \delta
+\le e^{2\varepsilon}\Pr[\mathcal{M}(G_2) \in S] + e^{\varepsilon}\delta + \delta.
 \]
 After $\lambda$ steps the error term is $\sum_{i=0}^{\lambda-1} e^{i\varepsilon}\delta
 \le \lambda e^{(\lambda-1)\varepsilon}\delta$; since

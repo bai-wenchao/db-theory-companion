@@ -544,8 +544,10 @@ $F\colon 2^{U}\to\mathbb{R}_{\ge 0}$ is nondecreasing and submodular. \eop
 
 \begin{proof}[Proof sketch]
 The marginal gain of adding $u$ to $A$ is
-$\Delta F(A;u) = \sum_{s\colon u\in B(s)}\bigl[g_s(m_s(A)+1)-g_s(m_s(A))\bigr] \ge 0$,
-and if $A\subseteq A'$ then $m_s(A)\le m_s(A')$, so discrete concavity of $g_s$ makes
+\[
+\Delta F(A;u) \;=\; \sum_{s\colon u\in B(s)}\bigl[g_s\bigl(m_s(A)+1\bigr)-g_s\bigl(m_s(A)\bigr)\bigr],
+\]
+which is nonnegative; if $A\subseteq A'$ then $m_s(A)\le m_s(A')$, so discrete concavity of $g_s$ makes
 each bracket at $A'$ no larger than at $A$ --- diminishing returns.
 \end{proof}
 

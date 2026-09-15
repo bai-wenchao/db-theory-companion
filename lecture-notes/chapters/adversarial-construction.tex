@@ -109,22 +109,24 @@ Randomized algorithms do not escape the pattern --- they route it through a dist
 
 \begin{theorem}[Yao's minimax principle]\label{thm:adv-yao}
 For any cost function $\operatorname{cost}(\mathcal{A}, x) \ge 0$,
-\[
+\begin{gather*}
 \min_{\text{randomized } \mathcal{R}}\;\; \max_{x}\;
   \mathbb{E}\bigl[\operatorname{cost}(\mathcal{R}, x)\bigr]
-\;\ge\;
+\;\ge\;\\
 \max_{\text{distributions } \mathcal{D}}\;\; \min_{\text{deterministic } \mathcal{A}}\;
   \mathbb{E}_{x \sim \mathcal{D}}\bigl[\operatorname{cost}(\mathcal{A}, x)\bigr]. \eopm
-\]
+\end{gather*}
 \end{theorem}
 
 \begin{proof}
 Fix any $\mathcal{D}$ and any randomized $\mathcal{R}$. Averaging over the coins of
 $\mathcal{R}$ first,
-$\mathbb{E}_{x\sim\mathcal{D}}\mathbb{E}[\operatorname{cost}(\mathcal{R},x)]
-= \mathbb{E}_{\text{coins}}\,\mathbb{E}_{x\sim\mathcal{D}}
-[\operatorname{cost}(\mathcal{A}_{\text{coins}},x)]
-\ge \min_{\mathcal{A}} \mathbb{E}_{x\sim\mathcal{D}}[\operatorname{cost}(\mathcal{A},x)]$.
+\begin{align*}
+\mathbb{E}_{x\sim\mathcal{D}}\mathbb{E}[\operatorname{cost}(\mathcal{R},x)]
+&= \mathbb{E}_{\text{coins}}\,\mathbb{E}_{x\sim\mathcal{D}}
+[\operatorname{cost}(\mathcal{A}_{\text{coins}},x)]\\
+&\ge \min_{\mathcal{A}} \mathbb{E}_{x\sim\mathcal{D}}[\operatorname{cost}(\mathcal{A},x)].
+\end{align*}
 The left side is at most $\max_x \mathbb{E}[\operatorname{cost}(\mathcal{R},x)]$; minimize over
 $\mathcal{R}$, then maximize over $\mathcal{D}$.
 \end{proof}
@@ -553,12 +555,12 @@ all half-edge connections, and an \emph{$r$-padding} (extra edges into dummy nod
 the family be made dense without revealing edges, so the bound covers sparse and dense
 regimes alike. The argument then has two moves.
 
-\emph{Move 1 (reduction):} an SSPPR-R algorithm using
+\emph{Move 1 (reduction):} an algorithm using
 $o(\min\{m_0, \log(1/\delta_0)/\delta_0\})$ queries yields, after post-processing its PPR
 estimates, a split-recovery procedure using at most $\gamma n D$ arc-centric queries with
-average success at least $1 - 2p_f$ (Lemma~4.4 of the paper; the parameters satisfy
-$n(r+D) = \Theta(\min\{m_0, \log(1/\delta_0)/\delta_0\})$, so sublinear in the budget means
-$o(nD)$).
+average success at least $1 - 2p_f$ (Lemma~4.4 of the paper). The parameters satisfy
+$n(r+D) = \Theta(\min\{m_0, \log(1/\delta_0)/\delta_0\})$, so a sublinear query budget
+means $o(nD)$.
 
 \emph{Move 2 (indistinguishability):} the split cannot be recovered from $o(nD)$ queries ---
 the workhorse lemma.
@@ -789,14 +791,14 @@ using $d \le \log n$ and choosing $\gamma$ a sufficiently small constant (with
 $\varepsilon \in (0,1)$ a constant not depending on $n$). \emph{Step 3 (posterior crash).}
 The $|X_1'||X_2'| = \Omega(n^2)$ switched splits are distinct and uniform under the prior, so
 Bayes gives
-\[
+\begin{align*}
 \Pr[\mathrm{SP} \mid e_1,\dots,e_T]
-\;=\; \frac{\Pr[e_1,\dots,e_T \mid \mathrm{SP}]}
-        {\sum_{\mathrm{SP}''}\Pr[e_1,\dots,e_T \mid \mathrm{SP}'']}
-\;\le\; \frac{\Pr[e_1,\dots,e_T \mid \mathrm{SP}]}
+\;&=\; \frac{\Pr[e_1,\dots,e_T \mid \mathrm{SP}]}
+        {\sum_{\mathrm{SP}''}\Pr[e_1,\dots,e_T \mid \mathrm{SP}'']}\\
+\;&\le\; \frac{\Pr[e_1,\dots,e_T \mid \mathrm{SP}]}
         {\Omega(n^2)\cdot \Pr[e_1,\dots,e_T \mid \mathrm{SP}]\,/\,n^{1-\varepsilon}}
 \;<\; \frac{1}{n}.
-\]
+\end{align*}
 The same bound applies to every candidate split --- each is the ``true'' split of some draw,
 or dominates an analogous family of switched alternatives --- so any decoder's success
 probability is below $1/n$. (Constants follow the paper's appendix; the multigraph templates

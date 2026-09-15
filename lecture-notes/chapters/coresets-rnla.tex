@@ -1006,11 +1006,11 @@ p_x\,\tfrac{S}{m s(x)} f(x) = \tfrac{1}{m}\sum_x f(x) =
 \tfrac{S}{m}\,f(P)$, so the $Z_i$ are i.i.d.\ in an interval of length
 $b = \tfrac{S}{m}f(P)$. Hoeffding (Theorem~\ref{thm:conc-hoeffding})
 yields
-\[
+\begin{align*}
 \Pr\Bigl[\Bigl|\sum_i Z_i - f(P)\Bigr| \ge \varepsilon f(P)\Bigr]
-\;\le\; 2\exp\Bigl(-\,\frac{2m^2\varepsilon^2 f(P)^2}{m b^2}\Bigr)
-\;=\; 2\exp\bigl(-2m\varepsilon^2/S^2\bigr).
-\]
+&\;\le\; 2\exp\Bigl(-\,\frac{2m^2\varepsilon^2 f(P)^2}{m b^2}\Bigr)\\
+&\;=\; 2\exp\bigl(-2m\varepsilon^2/S^2\bigr).
+\end{align*}
 With $m \ge \tfrac{S^2}{2\varepsilon^2}\bigl(\ln|\mathcal{F}| +
 \ln\tfrac{2}{\delta}\bigr)$ this is at most $\delta/|\mathcal{F}|$ per
 query, and a union bound over all $f \in \mathcal{F}$ completes the
@@ -1054,10 +1054,12 @@ minimizes $\|RAx - Rb\|_2$, then $\|A\hat{x}-b\|_2 \le
 Let $x^{\star}$ minimize $\|Ax - b\|_2$. The embedding hypothesis
 holds for \emph{every} $x$: since $Ax - b$ lies in the column space of
 $[A\;b]$,
-\[
-(1-\varepsilon)\,\|A\hat{x}-b\|_2 \;\le\; \|RA\hat{x}-Rb\|_2 \;\le\;
-\|RAx^{\star}-Rb\|_2 \;\le\; (1+\varepsilon)\|Ax^{\star}-b\|_2,
-\]
+\begin{align*}
+(1-\varepsilon)\,\|A\hat{x}-b\|_2
+&\;\le\; \|RA\hat{x}-Rb\|_2 \;\le\;
+\|RAx^{\star}-Rb\|_2\\
+&\;\le\; (1+\varepsilon)\|Ax^{\star}-b\|_2,
+\end{align*}
 where the middle inequality uses that $\hat{x}$ minimizes the sketched
 objective. Dividing by $1-\varepsilon$ gives the claim.
 \end{proof}
@@ -1074,11 +1076,11 @@ $1 - N^{-O(1)}$.\eop
 For fixed $F$, $\hat{p}_r(\varepsilon',F)$ is a mean of
 $\mathfrak{n}_r$ i.i.d.\ $[0,1]$ indicators with expectation
 $p(\varepsilon',F)$, so Hoeffding gives
-\[
+\begin{align*}
 \Pr\bigl[\,|\hat{p}_r(\varepsilon',F) - p(\varepsilon',F)| >
-\delta/4\,\bigr] \;\le\; 2\exp\bigl(-2\mathfrak{n}_r(\delta/4)^2\bigr)
-\;=\; 2\exp\bigl(-\delta^2\mathfrak{n}_r/8\bigr).
-\]
+\delta/4\,\bigr] &\;\le\; 2\exp\bigl(-2\mathfrak{n}_r(\delta/4)^2\bigr)\\
+&\;=\; 2\exp\bigl(-\delta^2\mathfrak{n}_r/8\bigr).
+\end{align*}
 The number of subsets of $\Pi$ of size at most $b_r$ is at most
 $(b_r+1)N^{b_r}$, so the probability that \emph{any} $F$ violates the
 accuracy is at most $2(b_r+1)N^{b_r}\exp(-\delta^2\mathfrak{n}_r/8)$.
@@ -1092,11 +1094,12 @@ Lemma 3.1 of \citep{sigmod26-053}).
 \end{proof}
 
 \subsubsection*{Proof of Lemma~\ref{lem:cor-qo-transfer} (risk transfer)}
-{\itshape Statement (recalled).} For $F \subseteq \Pi$, $\pi \in F$,
-query $Q$: $\mathrm{Risk}(\pi,Q;\tau^2) \le
-\mathrm{L\text{-}Risk}_F(\pi,Q;\tau) +
-\min_{\pi'\in F}\mathrm{Risk}(\pi',Q;\tau)$, hence
-$\min_{\pi\in F}\mathrm{Risk}(\pi,Q;\tau^2) \le
+{\itshape Statement (recalled).} For $F \subseteq \Pi$, $\pi \in F$, and query $Q$,
+\[
+\mathrm{Risk}(\pi,Q;\tau^2) \;\le\; \mathrm{L\text{-}Risk}_F(\pi,Q;\tau) +
+\min_{\pi'\in F}\mathrm{Risk}(\pi',Q;\tau),
+\]
+hence $\min_{\pi\in F}\mathrm{Risk}(\pi,Q;\tau^2) \le
 2\min_{\pi\in F}\mathrm{Risk}(\pi,Q;\tau)$.\eop
 
 \begin{proof}
@@ -1113,10 +1116,10 @@ Define $E_1 = \{s : \mathrm{Pnl}(\pi,s) > \tau^2\}$, $E_2 = \{s :
 \mathrm{Pnl}(\pi',s) > \tau\}$. If $s \in E_1$ then the product bound
 forces $s \in E_2 \cup E_3$ (both factors $\le \tau$ would give
 $\mathrm{Pnl} \le \tau^2$). Hence, for $s \sim U_Q$,
-\[
-\mathrm{Risk}(\pi,Q;\tau^2) = \Pr[E_1] \le \Pr[E_2] + \Pr[E_3] =
-\mathrm{L\text{-}Risk}_F(\pi,Q;\tau) + \mathrm{Risk}(\pi',Q;\tau),
-\]
+\begin{align*}
+\mathrm{Risk}(\pi,Q;\tau^2) = \Pr[E_1] &\le \Pr[E_2] + \Pr[E_3]\\
+&= \mathrm{L\text{-}Risk}_F(\pi,Q;\tau) + \mathrm{Risk}(\pi',Q;\tau),
+\end{align*}
 and minimizing the last term over $\pi' \in F$ gives the first claim.
 Applying it to a minimizer $\pi^{\star}_F$ of the $\tau$-risk over
 $F$, and using that the local penalty never exceeds the global one

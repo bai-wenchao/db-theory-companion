@@ -129,7 +129,7 @@ $\int e^u (u+1)\,du = e^u u$,
 \[
 \frac{\mathbb{E}[\mathrm{ALG}(t)]}{B}
 \;=\; \frac{s\,e^{s}}{e-1} + s\Bigl(1 - \frac{e^{s}-1}{e-1}\Bigr)
-\;=\; \frac{s}{e-1} + s \;=\; \frac{e}{e-1}\cdot\frac{t}{B} \quad (t \le B),
+\;=\; \frac{s}{e-1} + s = \frac{e}{e-1}\cdot\frac{t}{B} \;\; (t \le B),
 \]
 while for $t \ge B$ the same expression at $s = 1$ gives
 $\mathbb{E}[\mathrm{ALG}(t)] = \frac{e}{e-1}B \le \frac{e}{e-1}\,\mathrm{OPT}(t)$,
@@ -793,13 +793,13 @@ $W_{T+1} \ge w_{T+1}(i^\ast) = (1-\varepsilon)^{L^\ast}$ with
 $L^\ast = \sum_t \ell_t(i^\ast)$, so
 $-\ln W_{T+1} \le L^\ast\,(-\ln(1-\varepsilon)) \le L^\ast(\varepsilon +
 \varepsilon^2)$ for $\varepsilon \le \tfrac12$. Therefore
-\[
+\begin{gather*}
 \mathbb{E}\bigl[\text{total loss}\bigr] \;\le\;
-\frac{\ln N}{\varepsilon} + (1+\varepsilon)\,L^\ast,
-\qquad\text{so}\qquad
+\frac{\ln N}{\varepsilon} + (1+\varepsilon)\,L^\ast,\\[2pt]
+\text{so}\quad
 \mathbb{E}[R_T] \;\le\; \frac{\ln N}{\varepsilon} + \varepsilon\,T
 \;\le\; 2\sqrt{T\ln N},
-\]
+\end{gather*}
 using $L^\ast \le T$ (losses are in $[0,1]$) and
 $\varepsilon = \sqrt{\ln N / T}$.
 \end{proof}

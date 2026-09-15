@@ -618,13 +618,19 @@ total score in $R_i$ covered by $B$, and $\Lambda_R(B) = \sum_{i=1}^{\theta} X_i
 \begin{theorem}[Approximation guarantee of CBFM; Theorem~6.7 of the paper, notation cleaned]
 \label{thm:est-tcim-main}
 Given $0 \le \varepsilon,\delta \le 1$, CBFM returns $B^\ast$ satisfying
+\begin{align*}
+&\Pr\Bigl[D\bigl(B^\ast\bigr) \;\ge\; \tau \bigl(1 - \tfrac{1}{e} - \varepsilon\bigr)\cdot
+D(B_o)\Bigr]\\
+&\qquad \ge 1 - 3\delta, \eopm
+\end{align*}
+where $B_o$ is the optimal size-$k$ blocker set and $\tau$ is the data-driven sandwich
+ratio
 \[
-\Pr\Bigl[D\bigl(B^\ast\bigr) \;\ge\; \tau \bigl(1 - \tfrac{1}{e} - \varepsilon\bigr)\cdot
-D(B_o)\Bigr] \;\ge\; 1 - 3\delta, \eopm
+\tau \;=\; \max\Bigl\{\,
+\frac{D_L(B_o^L)}{D(B_o)},\;\;
+\frac{D_U(B_U^o)\,(1-\varepsilon)}{(1+\varepsilon)\,D(B_o)}
+\,\Bigr\}.
 \]
-where $B_o$ is the optimal size-$k$ blocker set and
-$\tau = \max\bigl\{D_L(B_o^L)/D(B_o),\; D_U(B_U^o)\cdot(1-\varepsilon)/\bigl((1+\varepsilon)
-D(B_o)\bigr)\bigr\}$ is a data-driven sandwich ratio.
 \end{theorem}
 
 \paragraph{How estimation theory is applied.}
@@ -656,11 +662,11 @@ coverage around its mean, with the target value itself as the variance proxy.
 
 \begin{lemma}[Coverage concentration; Lemma~6.4 of the paper, compressed]\label{lem:est-tcim-conc}
 For any $\lambda > 0$, the coverage deviation obeys a Bernstein-style two-tail bound:
-\[
-\Pr\Bigl[\bigl|\Lambda_R(B)/\theta - \psi(B)\bigr| \;\ge\; \lambda\cdot U(T-1)\Bigr] \;\le\;
-2\exp\!\Bigl(-\,\Theta\Bigl(\frac{\theta\,\psi(B)\,\lambda^2}
+\begin{align*}
+&\Pr\Bigl[\bigl|\Lambda_R(B)/\theta - \psi(B)\bigr| \ge \lambda\cdot U(T-1)\Bigr]\\
+&\qquad \le 2\exp\!\Bigl(-\,\Theta\Bigl(\frac{\theta\,\psi(B)\,\lambda^2}
 {I_{T^\ast}(S)\,U(T-1)}\Bigr)\Bigr),
-\]
+\end{align*}
 i.e.\ deviations decay exponentially in $\theta\cdot\psi(B)$, at range scale
 $I_{T^\ast}(S)\,U(T-1)$. \eop
 \end{lemma}
