@@ -4,28 +4,105 @@
 \addcontentsline{toc}{chapter}{Index}
 \markboth{Index}{Index}
 
-Chapter numbers follow the \texttt{\textbackslash ref} labels of the book, so
-every entry below is also a hyperlink. Exemplar papers keep their corpus
-identifier \texttt{sigmod26-NNN}; PODS'26 exemplars are marked. Full
-references appear in each chapter's bibliography.
+Every entry is a hyperlink to the statement's home chapter. \emph{By paper
+domain} indexes the book from the corpus side: named statements transcribed
+from exemplar papers are grouped under the research area of the source paper,
+so each entry shows which tools (chapters) that area's papers exercise and
+what they prove; PODS'26 exemplars are flagged in the header. Classical
+background statements carry no corpus source and appear only in the
+alphabetical list below. Full references appear in each chapter's
+bibliography.
 
-\section*{Tools and chapters}
+\section*{By paper domain}
+% columns start on a fresh page: keeps the section heading with its list
+\begin{multicols}{2}
+\RaggedRight
 \begin{itemize}
-  \item \hyperref[ch:intro]{Introduction: What DB Researchers Prove, and How} ---~\mbox{Chapter~\ref{ch:intro}}
-  \item \hyperref[ch:reduction]{Reductions} ---~\mbox{Chapter~\ref{ch:reduction}}
-  \item \hyperref[ch:conc]{Concentration Inequalities} ---~\mbox{Chapter~\ref{ch:conc}}
-  \item \hyperref[ch:ind]{Induction} ---~\mbox{Chapter~\ref{ch:ind}}
-  \item \hyperref[ch:est]{Estimation Theory} ---~\mbox{Chapter~\ref{ch:est}}
-  \item \hyperref[ch:adv]{Adversarial Constructions} ---~\mbox{Chapter~\ref{ch:adv}}
-  \item \hyperref[ch:dp]{Differential Privacy: Composition and its Calculus} ---~\mbox{Chapter~\ref{ch:dp}}
-  \item \hyperref[ch:exc]{Exchange Arguments and Greedy Algorithms} ---~\mbox{Chapter~\ref{ch:exc}}
-  \item \hyperref[ch:spec]{Spectral and Matrix-Analytic Arguments} ---~\mbox{Chapter~\ref{ch:spec}}
-  \item \hyperref[ch:amo]{Amortized Analysis and Potential Functions} ---~\mbox{Chapter~\ref{ch:amo}}
-  \item \hyperref[ch:cor]{Coresets and Randomized Numerical Linear Algebra} ---~\mbox{Chapter~\ref{ch:cor}}
-  \item \hyperref[ch:inf]{Information-Theoretic Arguments} ---~\mbox{Chapter~\ref{ch:inf}}
-  \item \hyperref[ch:cc]{Communication Complexity} ---~\mbox{Chapter~\ref{ch:cc}}
-  \item \hyperref[ch:onl]{Online Decision-Making: Competitive Analysis and Regret} ---~\mbox{Chapter~\ref{ch:onl}}
+  \item \textbf{Graph data and queries} (12 exemplars, 1 of them PODS'26).
+    Ch.~\ref{ch:ind}: Labelling scheme (\mbox{Thm.~\ref{thm:ind-resistance}}), Elimination-state invariant (\mbox{Lem.~\ref{lem:ind-elim-state}})%
+    ; Ch.~\ref{ch:est}: Pivoted reformulation of BD (\mbox{Thm.~\ref{thm:est-bd-reform}}), Pushback invariant (\mbox{Lem.~\ref{lem:est-bd-invariant}}), Tree-sampling accuracy (\mbox{Thm.~\ref{thm:est-bd-fasttree}}), Spanning-tree expression of the inverse (\mbox{Lem.~\ref{lem:est-bd-kirchhoff}}), Approximation guarantee of CBFM (\mbox{Thm.~\ref{thm:est-tcim-main}}), Unbiased coverage estimation (\mbox{Lem.~\ref{lem:est-tcim-unbiased}}), Coverage concentration (\mbox{Lem.~\ref{lem:est-tcim-conc}})%
+    ; Ch.~\ref{ch:adv}: Worst-case optimal enumeration (\mbox{Thm.~\ref{thm:adv-defclique}}), Witness count for defective cliques (\mbox{Lem.~\ref{lem:adv-mmcount}}), Insertion--deletion asymmetry (\mbox{Thm.~\ref{thm:adv-bicore}}), The two-update trap (\mbox{Lem.~\ref{lem:adv-twowupdates}}), Query lower bound for SSPPR-R (\mbox{Thm.~\ref{thm:adv-pprlb}}), Switched-split indistinguishability (\mbox{Lem.~\ref{lem:adv-switch}})%
+    ; Ch.~\ref{ch:dp}: N2E accuracy and privacy (\mbox{Thm.~\ref{thm:dp-337-main}}), SVT over sensitivity-monotonic queries (\mbox{Lem.~\ref{lem:dp-337-svt}}), LP rounding (\mbox{Lem.~\ref{lem:dp-337-lp}}), Clipping distance (\mbox{Lem.~\ref{lem:dp-337-clip}})%
+    ; Ch.~\ref{ch:exc}: AF-BTAS index (\mbox{Thm.~\ref{thm:exc-200-index}}), Modular symmetry is an automorphism (\mbox{Lem.~\ref{lem:exc-009-autom}}), Symmetry breaking is safe (\mbox{Thm.~\ref{thm:exc-009-safe}})%
+    ; Ch.~\ref{ch:spec}: Doubly stochastic affinity gives $k$-means (\mbox{Thm.~\ref{thm:spec-mrg-kmeans}}), Truncation error (\mbox{Lem.~\ref{lem:spec-mrg-trunc}}), Vectorized solution (\mbox{Thm.~\ref{thm:spec-pjsim-closed}}), Spectrum of the Kronecker sum (\mbox{Lem.~\ref{lem:spec-pjsim-spectrum}})%
+    ; Ch.~\ref{ch:cor}: Sketched objective (\mbox{Cor.~\ref{cor:cor-mrg-sketch}})%
+    ; Ch.~\ref{ch:onl}: $\beta$-robustness (\mbox{Def.~\ref{def:onl-oracle-robust}}), Robustness barrier (\mbox{Thm.~\ref{thm:onl-oracle-barrier}}), Recall under oracle errors (\mbox{Thm.~\ref{thm:onl-oracle-robust-thm}}), Competitive ratio (\mbox{Thm.~\ref{thm:onl-oracle-cr}})%
+
+  \item \textbf{Streaming algorithms} (6 exemplars, 3 of them PODS'26).
+    Ch.~\ref{ch:reduction}: Continual-release lower bound (\mbox{Thm.~\ref{thm:red-continual}}), Gadget transfer (\mbox{Lem.~\ref{lem:red-gadget}})%
+    ; Ch.~\ref{ch:conc}: Top-$k$ $F_p$ estimation (\mbox{Thm.~\ref{thm:conc-trimmed}}), Level-size estimation (\mbox{Lem.~\ref{lem:conc-trimmed-level}})%
+    ; Ch.~\ref{ch:est}: $F_p$-mismatch-ambiguity (\mbox{Def.~\ref{def:est-fp-lambda}}), One-pass estimation under mismatch ambiguity (\mbox{Thm.~\ref{thm:est-fp-upper}}), Space lower bound (\mbox{Thm.~\ref{thm:est-fp-lower}}), Unbiased clique-count estimator (\mbox{Lem.~\ref{lem:est-fp-unbiased}}), Truncation controls the variance (\mbox{Lem.~\ref{lem:est-fp-trunc}}), Variance recursion over epochs (\mbox{Lem.~\ref{lem:est-sublime-var}}), Space lower bound for expandable FE sketches (\mbox{Thm.~\ref{thm:est-sublime-lb}})%
+    ; Ch.~\ref{ch:amo}: Tracking matrix sketches (\mbox{Thm.~\ref{thm:amo-aero}}), Batched re-decomposition (\mbox{Lem.~\ref{lem:amo-aero-batch}}), Decomposability (\mbox{Lem.~\ref{lem:amo-aero-decomp}})%
+    ; Ch.~\ref{ch:inf}: Memory footprint (\mbox{Thm.~\ref{thm:inf-sublime-space}}), Space lower bound (\mbox{Thm.~\ref{thm:inf-sublime-lb}}), Counter-array encoding (\mbox{Lem.~\ref{lem:inf-sublime-array}})%
+    ; Ch.~\ref{ch:cc}: Distributed lower bound (\mbox{Thm.~\ref{thm:cc-fp-lb}}), Input reduction (\mbox{Lem.~\ref{lem:cc-fp-embed}}), Pseudodeterminism and representation obliviousness (\mbox{Def.~\ref{def:cc-ropd}}), $F_0$ lower bound (\mbox{Thm.~\ref{thm:cc-ropd-lb}}), Multipass tradeoff (\mbox{Cor.~\ref{cor:cc-ropd-mp}}), Promise-Union lower bound (\mbox{Lem.~\ref{lem:cc-promise-union}})%
+
+  \item \textbf{Sketching} (6 exemplars, 1 of them PODS'26).
+    Ch.~\ref{ch:conc}: Top-$k$ $F_p$ estimation (\mbox{Thm.~\ref{thm:conc-trimmed}}), Level-size estimation (\mbox{Lem.~\ref{lem:conc-trimmed-level}})%
+    ; Ch.~\ref{ch:est}: Variance recursion over epochs (\mbox{Lem.~\ref{lem:est-sublime-var}}), Space lower bound for expandable FE sketches (\mbox{Thm.~\ref{thm:est-sublime-lb}})%
+    ; Ch.~\ref{ch:amo}: Tracking matrix sketches (\mbox{Thm.~\ref{thm:amo-aero}}), Batched re-decomposition (\mbox{Lem.~\ref{lem:amo-aero-batch}}), Decomposability (\mbox{Lem.~\ref{lem:amo-aero-decomp}}), Rank error (\mbox{Thm.~\ref{thm:amo-spline-error}}), Split budget (\mbox{Lem.~\ref{lem:amo-spline-split}}), Spline midpoint bound (\mbox{Lem.~\ref{lem:amo-spline-midpoint}})%
+    ; Ch.~\ref{ch:inf}: Memory footprint (\mbox{Thm.~\ref{thm:inf-sublime-space}}), Space lower bound (\mbox{Thm.~\ref{thm:inf-sublime-lb}}), Counter-array encoding (\mbox{Lem.~\ref{lem:inf-sublime-array}})%
+    ; Ch.~\ref{ch:cc}: Pseudodeterminism and representation obliviousness (\mbox{Def.~\ref{def:cc-ropd}}), $F_0$ lower bound (\mbox{Thm.~\ref{thm:cc-ropd-lb}}), Multipass tradeoff (\mbox{Cor.~\ref{cor:cc-ropd-mp}}), Promise-Union lower bound (\mbox{Lem.~\ref{lem:cc-promise-union}})%
+    ; Ch.~\ref{ch:onl}: Adapt threshold (\mbox{Thm.~\ref{thm:onl-ski-thm1}}), Cheap adaptation (\mbox{Thm.~\ref{thm:onl-ski-thm5}})%
+
+  \item \textbf{Differential privacy} (7 exemplars, 2 of them PODS'26).
+    Ch.~\ref{ch:reduction}: Continual-release lower bound (\mbox{Thm.~\ref{thm:red-continual}}), Gadget transfer (\mbox{Lem.~\ref{lem:red-gadget}})%
+    ; Ch.~\ref{ch:conc}: Error of the sampled truncation (\mbox{Thm.~\ref{thm:conc-s4s}})%
+    ; Ch.~\ref{ch:dp}: Privacy of the global explanation (\mbox{Thm.~\ref{thm:dp-298-main}}), Convex combinations of scores (\mbox{Lem.~\ref{lem:dp-298-convex}}), Jensen--Shannon sensitivity (\mbox{Prop.~\ref{prop:dp-298-jsd}}), Private sparse histogram (\mbox{Thm.~\ref{thm:dp-178-main}}), N2E accuracy and privacy (\mbox{Thm.~\ref{thm:dp-337-main}}), SVT over sensitivity-monotonic queries (\mbox{Lem.~\ref{lem:dp-337-svt}}), LP rounding (\mbox{Lem.~\ref{lem:dp-337-lp}}), Clipping distance (\mbox{Lem.~\ref{lem:dp-337-clip}}), General framework (\mbox{Thm.~\ref{thm:dp-263-main}}), PrDP parallel composition (\mbox{Lem.~\ref{lem:dp-263-parallel}})%
+    ; Ch.~\ref{ch:inf}: RDP-S4S for scalar SJA (\mbox{Cor.~\ref{cor:inf-s4s-rdp}}), Gaussian R\'enyi divergence (\mbox{Lem.~\ref{lem:inf-gauss-renyi}}), Estimation ordering (\mbox{Thm.~\ref{thm:inf-dpsynth-order}}), KL convexity (\mbox{Lem.~\ref{lem:inf-dpsynth-convex}})%
+
+  \item \textbf{Sampling} (3 exemplars, 2 of them PODS'26).
+    Ch.~\ref{ch:est}: $F_p$-mismatch-ambiguity (\mbox{Def.~\ref{def:est-fp-lambda}}), One-pass estimation under mismatch ambiguity (\mbox{Thm.~\ref{thm:est-fp-upper}}), Space lower bound (\mbox{Thm.~\ref{thm:est-fp-lower}}), Unbiased clique-count estimator (\mbox{Lem.~\ref{lem:est-fp-unbiased}}), Truncation controls the variance (\mbox{Lem.~\ref{lem:est-fp-trunc}})%
+    ; Ch.~\ref{ch:exc}: Lazy-greedy representative sampling (\mbox{Thm.~\ref{thm:exc-031-gre}}), Submodularity of the fidelity objective (\mbox{Lem.~\ref{lem:exc-031-sub}})%
+    ; Ch.~\ref{ch:cc}: Distributed lower bound (\mbox{Thm.~\ref{thm:cc-fp-lb}}), Input reduction (\mbox{Lem.~\ref{lem:cc-fp-embed}}), Output-optimal matrix query (\mbox{Thm.~\ref{thm:cc-jp-matrix}}), Matrix-query counting bound (\mbox{Lem.~\ref{lem:cc-243-reduction}})%
+
+  \item \textbf{Query optimization} (3 exemplars, 2 of them PODS'26).
+    Ch.~\ref{ch:ind}: Width-1 plans and their enumeration (\mbox{Thm.~\ref{thm:ind-succinct}}), Batch ear removal (\mbox{Prop.~\ref{prop:ind-ears}}), Ears with equal outer parts (\mbox{Lem.~\ref{lem:ind-equal-outer}})%
+    ; Ch.~\ref{ch:exc}: Risk coreset via greedy cover (\mbox{Thm.~\ref{thm:exc-053-main}}), Greedy termination (\mbox{Lem.~\ref{lem:exc-053-term}})%
+    ; Ch.~\ref{ch:cor}: Risk coresets (\mbox{Thm.~\ref{thm:cor-qo-main}}), Coreset sizing (\mbox{Lem.~\ref{lem:cor-qo-hoeffding}}), Risk transfer (\mbox{Lem.~\ref{lem:cor-qo-transfer}})%
+    ; Ch.~\ref{ch:inf}: PANDAExpress (\mbox{Thm.~\ref{thm:inf-panda-main}}), Measures from inequalities (\mbox{Lem.~\ref{lem:inf-panda-measures}})%
+
+  \item \textbf{Vector search and ANN indexes} (3 exemplars).
+    Ch.~\ref{ch:adv}: Size lower bound (\mbox{Thm.~\ref{thm:adv-proxlb}})%
+    ; Ch.~\ref{ch:exc}: Lazy-greedy representative sampling (\mbox{Thm.~\ref{thm:exc-031-gre}}), Submodularity of the fidelity objective (\mbox{Lem.~\ref{lem:exc-031-sub}})%
+    ; Ch.~\ref{ch:spec}: Ordering preservation (\mbox{Thm.~\ref{thm:spec-taco-order}}), Eigensystem allocation is optimal (\mbox{Thm.~\ref{thm:spec-taco-alloc}})%
+    ; Ch.~\ref{ch:cor}: Proximity graphs for doubling and Euclidean metrics (\mbox{Thm.~\ref{thm:cor-pg-main}}), Size lower bound (\mbox{Thm.~\ref{thm:cor-pg-lb}}), Net out-neighbors (\mbox{Lem.~\ref{lem:cor-pg-net}}), Greedy descent and log-drop (\mbox{Lem.~\ref{lem:cor-pg-drop}})%
+
+  \item \textbf{Indexing} (2 exemplars, 2 of them PODS'26).
+    Ch.~\ref{ch:spec}: Metzler variant (\mbox{Cor.~\ref{cor:spec-metzler}}), Deferred even split fullness (\mbox{Thm.~\ref{thm:spec-btree-fullness}}), Convergence of the matrix recurrence (\mbox{Thm.~\ref{thm:spec-btree-recurrence}}), Scalar product bound (\mbox{Lem.~\ref{lem:spec-btree-prod}})%
+    ; Ch.~\ref{ch:amo}: Optimal enumeration (\mbox{Thm.~\ref{thm:amo-enum}}), Embedding counting bound (\mbox{Lem.~\ref{lem:amo-embed-count}})%
+
+  \item \textbf{Join algorithms} (3 exemplars, 2 of them PODS'26).
+    Ch.~\ref{ch:ind}: RPT evaluation (\mbox{Thm.~\ref{thm:ind-rpt}}), Cache invariant (\mbox{Lem.~\ref{lem:ind-rpt-cache}})%
+    ; Ch.~\ref{ch:inf}: PANDAExpress (\mbox{Thm.~\ref{thm:inf-panda-main}}), Measures from inequalities (\mbox{Lem.~\ref{lem:inf-panda-measures}})%
+    ; Ch.~\ref{ch:cc}: Output-optimal matrix query (\mbox{Thm.~\ref{thm:cc-jp-matrix}}), Matrix-query counting bound (\mbox{Lem.~\ref{lem:cc-243-reduction}})%
+
+  \item \textbf{Approximate query processing} (1 exemplar).
+    Ch.~\ref{ch:conc}: Error of the sampled truncation (\mbox{Thm.~\ref{thm:conc-s4s}})%
+    ; Ch.~\ref{ch:inf}: RDP-S4S for scalar SJA (\mbox{Cor.~\ref{cor:inf-s4s-rdp}}), Gaussian R\'enyi divergence (\mbox{Lem.~\ref{lem:inf-gauss-renyi}})%
+
+  \item \textbf{Provenance} (1 exemplar).
+    Ch.~\ref{ch:reduction}: Shapley value of a fact (\mbox{Def.~\ref{def:red-shapley}}), Tractability frontier (\mbox{Thm.~\ref{thm:red-shapley}}), \#Set-Cover transfer (\mbox{Lem.~\ref{lem:red-shapley}})%
+
+  \item \textbf{Benchmarks and evaluation} (1 exemplar).
+    Ch.~\ref{ch:inf}: Estimation ordering (\mbox{Thm.~\ref{thm:inf-dpsynth-order}}), KL convexity (\mbox{Lem.~\ref{lem:inf-dpsynth-convex}})%
+
+  \item \textbf{Caching and scheduling} (1 exemplar).
+    Ch.~\ref{ch:onl}: Adapt threshold (\mbox{Thm.~\ref{thm:onl-ski-thm1}}), Cheap adaptation (\mbox{Thm.~\ref{thm:onl-ski-thm5}})%
+
+  \item \textbf{Data cleaning and repair} (1 exemplar).
+    Ch.~\ref{ch:onl}: Offline optimality (\mbox{Thm.~\ref{thm:onl-shclean-dag}}), Online regret (\mbox{Thm.~\ref{thm:onl-shclean-regret}})%
+
+  \item \textbf{Entity resolution} (1 exemplar).
+    Ch.~\ref{ch:ind}: Tight-interval generation (\mbox{Thm.~\ref{thm:ind-lsh}}), Skyline update (\mbox{Lem.~\ref{lem:ind-skyline}})%
+
+  \item \textbf{Spatial data} (1 exemplar).
+    Ch.~\ref{ch:conc}: Static MaxRS (\mbox{Thm.~\ref{thm:conc-maxrs}}), Sampling concentration (\mbox{Lem.~\ref{lem:conc-maxrs-sample}})%
+
+  \item \textbf{Time series} (1 exemplar).
+    Ch.~\ref{ch:onl}: Offline optimality (\mbox{Thm.~\ref{thm:onl-shclean-dag}}), Online regret (\mbox{Thm.~\ref{thm:onl-shclean-regret}})%
+
 \end{itemize}
+\end{multicols}
 
 % columns start on a fresh page: keeps the section heading with its list
 \clearpage
@@ -165,8 +242,7 @@ references appear in each chapter's bibliography.
   \item Potential / physicist's method, \mbox{Theorem~\ref{thm:amo-potential}}
   \item PrDP parallel composition, \mbox{Lemma~\ref{lem:dp-263-parallel}}
   \item Privacy of the global explanation, \mbox{Theorem~\ref{thm:dp-298-main}}
-  \item Private sparse histogram, informal version of Theorem 6.1 of the
-paper, \mbox{Theorem~\ref{thm:dp-178-main}}
+  \item Private sparse histogram, \mbox{Theorem~\ref{thm:dp-178-main}}
   \item Promise-Union lower bound, \mbox{Lemma~\ref{lem:cc-promise-union}}
   \item Proximity graphs for doubling and Euclidean metrics, \mbox{Theorem~\ref{thm:cor-pg-main}}
   \item Pseudodeterminism and representation obliviousness, \mbox{Definition~\ref{def:cc-ropd}}
@@ -253,77 +329,5 @@ paper, \mbox{Theorem~\ref{thm:dp-178-main}}
   \item Witness counting, \mbox{Proposition~\ref{prop:adv-output}}
   \item Worst-case optimal enumeration, \mbox{Theorem~\ref{thm:adv-defclique}}
   \item Yao's minimax principle, \mbox{Theorem~\ref{thm:adv-yao}}, \mbox{Theorem~\ref{thm:cc-yao}}
-\end{itemize}
-\end{multicols}
-
-\section*{Corpus papers used as exemplars}
-\begin{multicols}{2}
-\RaggedRight
-\begin{itemize}
-  \item A Bouquet of Results on Maximum Range Sum: General Techniques and Hardness Reductions \texttt{sigmod26-259} ---~\mbox{Ch.~\ref{ch:conc}}
-  \item Accelerating High-Dimensional ANN Search via Skipping Redundant Distance Computations \texttt{sigmod26-265} ---~\mbox{Ch.~\ref{ch:spec}}
-  \item Accelerating Maximum Common Subgraph Computation by Exploiting Symmetries \texttt{sigmod26-009} ---~\mbox{Ch.~\ref{ch:exc}}
-  \item Acyclic Graph Pattern Counting under Local Differential Privacy \texttt{sigmod26-012} ---~\mbox{Ch.~\ref{ch:conc}}
-  \item AeroSketch: Near-Optimal Time Matrix Sketch Framework for Persistent, Sliding Window, and Distributed Streams \texttt{sigmod26-015} ---~\mbox{Ch.~\ref{ch:amo}}
-  \item A General Framework for Per-record Differential Privacy \texttt{sigmod26-263} ---~\mbox{Ch.~\ref{ch:dp}}
-  \item Approximate Query Processing under Updates \texttt{sigmod26-274} ---~\mbox{Ch.~\ref{ch:amo}}
-  \item A Unifying Algorithm for Hierarchical Queries \texttt{sigmod26-264} ---~\mbox{Ch.~\ref{ch:reduction}}
-  \item Balancing Global and Local: Representative Sampling for Large-Scale Vector Data \texttt{sigmod26-031} ---~\mbox{Ch.~\ref{ch:exc}}
-  \item Benchmarking Differentially Private Tabular Data Synthesis: [Experiments \& Analysis] \texttt{sigmod26-279} ---~\mbox{Ch.~\ref{ch:inf}}
-  \item Bounding the Fragmentation of B-Trees Subject to Batched Insertions \texttt{sigmod26-038} (PODS'26) ---~\mbox{Ch.~\ref{ch:spec}}
-  \item Clustering with Set Outliers and Applications in Relational Clustering \texttt{sigmod26-289} ---~\mbox{Ch.~\ref{ch:reduction}}, \mbox{Ch.~\ref{ch:cor}}
-  \item Codd's Theorem for Databases over Semirings \texttt{sigmod26-290} ---~\mbox{Ch.~\ref{ch:ind}}, \mbox{Ch.~\ref{ch:adv}}
-  \item Constrained Shortest Path Finding on Terrain Surfaces \texttt{sigmod26-052} ---~\mbox{Ch.~\ref{ch:cor}}
-  \item Coresets for Robust Query Optimization \texttt{sigmod26-053} (PODS'26) ---~\mbox{Ch.~\ref{ch:exc}}, \mbox{Ch.~\ref{ch:cor}}
-  \item Cut Costs, Not Accuracy: LLM-Powered Data Processing with Guarantees \texttt{sigmod26-293} ---~\mbox{Ch.~\ref{ch:est}}
-  \item Deterministic Lower Bounds for k-Edge Connectivity in the Distributed Sketching Model \texttt{sigmod26-070} ---~\mbox{Ch.~\ref{ch:cc}}
-  \item Differentially Oblivious Multi-way Join \texttt{sigmod26-073} ---~\mbox{Ch.~\ref{ch:dp}}
-  \item Differentially Private Explanations for Clusters \texttt{sigmod26-298} ---~\mbox{Ch.~\ref{ch:dp}}
-  \item DP-S4S: Accurate and Scalable Select-Join-Aggregate Query Processing with User-Level Differential Privacy \texttt{sigmod26-079} ---~\mbox{Ch.~\ref{ch:conc}}, \mbox{Ch.~\ref{ch:inf}}
-  \item Effective Clustering for Large Multi-Relational Graphs \texttt{sigmod26-303} ---~\mbox{Ch.~\ref{ch:spec}}, \mbox{Ch.~\ref{ch:cor}}
-  \item Efficient Defective Clique Enumeration and Search with Worst-Case Optimal Search Space \texttt{sigmod26-306} ---~\mbox{Ch.~\ref{ch:adv}}
-  \item Efficient Exact Resistance Distance Computation on Small-Treewidth Graphs: A Labelling Approach \texttt{sigmod26-307} ---~\mbox{Ch.~\ref{ch:ind}}
-  \item Enumerating Graph Pattern Matches with ML Oracles \texttt{sigmod26-094} ---~\mbox{Ch.~\ref{ch:onl}}
-  \item Fair Data Pre-Processing with Imperfect Attribute Space \texttt{sigmod26-101} ---~\mbox{Ch.~\ref{ch:spec}}
-  \item Fast Estimation of Pairwise Biharmonic Distance on Graphs \texttt{sigmod26-102} ---~\mbox{Ch.~\ref{ch:est}}
-  \item Fine-Grained Dichotomies for Conjunctive Queries with Minimum or Maximum \texttt{sigmod26-109} (PODS'26) ---~\mbox{Ch.~\ref{ch:reduction}}
-  \item FPT Parameterisations of Fractional and Generalised Hypertree Width \texttt{sigmod26-114} (PODS'26) ---~\mbox{Ch.~\ref{ch:ind}}
-  \item Frequency Moments in Noisy Streaming and Distributed Data under Mismatch Ambiguity \texttt{sigmod26-115} (PODS'26) ---~\mbox{Ch.~\ref{ch:est}}, \mbox{Ch.~\ref{ch:cc}}
-  \item GPM: The Gaussian Pancake Mechanism for Planting Undetectable Backdoors in Differential Privacy \texttt{sigmod26-123} ---~\mbox{Ch.~\ref{ch:adv}}
-  \item HeteroFedSyn: Differentially Private Tabular Data Synthesis for Heterogeneous Federated Settings \texttt{sigmod26-127} ---~\mbox{Ch.~\ref{ch:cor}}
-  \item Improved Lower Bounds for Privacy under Continual Release \texttt{sigmod26-136} (PODS'26) ---~\mbox{Ch.~\ref{ch:reduction}}
-  \item Interpretable Attribute Discretization \texttt{sigmod26-140} ---~\mbox{Ch.~\ref{ch:onl}}
-  \item LMSC: Local Sketch Modularity Optimisation for Size-Constrained Community Search in Networks \texttt{sigmod26-150} ---~\mbox{Ch.~\ref{ch:adv}}
-  \item LSHAlign: All-Pair Near-Duplicate Text Alignment via Locality-Sensitive Hashing \texttt{sigmod26-153} ---~\mbox{Ch.~\ref{ch:ind}}
-  \item N2E: A General Framework to Reduce Node-Differential Privacy to Edge-Differential Privacy for Graph Analytics \texttt{sigmod26-337} ---~\mbox{Ch.~\ref{ch:dp}}
-  \item Near-Optimality for Single-Source Personalized PageRank \texttt{sigmod26-166} (PODS'26) ---~\mbox{Ch.~\ref{ch:adv}}
-  \item On Sketching Trimmed Statistics \texttt{sigmod26-175} (PODS'26) ---~\mbox{Ch.~\ref{ch:conc}}
-  \item Optimal Enumeration of Regular Pattern Matches \texttt{sigmod26-177} (PODS'26) ---~\mbox{Ch.~\ref{ch:amo}}
-  \item Optimal Pure Differentially Private Sparse Histograms in Deterministic Linear Time \texttt{sigmod26-178} (PODS'26) ---~\mbox{Ch.~\ref{ch:dp}}
-  \item Order-based Algorithms for Efficient Core Maintenance in Large Bipartite Graphs \texttt{sigmod26-179} ---~\mbox{Ch.~\ref{ch:adv}}
-  \item ORDER: Optimal Routing with Path Indexing in Exchange Graph [Data-Intensive \& Data Science Application] \texttt{sigmod26-180} ---~\mbox{Ch.~\ref{ch:amo}}
-  \item PANDAExpress: A Simpler and Faster PANDA Algorithm \texttt{sigmod26-185} (PODS'26) ---~\mbox{Ch.~\ref{ch:inf}}
-  \item PJsim: Towards Precise and Scalable Graph Similarity \texttt{sigmod26-190} ---~\mbox{Ch.~\ref{ch:spec}}
-  \item Privacy Loss of Noise Perturbation via Concentration Analysis of A Product Measure \texttt{sigmod26-196} ---~\mbox{Ch.~\ref{ch:conc}}
-  \item Proximity Graphs for Similarity Search: Fast Construction, Lower Bounds, and Euclidean Separation \texttt{sigmod26-349} ---~\mbox{Ch.~\ref{ch:adv}}, \mbox{Ch.~\ref{ch:cor}}
-  \item Query Answering Under Volume-Based Diversity Functions \texttt{sigmod26-350} ---~\mbox{Ch.~\ref{ch:reduction}}
-  \item Querying Cohesive Subgraphs in Temporal Graphs \texttt{sigmod26-200} ---~\mbox{Ch.~\ref{ch:exc}}
-  \item RadixGraph: A Fast, Space-Optimized Data Structure for Dynamic Graph Storage \texttt{sigmod26-203} ---~\mbox{Ch.~\ref{ch:amo}}
-  \item Representation Obliviousness and Pseudodeterminism in Streaming Algorithms \texttt{sigmod26-357} ---~\mbox{Ch.~\ref{ch:reduction}}, \mbox{Ch.~\ref{ch:cc}}
-  \item Scalable Privacy-Preserving Shortest Path Distance Computation via 2-Hop Labeling in MPC \texttt{sigmod26-214} ---~\mbox{Ch.~\ref{ch:dp}}
-  \item SHoTClean: Bridging Soft and Hard Constraints for Multivariate Time Series Cleaning \texttt{sigmod26-221} ---~\mbox{Ch.~\ref{ch:onl}}
-  \item Skyline Retrieval meets Set-Cover Chunk Merging: A Cost-Effective RAG-Sketch for Long-Context LLM QA \texttt{sigmod26-224} ---~\mbox{Ch.~\ref{ch:exc}}
-  \item SplineSketch: Even More Accurate Quantiles with Error Guarantees \texttt{sigmod26-363} ---~\mbox{Ch.~\ref{ch:amo}}
-  \item Stress-Testing Causal Claims via Cardinality Repairs \texttt{sigmod26-229} ---~\mbox{Ch.~\ref{ch:exc}}
-  \item Sublime: Sublinear Error \& Space for Unbounded Skewed Streams \texttt{sigmod26-231} ---~\mbox{Ch.~\ref{ch:est}}, \mbox{Ch.~\ref{ch:inf}}
-  \item Succinct Structure Representations for Efficient Query Optimization \texttt{sigmod26-233} ---~\mbox{Ch.~\ref{ch:ind}}
-  \item TaCo: Data-adaptive and Query-aware Subspace Collision for High-dimensional Approximate Nearest Neighbor Search \texttt{sigmod26-235} ---~\mbox{Ch.~\ref{ch:spec}}
-  \item The Case For Language Model Approximated LIKE Predicate \texttt{sigmod26-237} ---~\mbox{Ch.~\ref{ch:inf}}
-  \item The Space-Time Complexity of Sum-Product Queries \texttt{sigmod26-371} ---~\mbox{Ch.~\ref{ch:ind}}
-  \item Time-Critical Influence Minimization via Node Blocking \texttt{sigmod26-373} ---~\mbox{Ch.~\ref{ch:est}}
-  \item To Adapt or Not to Adapt, That is the Ski Question \texttt{sigmod26-242} ---~\mbox{Ch.~\ref{ch:onl}}
-  \item Towards Output-Optimal Uniform Sampling and Approximate Counting for Join-Project Queries \texttt{sigmod26-243} (PODS'26) ---~\mbox{Ch.~\ref{ch:reduction}}, \mbox{Ch.~\ref{ch:cc}}
-  \item Tractability Frontiers of the Shapley Value for Aggregate Conjunctive Queries \texttt{sigmod26-375} ---~\mbox{Ch.~\ref{ch:reduction}}
-  \item Triangle Counting in Hypergraph Streams: A Complete and Practical Approach \texttt{sigmod26-377} ---~\mbox{Ch.~\ref{ch:est}}
 \end{itemize}
 \end{multicols}
