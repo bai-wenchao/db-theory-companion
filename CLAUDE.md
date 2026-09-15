@@ -221,7 +221,7 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
 ### Book runbook (v1.0, 2026-09-15)
 - Build: `cd lecture-notes && ./build.sh main` — loops pdflatex/bibtex until the PDF
   is byte-stable (the ToC needs the extra pass); prints "N pp, X overfulls".
-  Steady state: 270 pp, 6 known overfull survivors (all ≤4.14pt). NEVER
+  Steady state: 272 pp, 6 known overfull survivors (all ≤4.14pt). NEVER
   `git add buildstamp.tex` (gitignored per-run stamp).
 - Index back matter: `python3 scripts/11_make_index.py` (any CWD) regenerates
   `lecture-notes/chapters/index.tex` from main.tex's include order + the
