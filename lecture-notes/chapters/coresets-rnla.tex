@@ -71,7 +71,7 @@ many} samples or dimensions the union bound demands
   $|\tilde{P}| \ll |P|$};
 \node[box] (sketch) at (7.8,-1.35) {sketch $RA$ with
   $O(\varepsilon^{-2}\log n)$ rows};
-\node[box] (solve) at (11.5,0) {solve on the proxy, lift back with the
+\node[box] (solve) at (12.7,0) {solve on the proxy, lift back with the
   $(1\pm\varepsilon)$, $1-\delta$ certificate};
 \node[box, dashed] (merge) at (7.8,3.5) {merge shards:
   $\tilde{P}_1 \cup \tilde{P}_2$;\; $RA_1 + RA_2$ --- no re-read};
@@ -79,8 +79,8 @@ many} samples or dimensions the union bound demands
 \draw[arr] (data) -- (proj);
 \draw[arr] (sens) -- (coreset);
 \draw[arr] (proj) -- (sketch);
-\draw[arr] (coreset.east) -- ++(0.4,0) |- (solve.west);
-\draw[arr] (sketch.east) -- ++(0.4,0) |- (solve.west);
+\draw[arr] (coreset.east) -- ++(0.75,0) |- (solve.west);
+\draw[arr] (sketch.east) -- ++(0.75,0) |- (solve.west);
 \draw[darr] (merge) -- (coreset);
 \end{tikzpicture}
 \caption{The two proxy tracks. Sampling keeps rows of the object and

@@ -121,6 +121,13 @@ season's end, whichever comes first) satisfies, for every $t$,
 
 The ratio $e/(e-1) \approx 1.582$ is also the optimal randomized competitive ratio
 for ski rental against oblivious adversaries \citep{online-decisions-bg2}.
+% anchored mid-flow, off the page boundary: a marginpar contributed right
+% after a widefigure's \end can evaluate the PREVIOUS page's parity and land
+% on the wrong (clipped) side (user report, p.250)
+\sidenote{The discrete problem attains $e/(e-1) + O(1/B)$ with a geometric
+distribution over buy days. The pattern to remember: \emph{choose the coin
+distribution so the expected cost is a constant multiple of the optimum for
+every input} --- an equalization condition, not a tail bound.}
 
 \begin{proof}
 The expected cost is $\mathbb{E}[\mathrm{ALG}(t)] = \int_0^t p(x)\,(x + B)\,dx + t\,
@@ -160,10 +167,6 @@ is where to place the elbow.}
 \label{fig:onl-ski}
 \end{widefigure}
 
-\sidenote{The discrete problem attains $e/(e-1) + O(1/B)$ with a geometric distribution
-over buy days. The pattern to remember: \emph{choose the coin distribution so the
-expected cost is a constant multiple of the optimum for every input} --- an equalization
-condition, not a tail bound.}
 
 The second frame changes the protocol: instead of one commitment against one adversarial
 input, the same decision repeats over $T$ rounds with feedback after each round.

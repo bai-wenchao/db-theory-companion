@@ -86,32 +86,39 @@ swap produces an optimal $O' = (O\setminus\{y\})\cup\{g\}$ containing $g$, which
 reduces to the first case.
 \end{proof}
 
-\begin{figure}[t]
+% margin figure: sits in the margin column (RIGHT on odd pages) beside the
+% proof it illustrates, enlarged to the margin width (was: a small kernel
+% figure[t] centered in the text column with the caption below it).
+\begin{marginfigure}
 \centering
 \begin{tikzpicture}[
-  every node/.style={font=\scriptsize},
-  tok/.style={draw, rounded corners=2pt, inner sep=2.5pt, minimum height=4ex}]
+  every node/.style={font=\footnotesize},
+  tok/.style={draw, rounded corners=2pt, inner sep=3pt, minimum height=4.5ex}]
 % top row: an optimal solution avoiding g
 \node[tok, fill=black!15] (y) at (0,0) {$y$};
-\node[tok] (a) at (0.85,0) {$a$};
-\node[tok] (b) at (1.7,0) {$b$};
-\draw[dashed, rounded corners=3pt, black!45] (-0.42,-0.4) rectangle (2.12,0.4);
-\node[text=black!55] at (0.85,0.78) {\itshape optimal solution, avoiding $g$};
+\node[tok] (a) at (1.55,0) {$a$};
+\node[tok] (b) at (3.1,0) {$b$};
+\draw[dashed, rounded corners=3pt, black!45] (-0.75,-0.7) rectangle (3.85,0.7);
+\node[text=black!55, font=\scriptsize] at (1.55,1.02)
+  {\itshape optimal solution, avoiding $g$};
 % bottom row: the swapped solution
-\node[tok, fill=black!15] (g) at (0,-2.0) {$g$};
-\node[tok] (a2) at (0.85,-2.0) {$a$};
-\node[tok] (b2) at (1.7,-2.0) {$b$};
-\draw[dashed, rounded corners=3pt, black!45] (-0.42,-2.4) rectangle (2.12,-1.6);
-\node[text=black!55] at (0.85,-2.78) {\itshape swapped solution: contains $g$, no worse};
-\draw[->, thick] (y) to[bend right=20]
-  node[midway, left=2pt] {\scriptsize\itshape exchange} (g);
+\node[tok, fill=black!15] (g) at (0,-2.9) {$g$};
+\node[tok] (a2) at (1.55,-2.9) {$a$};
+\node[tok] (b2) at (3.1,-2.9) {$b$};
+\draw[dashed, rounded corners=3pt, black!45] (-0.75,-3.6) rectangle (3.85,-2.2);
+\node[text=black!55, font=\scriptsize] at (1.55,-3.92)
+  {\itshape swapped solution: contains $g$, no worse};
+% bend LEFT (into the empty band between the rows): a bend-right bulge with
+% its left-side label pushed the bounding box past \marginparwidth
+\draw[->, thick] (y) to[bend left=20]
+  node[midway, right=2pt] {\scriptsize\itshape exchange} (g);
 \end{tikzpicture}
 \caption{The exchange step. Greedy commits to $g$; an optimal solution avoiding $g$
 is rearranged into a no-worse solution containing it, one swap at a time. Exact rungs
 pay nothing per swap; factor rungs lose a bounded, countable amount that compounds
 into the factor.}
 \label{fig:exc-swap}
-\end{figure}
+\end{marginfigure}
 
 The next rung makes the rearrangement concrete and shows the craft in miniature: order
 the choices well, and the partner swap loses nothing.

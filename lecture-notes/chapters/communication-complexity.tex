@@ -271,24 +271,31 @@ Each of the $r$ passes costs at most $kS$ bits.
 \end{proof}
 
 \begin{widefigure}[t]
-\centering
-\begin{tikzpicture}[every node/.style={font=\footnotesize},
-  cell/.style={draw, fill=black!8, minimum width=0.52cm, minimum height=0.52cm}]
-  \foreach \i in {0,1,2} \node[cell] at (\i*0.58, 2.9) {};
-  \foreach \i in {3,4,5} \node[cell, fill=black!20] at (\i*0.58, 2.9) {};
-  \draw[dashed, rounded corners] (-0.42, 2.52) rectangle (1.56, 3.28);
-  \node at (0.57, 3.52) {prefix $D(A)$};
-  \draw[dashed, rounded corners] (1.76, 2.52) rectangle (3.74, 3.28);
-  \node at (2.75, 3.52) {suffix $D(B)$};
-  \draw[->] (0.57, 2.46) -- (0.57, 1.72);
-  \draw[->] (2.75, 2.46) -- (2.75, 1.72);
-  \draw[thick, fill=black!5, rounded corners] (-0.55, 0.62) rectangle (1.7, 1.7);
-  \node[align=center] at (0.57, 1.16) {Alice runs $\mathcal{A}$\\ on $D(A)$};
-  \draw[thick, fill=black!5, rounded corners] (1.95, 0.62) rectangle (4.2, 1.7);
-  \node[align=center] at (3.07, 1.16) {Bob continues\\ on $D(B)$};
-  \draw[->, thick] (1.7, 1.16) -- node[above, align=center] {memory state\\ ($S$ bits)}
-    (1.95, 1.16);
-  \draw[->, thick] (3.07, 0.62) -- node[right] {$\hat{g}$} (3.07, 0.0);
+% redrawn 2026-09-15 at ~2.5x scale: the original ~4.8cm-wide diagram read as
+% squeezed inside the fullwidth float (user report). Stream strip is a
+% CONTIGUOUS cell run split into the two chunks; the two protocol boxes sit
+% under their chunks with a wide channel for the memory-state transfer.
+\begin{tikzpicture}[every node/.style={font=\small},
+  cell/.style={draw, fill=black!8, minimum width=0.85cm, minimum height=0.85cm},
+  cellb/.style={cell, fill=black!20}]
+  % the contiguous stream: Alice's prefix then Bob's suffix
+  \foreach \i in {0,...,5}  \node[cell]  at (\i, 3.4) {};
+  \foreach \i in {6,...,11} \node[cellb] at (\i, 3.4) {};
+  \draw[dashed, rounded corners] (-0.6, 2.95) rectangle (5.6, 3.85);
+  \draw[dashed, rounded corners] (5.9, 2.95) rectangle (11.6, 3.85);
+  \node at (2.5, 4.15) {prefix $D(A)$};
+  \node at (8.5, 4.15) {suffix $D(B)$};
+  \draw[->, thick, black!60] (-0.6, 4.7) --
+    node[above, black!60] {one pass of $\mathcal{A}$} (11.6, 4.7);
+  \draw[->] (2.5, 2.9) -- (2.5, 2.2);
+  \draw[->] (8.5, 2.9) -- (8.5, 2.2);
+  \draw[thick, fill=black!5, rounded corners] (0.3, 0.7) rectangle (4.4, 2.15);
+  \node[align=center] at (2.35, 1.42) {Alice runs $\mathcal{A}$\\on $D(A)$};
+  \draw[thick, fill=black!5, rounded corners] (6.6, 0.7) rectangle (10.7, 2.15);
+  \node[align=center] at (8.65, 1.42) {Bob continues\\on $D(B)$};
+  \draw[->, very thick] (4.4, 1.42) --
+    node[above, align=center] {memory state\\($S$ bits)} (6.6, 1.42);
+  \draw[->, thick] (8.5, 0.7) -- node[right] {$\hat{g}$} (8.5, -0.2);
 \end{tikzpicture}
 \caption{One pass of a space-$S$ streaming algorithm over a concatenation
 $D(A)\cdot D(B)$ \emph{is} a one-way protocol: Alice runs the algorithm on her prefix

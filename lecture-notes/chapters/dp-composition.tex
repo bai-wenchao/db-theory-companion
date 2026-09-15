@@ -217,21 +217,26 @@ composes the same loss in moments and converts back
   box/.style={draw, rounded corners, align=center, inner sep=4pt, font=\small},
   lab/.style={font=\scriptsize, text=black!60},
   arr/.style={-latex}]
-  \node[box] (m1) at (0,0) {$\mathcal{M}_1$\\$\varepsilon_1$};
-  \node[box] (m2) at (2.9,0) {$\mathcal{M}_2(\cdot, y_1)$\\$\varepsilon_2$};
-  \node[box] (p1) at (6.1,0.75)  {$\mathcal{P}_1(D_{R_1})$\\$\varepsilon_{p}$};
-  \node[box] (p2) at (6.1,-0.75) {$\mathcal{P}_2(D_{R_2})$\\$\varepsilon_{p}$};
+  \node[box] (m1) at (-0.4,0) {$\mathcal{M}_1$\\$\varepsilon_1$};
+  \node[box] (m2) at (3.6,0) {$\mathcal{M}_2(\cdot, y_1)$\\$\varepsilon_2$};
+  \node[box] (p1) at (6.7,0.75)  {$\mathcal{P}_1(D_{R_1})$\\$\varepsilon_{p}$};
+  \node[box] (p2) at (6.7,-0.75) {$\mathcal{P}_2(D_{R_2})$\\$\varepsilon_{p}$};
   \node[box] (g)  at (9.2,0) {$g$\\free};
-  \node[font=\small] (d) at (-2.0,0) {$D$};
+  \node[font=\small] (d) at (-2.3,0) {$D$};
   \draw[arr] (d) -- (m1);
-  \draw[arr] (m1) -- node[lab, below, align=center] {adaptive: sees $y_1$\\sequential: add} (m2);
-  \draw[arr] (m2) -- (4.6,0) -- (4.6,0.75) -- (p1);
-  \draw[arr] (4.6,0) -- (4.6,-0.75) -- (p2);
-  \node[lab, align=center] at (6.1,-1.7) {disjoint slices $R_1 \cap R_2 = \emptyset$\\parallel: max};
-  \draw[arr] (p1) -- (8.0,0.75) -- (8.0,0.28) -- (g);
-  \draw[arr] (p2) -- (8.0,-0.75) -- (8.0,-0.28) -- (g);
+  \draw[arr] (m1) -- (m2);
+  % annotation anchored BELOW the box band: clears both boxes vertically, so
+  % its width can never collide with a box border (was: node[below] on the
+  % m1--m2 arrow, whose text ran into the M2 border when the gap was short)
+  \node[lab, align=center, anchor=north] at (1.6,-0.8)
+    {adaptive: sees $y_1$\\sequential: add};
+  \draw[arr] (m2) -- (5.2,0) -- (5.2,0.75) -- (p1);
+  \draw[arr] (5.2,0) -- (5.2,-0.75) -- (p2);
+  \node[lab, align=center] at (6.7,-1.7) {disjoint slices $R_1 \cap R_2 = \emptyset$\\parallel: max};
+  \draw[arr] (p1) -- (8.2,0.75) -- (8.2,0.28) -- (g);
+  \draw[arr] (p2) -- (8.2,-0.75) -- (8.2,-0.28) -- (g);
   \draw[arr] (g) -- ++(1.4,0) node[right, font=\small] {output};
-  \node[lab] at (4.6,-2.3) {ledger: $\varepsilon_1 + \varepsilon_2 + \varepsilon_p$, all
+  \node[lab] at (5.0,-2.3) {ledger: $\varepsilon_1 + \varepsilon_2 + \varepsilon_p$, all
     downstream computation post-processing};
 \end{tikzpicture}
 \caption{The composition ledger. Sequential releases (left) add budgets even when
@@ -344,7 +349,7 @@ the exponential mechanism is itself the paper's workhorse lemma:
 \begin{lemma}[Convex combinations of scores, Lemma of the paper]\label{lem:dp-298-convex}
 For $i = 1,\dots,m$ let $\alpha_i \ge 0$ be scalars and $f_i$ functions of sensitivity
 $\Delta_i$. Then $f = \sum_{i=1}^m \alpha_i f_i$ has sensitivity at most
-$\sum_{i=1}^m \alpha_i \Delta_i$. \eop
+$\sum_{i=1}^m \alpha_i \Delta_i$.
 \end{lemma}
 
 \begin{proof}
