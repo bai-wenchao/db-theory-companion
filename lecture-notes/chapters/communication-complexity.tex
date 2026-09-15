@@ -2,7 +2,1070 @@
 \setcounter{section}{-1}   % sections start at 12.0 (see main.tex comment)
 \label{ch:cc}
 
-% ROLLOUT STUB (round 6) -- being written to the pilot spec (CHAPTER-RULES.md).
-% Exemplars per plan.json: 115, 243, 357, 070 (PODS cap: two for this chapter).
-This chapter is being revised; see Chapter~\ref{ch:intro} for the survey
-context in the meantime.
+\begin{objectives}
+\item Recognize when a question is really ``must data move / must state be large?'', and name the players and the transcript.
+\item Prove the ladder rectangles $\to$ tiling $\to$ fooling sets $\to$ Yao, and state the canonical hard relations ($\mathrm{GT}$, $\mathrm{Index}$, $\mathrm{DISJ}$).
+\item Transfer a communication bound into a space, round, message-length, or query lower bound by simulating the algorithm.
+\item Shape a reduction: embed the hard relation, argue correctness and transcript cost.
+\end{objectives}
+
+Communication complexity measures how many bits two or more parties must exchange about
+inputs they hold privately in order to compute a joint function of all of them. For a
+systems paper it is the canonical machine for impossibility proofs of one specific kind:
+proofs that \emph{data must move} --- any distributed protocol computing $X$ exchanges
+$\Omega(\cdot)$ bits --- or that \emph{state must be large} --- any streaming algorithm or
+sketch for $X$ keeps $\Omega(\cdot)$ bits. The conversion is always a simulation argument:
+cut the input into pieces, hand one piece to each party, and let the algorithm's memory
+contents and messages \emph{be} the protocol's transcript. The hard core is almost always
+one of a handful of canonical relations --- disjointness, indexing, greater-than --- whose
+communication complexity is known, so most of the craft lies in the embedding.
+
+In the SIGMOD'26 corpus the tool is tagged in 4 papers --- a small presence, but the method
+recurs inside the lower-bound halves of many streaming, distributed, and sampling papers
+where the headline tag went elsewhere. The three exemplars of this chapter show the three
+standard shapes: a multiparty disjointness reduction proving that noisy frequency moments
+need polynomial space and communication (Section~\ref{sec:cc-fp}); two- and multi-party
+disjointness reductions plus a coupon-collector transfer certifying output-optimal join
+sampling and counting (Section~\ref{sec:cc-jp}); and a three-step reduction chain that
+contradicts $\mathrm{CC}(\mathrm{DISJ}) = \Omega(m)$ to separate representation-oblivious
+pseudodeterministic streaming from ordinary randomization (Section~\ref{sec:cc-ropd}).
+Section~\ref{sec:cc-advanced} adds the advanced method --- information cost, round
+elimination, asymmetric protocols --- and a deterministic distributed lower bound for
+$k$-edge connectivity.
+
+\section{The tool: communication complexity}
+\label{sec:cc-tool}
+
+The problem class is uniform across applications: there is a resource budget ---
+streaming space, bits on the wire, rounds, per-node message length, probes into a
+relation --- and a claim that it cannot be small. To prove the claim, one defines a
+communication problem whose inputs are distributed exactly the way the algorithm's input
+can be split, shows that an algorithm respecting the budget would yield a cheap protocol
+for it, and invokes a known lower bound. This section builds the ladder in that order:
+protocols and rectangles, the deterministic bounds, randomization and Yao's minimax
+principle, the canonical hard relations, the restricted models that map onto systems
+settings, and the information-cost calculus
+\citep{communication-complexity-bg1,communication-complexity-bg2}.
+
+\begin{remarkbox}[Notation]
+Alice holds $X$, Bob holds $Y$; we freely view $X, Y \subseteq [n]$ as their
+characteristic bit vectors. A protocol $\Pi$ produces a \emph{transcript} $\Pi(X,Y)$;
+its cost is the worst-case total length in bits. $D(f)$: deterministic complexity;
+$R_\delta(f)$: public-coin randomized complexity with worst-case error $\delta$;
+$R^{\rightarrow}_\delta(f)$: the one-way variant where only Alice speaks;
+$D^\mu_\delta(f)$: \emph{distributional} complexity under input distribution $\mu$.
+All logarithms are base 2, costs in bits. For $k$ parties (\emph{number-in-hand}), the
+\emph{blackboard} model lets every party see all messages; the \emph{coordinator} model
+routes messages through a coordinator.
+\end{remarkbox}
+
+\subsection{The deterministic rung: rectangles, tilings, fooling sets}
+\label{sec:cc-det}
+
+\begin{definition}[Two-party protocol, deterministic complexity]\label{def:cc-model}
+A \emph{(deterministic) protocol} $\Pi$ for $f\colon \{0,1\}^n \times \{0,1\}^n \to
+\{0,1\}$ is a binary tree: each internal node is owned by Alice or Bob, and the owner's
+message is a function of the transcript so far and of that player's input only; each
+leaf carries an output. The \emph{cost} is the worst-case number of bits communicated,
+and $D(f)$ is the minimum cost of a protocol computing $f$ exactly.
+\end{definition}
+
+The entire deterministic theory falls out of one structural fact: what a transcript
+``knows'' about the inputs is a rectangle.
+
+\begin{lemma}[Rectangle lemma]\label{lem:cc-rectangle}
+For every transcript $t$ of a deterministic protocol, the set of input pairs producing
+$t$,
+\[
+R_t \;=\; \bigl\{(x,y) : \Pi(x,y) \text{ has transcript } t\bigr\},
+\]
+is a \emph{combinatorial rectangle}: $R_t = X_t \times Y_t$ with $X_t$ a set of Alice
+inputs and $Y_t$ a set of Bob inputs. \eop
+\end{lemma}
+
+\begin{proof}
+Induction on the transcript. The empty transcript gives both factors equal to the full
+input sets. Extend a transcript $t$ by one message of Alice, $t' = t\cdot m$: then
+$(x,y) \in R_{t'}$ iff $x \in X_t$, $y \in Y_t$, and Alice's message function on
+(transcript $t$, input $x$) equals $m$ --- a condition on $x$ alone, so
+$R_{t'} = X_{t'} \times Y_t$. The step for a message of Bob is symmetric.
+\end{proof}
+
+\begin{theorem}[Tiling bound]\label{thm:cc-tiling}
+Let $t(f)$ be the minimum number of monochromatic rectangles --- sets $X_i \times Y_i$
+on which $f$ is constant --- that partition the whole input space. Then
+\[
+D(f) \;\ge\; \log_2 t(f). \eopm
+\]
+\end{theorem}
+
+\begin{proof}
+The leaves of a protocol tree of cost $c$ partition the inputs into at most $2^c$
+transcript classes; by Lemma~\ref{lem:cc-rectangle} each class is a rectangle, and
+correctness makes each monochromatic. So the protocol exhibits a monochromatic
+partition of size $\le 2^{D(f)}$, whence $t(f) \le 2^{D(f)}$.
+\end{proof}
+
+The tiling bound is hard to apply directly (minimizing over partitions is difficult),
+but it has a corollary that is the workhorse of deterministic lower bounds: exhibit
+many input pairs that pairwise ``cross''.
+
+\begin{corollary}[Fooling-set bound]\label{cor:cc-fooling}
+Call $S = \{(x_1,y_1),\dots,(x_s,y_s)\}$ a \emph{fooling set} for $f$ if $f(x_i,y_i)$
+takes the same value $c$ for all $i$, while for all $i \ne j$ at least one of
+$f(x_i,y_j)$, $f(x_j,y_i)$ differs from $c$. Then $D(f) \ge \log_2 s$. \eop
+\end{corollary}
+
+\begin{proof}
+Let $R = X_R \times Y_R$ be a monochromatic rectangle of value $c$ containing both
+$(x_i,y_i)$ and $(x_j,y_j)$. Then $x_i, x_j \in X_R$ and $y_i, y_j \in Y_R$, so $R$ also
+contains $(x_i,y_j)$ and $(x_j,y_i)$, contradicting the fooling property. Hence each
+rectangle of a partition covers at most one point of $S$, and
+Theorem~\ref{thm:cc-tiling} gives $t(f) \ge s$.
+\end{proof}
+
+\subsection{Randomized protocols and distributional complexity}
+\label{sec:cc-rand}
+
+Randomized protocols share a public random string $r$ and must succeed with probability
+at least $1-\delta$ on \emph{every} input. The bridge to the deterministic theory is
+distributional complexity.
+
+\begin{definition}[Public-coin and distributional complexity]\label{def:cc-randomized}
+$R_\delta(f)$ is the minimum worst-case cost of a protocol with shared randomness such
+that $\Pr_r[\Pi(X,Y;r) = f(X,Y)] \ge 1-\delta$ for every input pair $(X,Y)$. Its
+distributional counterpart is $D^\mu_\delta(f)$: the minimum cost of a
+\emph{deterministic} protocol whose error probability is at most $\delta$ when
+$(X,Y) \sim \mu$.
+\end{definition}
+
+\begin{theorem}[Yao's minimax principle]\label{thm:cc-yao}
+\[
+R_\delta(f) \;=\; \max_\mu D^\mu_\delta(f). \eopm
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+($\ge$) A public-coin protocol is a distribution over deterministic protocols $\Pi_r$;
+if it has worst-case error $\delta$, then for every $\mu$ its average error over $r$ is
+at most $\delta$, so some $r$ has $\mu$-error at most $\delta$ --- a deterministic
+protocol of no larger cost. ($\le$) The converse is a minimax (LP duality) argument: if
+for every $\mu$ there is a good deterministic protocol, a mixed strategy over
+deterministic protocols achieves error $\delta$ against every input.
+\end{proof}
+
+\sidenote{Randomness reshapes the ladder unevenly. Public coins collapse
+\emph{equality} to $O(1)$ bits (hash and compare) and shrink greater-than to
+polylogarithmic cost (hashed equality tests locate the first differing bit), but they
+leave disjointness and one-way indexing linear, as the next two theorems record. When
+choosing the hard relation for a reduction, check which relations remain hard
+\emph{in the model your simulation produces} --- one-way, few rounds, or interactive.}
+
+\subsection{The canonical hard relations}
+\label{sec:cc-relations}
+
+\begin{definition}[Canonical hard relations]\label{def:cc-relations}
+For inputs viewed as sets or vectors of size $m$:
+\emph{disjointness} $\mathrm{DISJ}_m(X,Y) = 1$ iff $X \cap Y = \emptyset$;
+\emph{indexing} $\mathrm{Index}_m(x,j) = x_j$, where Alice holds the vector $x \in
+\{0,1\}^m$ and Bob holds the position $j \in [m]$;
+\emph{greater-than} $\mathrm{GT}_N(x,y) = 1$ iff $x > y$ on inputs $x, y \in [N]$.
+\end{definition}
+
+Greater-than is the tutorial case for the deterministic machinery: the diagonal is a
+fooling set.
+
+\begin{proposition}[$\mathrm{GT}$ is deterministic-logarithmic]\label{pro:cc-gt}
+On inputs from $[N]$, $D(\mathrm{GT}_N) = \Theta(\log N)$. \eop
+\end{proposition}
+
+\begin{proof}
+Upper: write $x, y$ as $\log N$-bit strings; the players scan from the most significant
+bit, exchanging the current bit until the first position where they differ, which
+decides the order --- at most $2\log N$ bits. Lower: $S = \{(i,i) : i \in [N]\}$ is a
+fooling set: $\mathrm{GT}(i,i) = 0$ for every $i$, while $i < j$ gives
+$\mathrm{GT}(i,j) = 1 \ne 0$. Corollary~\ref{cor:cc-fooling} yields
+$D(\mathrm{GT}_N) \ge \log N$.
+\end{proof}
+
+Indexing is the canonical \emph{one-way} hard relation, and the one that maps onto
+streaming: a one-pass algorithm's memory state is Alice's single message.
+
+\begin{theorem}[Indexing is hard one-way]\label{thm:cc-index}
+For every constant $\delta < 1/4$, any public-coin one-way protocol for
+$\mathrm{Index}_m$ with worst-case error at most $\delta$ communicates at least
+$(1 - H(2\delta))\,m - 1$ bits, $H$ the binary entropy function. In particular,
+constant-error one-way indexing costs $\Omega(m)$ bits, and deterministically Alice
+must send her whole vector: $D^{\rightarrow}(\mathrm{Index}_m) = m$. \eop
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Fix the public coins to their average behavior under a uniform input (Yao,
+Theorem~\ref{thm:cc-yao}); the protocol is now a deterministic message function
+$\mathsf{m}(x)$ and a decoder $g$. Each message stands for one candidate answer string
+$z_{\mathsf{m}} = (g(\mathsf{m},1),\dots,g(\mathsf{m},m))$, so all inputs mapping to a
+message must sit inside a Hamming ball around $z_{\mathsf{m}}$; a volume bound on such
+balls forces $2^{\text{cost}}$ balls to cover $\{0,1\}^m$. The full proof is in the
+Appendix (Section~\ref{sec:cc-appendix}).
+\end{proof}
+
+Disjointness is the queen of the hard relations: it stays linear under public
+randomization, and it is the source of nearly every streaming and distributed space
+lower bound in this book's corpus.
+
+\begin{theorem}[Disjointness is hard, randomized]\label{thm:cc-disj}
+$R_{1/3}(\mathrm{DISJ}_m) = \Omega(m)$
+\citep{communication-complexity-bg3,communication-complexity-bg4}. \eop
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+No proof is given here --- this is a genuinely deep theorem. Razborov's route
+\citep{communication-complexity-bg4} fixes a hard input distribution (each element
+placed in $X$ and $Y$ independently with small, correlated probabilities) and shows by
+rectangle-counting that any deterministic protocol with $o(m)$ communication must err
+on constant $\mu$-mass; Yao's principle (Theorem~\ref{thm:cc-yao}) lifts this to
+randomized protocols. The information-cost proof reuses the same distribution
+(Section~\ref{sec:cc-ic}).
+\end{proof}
+
+For multiparty computations the number-in-hand disjointness bound is the standard
+anchor; the rate quoted by the corpus paper of Section~\ref{sec:cc-fp} is the
+following.
+
+\begin{proposition}[Multiparty disjointness]\label{pro:cc-mpdisj}
+In the number-in-hand blackboard model with $k$ parties and universe $[n]$, any
+randomized protocol with error $0.49$ deciding whether
+$\bigcap_{\ell=1}^k X^{(\ell)} = \emptyset$ communicates
+$\Omega\bigl(n/(k\log k)\bigr)$ bits
+\citep{communication-complexity-bg9}. \eop
+\end{proposition}
+
+\subsection{One-way protocols, sketching, and the streaming transfer}
+\label{sec:cc-oneway}
+
+Systems settings rarely produce arbitrary interactive protocols; they produce
+restricted shapes, each with a matching hard relation. \emph{One-way} protocols (only
+Alice speaks) model a one-pass stream split at a cut: Alice is the prefix, Bob the
+suffix, the message is the memory state. \emph{Simultaneous messages} (each party sends
+one sketch to a referee) model mergeable sketches and distributed sketching.
+\emph{Asymmetric} settings --- Alice holds a huge table, Bob a tiny query --- model data
+structures and external-memory probes \citep{communication-complexity-bg8}; indexing is
+precisely such a problem. The transfer back to the systems world is a formality worth
+stating once and reusing forever.
+
+\begin{proposition}[Streaming--communication transfer]\label{pro:cc-transfer}
+Suppose a randomized streaming algorithm $\mathcal{A}$ computes $g$ on every stream
+using at most $S$ bits of space and $r$ passes. Then for every $k$, the $k$-party
+number-in-hand problem in which party $\ell$ receives the $\ell$-th contiguous chunk
+of a stream and the answer is $g$ of the concatenation admits a public-coin
+blackboard protocol of cost at most $k \cdot r \cdot S$ bits. Consequently any
+communication lower bound $C$ for that problem implies $S \ge C/(k r)$. \eop
+\end{proposition}
+
+\begin{proof}
+The parties share $\mathcal{A}$'s public coins. In pass $p$, party $\ell$ initializes
+the memory state broadcast by party $\ell-1$, runs $\mathcal{A}$ over its own chunk,
+and writes the resulting $S$-bit state to the blackboard; after $k$ broadcasts the
+pass is simulated, and after $r$ passes the last party holds $\mathcal{A}$'s output.
+Each of the $r$ passes costs at most $kS$ bits.
+\end{proof}
+
+\begin{widefigure}[t]
+\centering
+\begin{tikzpicture}[every node/.style={font=\footnotesize},
+  cell/.style={draw, fill=black!8, minimum width=0.52cm, minimum height=0.52cm}]
+  \foreach \i in {0,1,2} \node[cell] at (\i*0.58, 2.9) {};
+  \foreach \i in {3,4,5} \node[cell, fill=black!20] at (\i*0.58, 2.9) {};
+  \draw[dashed, rounded corners] (-0.42, 2.52) rectangle (1.56, 3.28);
+  \node at (0.57, 3.52) {prefix $D(A)$};
+  \draw[dashed, rounded corners] (1.76, 2.52) rectangle (3.74, 3.28);
+  \node at (2.75, 3.52) {suffix $D(B)$};
+  \draw[->] (0.57, 2.46) -- (0.57, 1.72);
+  \draw[->] (2.75, 2.46) -- (2.75, 1.72);
+  \draw[thick, fill=black!5, rounded corners] (-0.55, 0.62) rectangle (1.7, 1.7);
+  \node[align=center] at (0.57, 1.16) {Alice runs $\mathcal{A}$\\ on $D(A)$};
+  \draw[thick, fill=black!5, rounded corners] (1.95, 0.62) rectangle (4.2, 1.7);
+  \node[align=center] at (3.07, 1.16) {Bob continues\\ on $D(B)$};
+  \draw[->, thick] (1.7, 1.16) -- node[above, align=center] {memory state\\ ($S$ bits)}
+    (1.95, 1.16);
+  \draw[->, thick] (3.07, 0.62) -- node[right] {$\hat{g}$} (3.07, 0.0);
+\end{tikzpicture}
+\caption{One pass of a space-$S$ streaming algorithm over a concatenation
+$D(A)\cdot D(B)$ \emph{is} a one-way protocol: Alice runs the algorithm on her prefix
+and forwards the final memory state; Bob continues and answers. With $k$ parties and
+$r$ passes the simulation costs $k\cdot r\cdot S$ bits
+(Proposition~\ref{pro:cc-transfer}). Every space lower bound of this chapter flows
+through this picture.}
+\label{fig:cc-transfer}
+\end{widefigure}
+
+\sidenote{The transfer is lossless up to the factor $kr$, so the lower-bound engineer's
+real freedom is in \emph{where to cut}: choose $k$ and the chunk boundaries so that each
+party's input is locally constructible from its share of the hard instance, and the
+objective $g$ separates the YES and NO cases. In Section~\ref{sec:cc-fp} the cut is
+between players' noisy substreams; in Section~\ref{sec:cc-ropd} it is Alice's set
+followed by Bob's set.}
+
+\subsection{Information cost and simulation}
+\label{sec:cc-ic}
+
+The rectangle method saturates on direct-sum and multi-query questions (``$k$ copies
+of the problem on one input''), which is exactly the shape of amortized streaming and
+multi-query database lower bounds. The modern calculus measures not bits sent but
+\emph{information revealed}.
+
+\begin{definition}[External information cost]\label{def:cc-ic}
+For a protocol $\Pi$ and input distribution $\mu$, the \emph{external information
+cost} is the mutual information between the inputs and the transcript,
+\[
+\mathrm{IC}^{\mathrm{ext}}_\mu(\Pi) \;=\;
+I_\mu\bigl(X,Y \,;\, \Pi(X,Y)\bigr),
+\]
+and $\mathrm{IC}^{\mathrm{ext}}_{\mu,\delta}(f)$ is its infimum over protocols with
+worst-case error at most $\delta$.
+\end{definition}
+
+\begin{proposition}[Information is bounded by communication]\label{pro:cc-icbound}
+For every protocol $\Pi$ and distribution $\mu$,
+\[
+\mathrm{IC}^{\mathrm{ext}}_\mu(\Pi) \;\le\; H\bigl(\Pi(X,Y)\bigr) \;\le\;
+\operatorname{cost}(\Pi),
+\qquad\text{hence}\qquad
+R_\delta(f) \;\ge\; \mathrm{IC}^{\mathrm{ext}}_{\mu,\delta}(f)
+\text{ for every } \mu. \eopm
+\]
+\end{proposition}
+
+\begin{proof}
+The transcript is a function of the inputs and the public coins; since the coins are
+independent of $(X,Y)$, $I(X,Y;\Pi) \le H(\Pi) \le$ worst-case length. The second claim
+restricts the infimum defining $\mathrm{IC}^{\mathrm{ext}}_{\mu,\delta}(f)$ to
+protocols of cost $\le R_\delta(f)$, a nonempty set.
+\end{proof}
+
+Information cost earns its keep through two deep structural facts, both stated
+without proof.
+
+\begin{theorem}[Simulation and direct sum, informal]\label{thm:cc-sim}
+\begin{enumerate}
+\item[(i)] (Compression \citep{communication-complexity-bg11}.) Low information cost
+converts back into low communication: $f$ admits a public-coin protocol of cost
+$2^{O(\mathrm{IC}^{\mathrm{ext}}_{\mu,\delta}(f))}$, so information and communication
+complexities are exponentially close.
+\item[(ii)] (Direct sum \citep{communication-complexity-bg5,
+communication-complexity-bg10}.) Any protocol solving $k$ independent copies of $f$
+under $\mu^{\otimes k}$ with constant error has information cost at least
+$k \cdot \mathrm{IC}^{\mathrm{ext}}_{\mu}(f)$ up to lower-order terms.
+\end{enumerate}
+\eop
+\end{theorem}
+
+\begin{proof}[Proof idea]
+(i) Sample the transcript from its conditional distribution and abort when the sampled
+transcript is atypical; the rejection probability is controlled by the information
+cost. (ii) The $k$-copy information cost splits by the chain rule into $k$ terms, each
+at least the single-copy information cost because the copies are independent and a
+protocol for all copies is, in particular, a protocol for each.
+\end{proof}
+
+Combining (ii) with Proposition~\ref{pro:cc-icbound}: any protocol for $k$ copies
+communicates $\ge k\,\mathrm{IC}(f)$ bits --- how one proves tight direct-sum bounds
+for disjointness \citep{communication-complexity-bg5} and, through the transfer of
+Proposition~\ref{pro:cc-transfer}, amortized space lower bounds for streams that must
+answer many queries (Section~\ref{sec:cc-ic-advanced}).
+
+\subsection{How to shape a communication reduction}
+\label{sec:cc-how}
+
+The selection procedure is mechanical. \emph{First, name the resource and the model}:
+bits of space (streaming), bits on the wire (coordinator/blackboard), rounds, per-node
+message length (sketching), or oracle queries (property testing) --- the model
+determines which restricted protocol shape the simulation produces, and hence which
+hard relations remain hard. \emph{Second, place the cut}: decide who holds what when
+the hard instance is split; the cut must respect locality (each party builds its share
+without seeing the others' shares) and separability (the objective is a gap function
+of the YES/NO answer). \emph{Third, match the hard relation to the objective}: a
+frequency, cardinality, or join-output objective usually announces $\mathrm{DISJ}$ (an
+element present on both sides changes the count); a prefix-query/late-arrival
+structure announces $\mathrm{Index}$; a threshold structure announces $\mathrm{GT}$ or
+a promise variant. \emph{Fourth, budget the transcript}: each oracle query, message,
+or state forward costs $O(1)$ bits or $O(S)$ bits, and the simulation's total must be
+a clean multiple of the budgeted resource. \emph{Fifth, argue correctness with a gap}:
+verify that the approximation tolerance the algorithm is allowed cannot straddle the
+YES and NO values --- otherwise the reduction silently fails, a check performed
+line-by-line in Sections~\ref{sec:cc-fp} and~\ref{sec:cc-ropd}.
+
+\begin{reachbox}{When to Reach for Communication Complexity}
+Reach whenever the deliverable is an impossibility of the form ``no algorithm/protocol/
+sketch can do $X$ with budget $B$'' --- sublinear space in streaming, sublinear
+communication in distributed monitoring, sublinear query time in sampled access
+models, short messages in distributed sketching. Then run the recipe:
+\begin{enumerate}
+\item Identify the players and the transcript: who holds which part of a hypothetical
+  hard input, and which artifact of the algorithm (memory state, message, sketch,
+  query answer) plays the role of the communicated bits.
+\item Pick the hard relation matching the model: $\mathrm{DISJ}$ for interactive and
+  multiparty settings, $\mathrm{Index}$ for one-way and asymmetric ones,
+  $\mathrm{GT}$/promise variants for threshold structure
+  (Section~\ref{sec:cc-relations}); deterministic settings use fooling sets
+  (Corollary~\ref{cor:cc-fooling}), randomized ones go through Yao
+  (Theorem~\ref{thm:cc-yao}).
+\item Embed the inputs: map each party's share to a locally constructible sub-instance
+  (sub-stream, relation, neighborhood), so that the objective differs by more than
+  the approximation tolerance between the YES and NO cases.
+\item Argue correctness and account for the transcript: the simulated algorithm's
+  answers are recoverable from the transcript bit-for-bit (distinct hard inputs force
+  distinct, or too many, transcripts), so the budgeted resource times the blow-up
+  factor still beats the known communication bound.
+\item Transfer the bound: divide by the simulation overhead to get the space, round,
+  message-length, or query lower bound (Propositions~\ref{pro:cc-transfer}
+  and~\ref{pro:cc-mpdisj}).
+\end{enumerate}
+\end{reachbox}
+
+\section{Noisy frequency moments: space and communication lower bounds}
+\label{sec:cc-fp}
+
+The exemplar is a PODS'26 paper on streaming statistics under noisy identity
+resolution \citep{sigmod26-115}\pods. Frequency moments, $F_p = \sum_j f_j^p$, are
+canonical streaming quantities behind cardinality, skew, and heavy-hitter analytics,
+and decades of sketching theory estimate them accurately when every item is identified
+exactly. Real pipelines resolve identities imperfectly: after record matching, fuzzy
+deduplication, or noisy sensing, each arriving item is \emph{ambiguous}, compatible
+with several ground-truth identities, and the frequency vector of the unknown ground
+truth is what analytics actually wants. The paper introduces a per-instance noise
+measure --- the $F_p$-mismatch-ambiguity --- and shows that $F_p$ of the ground truth
+is still approximable, to a factor degraded by the noise, in one pass and
+$O(\varepsilon^{-2} m^{1-1/p})$ words over $m$ items, and that this price is
+necessary: a reduction from multiparty disjointness proves that any constant-pass
+algorithm with the same guarantee needs $\Omega(\varepsilon^{-1/p} m^{1-1/p})$ bits of
+space, and any distributed protocol over $k$ sites needs the same order of
+communication --- in stark contrast with the polylogarithmic communication of the
+noiseless setting. This chapter dissects the lower-bound half; the estimator half is
+treated under the estimation-theory lens in Chapter~\ref{ch:est}.
+
+\paragraph{Problem.}
+A \emph{noisy dataset} is a stream $\sigma = (\sigma_1,\dots,\sigma_m)$ together with a
+ground-truth assignment of positions to identities $\mu$; positions $i, i'$ are
+\emph{similar} ($\sigma_i \sim \sigma_{i'}$) when compatible with a common identity,
+and $G^\sigma = ([m], E^\sigma)$ is the resulting similarity graph. Writing
+$B_i^\sigma$ for $i$'s clique of similar positions and $B_i^\mu$ for the positions
+sharing $i$'s true identity, the paper's per-instance noise parameter
+$\Lambda_p(\sigma,\mu)$ (notation as in Chapter~\ref{ch:est}; the paper writes
+$\eta_p$) measures how much $p$-clique mass the observed similarity graph and the true
+one disagree on: the symmetric-difference mass of ordered $p$-cliques between
+$G^\sigma$ and $G^\mu$ is at most $O(\Lambda_p F_p(\mu))$ in both directions. An
+\emph{$(\alpha,\beta)$-approximation} of $F_p$ outputs a value in
+$[(1-\alpha)F_p,\,(1+\alpha)F_p]$ with probability at least $1-\beta$. The distributed
+variants are the \emph{blackboard} model ($k$ players, arbitrary rounds, all messages
+public) and the \emph{coordinator} model ($k$ sites with private channels to one
+coordinator); the stream is the concatenation of the players' substreams, and the
+communication budget counts all bits sent.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Distributed lower bound, from the paper's blackboard-model theorem,
+notation cleaned]\label{thm:cc-fp-lb}
+For any constants $p > 1$, $C > 0$, and $\varepsilon \in (0, 1/3)$: any
+$\bigl((\varepsilon + C\Lambda_p),\, 0.48\bigr)$-approximation algorithm for computing
+$F_p$ on any noisy dataset of up to $m$ items distributed over $k \ge 10p(C+1)$
+players requires
+\[
+\Omega\Bigl(\varepsilon^{-1/p}\, m^{1-1/p}\Bigr)
+\]
+bits of communication in the blackboard model. The same bound holds in the
+coordinator model regardless of the number of rounds, and any $O(1)$-pass algorithm of
+the same guarantee on a single stream of up to $m$ items requires
+$\Omega(\varepsilon^{-1/p} m^{1-1/p})$ bits of space. \eop
+\end{theorem}
+
+\sidenote{The $\beta = 0.48$ failure allowance is calibrated for a reduction from
+constant-error disjointness: the bound quoted below tolerates error $0.49$, so a
+protocol built from the estimation algorithm must err strictly less often. The noise
+tolerance $\varepsilon + C\Lambda_p$ is what makes the theorem nontrivial: the hard
+instances carry genuine mismatch ambiguity of the same order as the allowed slack, so
+the algorithm cannot dodge by blaming noise.}
+
+\paragraph{How communication complexity is applied.}
+The reduction is from number-in-hand multiparty disjointness, using the anchor of
+Proposition~\ref{pro:cc-mpdisj} exactly as the paper quotes it. The embedding --- the
+paper's input reduction, transcribed with cleaned notation --- turns each player's
+set into a chunk of a noisy stream whose ground truth merges items across players.
+
+\begin{lemma}[Input reduction, from the paper's claim on the hard-instance
+structure, notation cleaned]\label{lem:cc-fp-embed}
+Given $k$-party disjointness inputs $X^{(1)},\dots,X^{(k)} \subseteq [n]$, construct
+a noisy dataset in which player $\ell$'s substream contains, for every element
+$i \in X^{(\ell)}$, a group of $t$ items $q_{i,1}^{(\ell)},\dots,q_{i,t}^{(\ell)}$,
+with similarity pattern:
+\begin{enumerate}
+\item items created by the same player are pairwise dissimilar, even when created
+  from the same element ($q_{i,j}^{(\ell)} \not\sim q_{i,j'}^{(\ell)}$ for
+  $j \ne j'$);
+\item if players $\ell \ne \ell'$ both hold element $i$, then every item of $\ell$'s
+  group for $i$ is similar to every item of $\ell'$'s group for $i$;
+\item if $\ell$'s set has a zero at $i$, $\ell$ creates no items around $i$, and no
+  further cross-player similarities exist;
+\item items created from different elements are pairwise dissimilar.
+\end{enumerate}
+Hence the ground-truth identity of element $i$ collects all $t \cdot r_i$ items
+created from $i$, where $r_i = |\{\ell : i \in X^{(\ell)}\}|$, and
+$F_p(\mu) = \sum_{i} (t\,r_i)^p$. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Each property holds by construction of the similarity relation: cross-player
+similarity is switched on exactly for shared elements (2), while intra-player items
+(1) and different-element items (4) are never similar; (3) records that nothing else
+is similar. Summing identity-class sizes per element gives $F_p(\mu)$.
+\end{proof}
+
+The gap now does the work. If the disjointness instance is a NO instance (all sets
+pairwise disjoint), every $r_i \le 1$ and $F_p(\mu) \le n \cdot t^p$. If it is a YES
+instance (a common element $i^*$ held by all $k$ players), that element alone
+contributes $(t\,k)^p \ge t^p k^p$. Choosing the group size $t$ and universe size $n$
+so that $k^p$ exceeds $n$ by more than the $(1 + \varepsilon + C\Lambda_p)^2$ slack
+factor --- the construction's own ambiguity stays within the allowed
+$\Lambda_p = O(\varepsilon)$ (the coordinator-model hard input has ambiguity of order
+$\varepsilon/k$) --- an $\bigl((\varepsilon + C\Lambda_p), 0.48\bigr)$-approximation
+output separates the two cases with probability $0.52 > 0.51$, solving disjointness
+with error $0.48 < 0.49$. The players simulate the distributed algorithm on their own
+substreams; the algorithm's total communication \emph{is} the protocol's cost, which
+Proposition~\ref{pro:cc-mpdisj} forces to $\Omega(n/(k\log k))$; parameterizing the
+construction so the stream length is $m$ evaluates the bound to
+$\Omega(\varepsilon^{-1/p} m^{1-1/p})$. The streaming and coordinator statements of
+Theorem~\ref{thm:cc-fp-lb} follow by the transfer of
+Proposition~\ref{pro:cc-transfer}: an $r$-pass space-$S$ algorithm over the
+concatenated stream, cut into $k = O(1)$ players' chunks, yields a protocol of cost
+$k r S$, so $S \ge \Omega(\varepsilon^{-1/p} m^{1-1/p})/(k r)$.
+
+\paragraph{What it buys.}
+The lower bound certifies that the paper's one-pass upper bound is optimal in its
+dependence on $m$, and separates the noisy regime from the noiseless one, where $F_p$
+($p > 2$) admits one-pass $O(\varepsilon^{-2} m^{1-2/p}\log^2 m)$-bit sketches and
+the distributed problem needs only polylogarithmic communication: under mismatch
+ambiguity the polylogarithmic free lunch provably disappears. For the practitioner it
+calibrates how much deduplication noise a pipeline can carry before frequency-based
+analytics must pay polynomial space.
+
+\section{Output-optimal sampling and counting for join--project}
+\label{sec:cc-jp}
+
+The exemplar is a PODS'26 paper on uniform sampling and approximate counting for
+join--project queries \citep{sigmod26-243}\pods. Worst-case optimal join algorithms
+evaluate conjunctive queries up to the AGM bound, but the join output can still be
+polynomially larger than the input $N$, and many analytics tasks would rather sample
+one uniform result, or count the results approximately, than enumerate them. The
+natural target is \emph{output-sensitive} complexity: per-sample and counting time
+should degrade gracefully with the output size $\mathrm{OUT}$, ideally
+$O(N/\sqrt{\mathrm{OUT}})$ for the matrix query $\pi_{A,C}(R_1(A,B) \Join R_2(B,C))$
+and analogous powers for star and chain queries. The paper delivers the first
+asymptotically optimal algorithms for matrix, star, and chain join--project queries
+--- a hybrid heavy/light partition with intersection estimation, geometric search
+over $\mathrm{OUT}$, and median amplification --- and proves matching lower bounds,
+two families of them by communication reduction: two- and multi-party disjointness
+arguments in a query-access model, and a coupon-collector transfer showing that any
+faster sampler would enumerate join outputs faster than the known combinatorial
+listing bounds; a third, information-theoretic family shows sublinear algorithms for
+chain queries are outright impossible.
+
+\paragraph{Problem.}
+For a join--project query $Q$ (e.g., the \emph{matrix query}
+$Q_{\mathrm{m}} = \pi_{A,C}(R_1(A,B) \Join R_2(B,C))$, or a $k$-leaf \emph{star
+query} $Q_{\mathrm{s},k} = \pi_{A_1,\dots,A_k} \Join_i R_i(A_i, B)$), an instance $I$
+of total size $N$ has output $\mathrm{OUT} = |Q(I)|$. A \emph{$W$-uniform sampler}
+returns each result with probability between $1/\mathrm{OUT}$ and
+$W/\mathrm{OUT}$; an $\varepsilon$-approximate counter returns a value in
+$(1 \pm \varepsilon)\, \mathrm{OUT}$. The algorithm first preprocesses (builds an
+index), then answers samples or counts; in the \emph{property-testing query model}
+--- the model of the lower bounds --- the instance is accessed only through oracle
+queries: tuple tests, uniform tuple samples, degree, and neighbor queries, and the
+cost is the number of queries.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Output-optimal matrix query, from the paper's theorems, notation
+cleaned]\label{thm:cc-jp-matrix}
+For the matrix query $Q_{\mathrm{m}} = \pi_{A,C}(R_1(A,B) \Join R_2(B,C))$:
+\begin{enumerate}
+\item[(i)] there is an algorithm that builds an index in $O(N)$ time and returns a
+  uniform sample from $Q_{\mathrm{m}}(I)$ in $O\bigl(N/\sqrt{\mathrm{OUT}}\bigr)$
+  expected time, and an $\varepsilon$-approximation of $\mathrm{OUT}$ with
+  probability $1-\delta$ in $O\bigl(N \log(N/\delta)\log(1/\delta) \,/
+  (\varepsilon^{2.5}\sqrt{\mathrm{OUT}})\bigr)$ time;
+\item[(ii)] for any nonnegative integers $N, \mathrm{OUT}$, any randomized algorithm
+  that returns a constant-factor approximation of $\mathrm{OUT}$ with high
+  probability requires $\Omega\bigl(N/\sqrt{\mathrm{OUT}}\bigr)$ time in the query
+  model.
+\end{enumerate}
+\eop
+\end{theorem}
+
+\paragraph{How communication complexity is applied.}
+The workhorse is a reduction from two-party disjointness --- the paper's argument is
+transcribed here with cleaned notation, and its full proof is in the
+Appendix (Section~\ref{sec:cc-appendix}).
+
+\begin{lemma}[Matrix-query counting bound, from the paper's two-party lemma,
+notation cleaned]\label{lem:cc-243-reduction}
+For $Q_{\mathrm{m}}$, given any $N, \mathrm{OUT}, n \in \mathbb{Z}^+$ ($n$ the active
+domain size of attribute $B$), any randomized algorithm that takes an instance of
+input size $N$ and output size $\mathrm{OUT}$ and outputs any multiplicative-factor
+approximation of $\mathrm{OUT}$ with high probability requires at least
+\[
+\Omega\Bigl(\min\bigl\{\,n,\; N/\sqrt{\mathrm{OUT}}\,\bigr\}\Bigr)
+\]
+queries in the query model. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Alice and Bob reduce a disjointness instance $(S_A, S_B)$ on universe $[m]$,
+$|S_A| = |S_B| = m/4$, to a database: the active domain of $B$ is $S_A \cup S_B$,
+while $R_1 = D(A) \times S_A$ and $R_2 = S_B \times D(C)$ for disjoint $D(A), D(C)$
+of size $\sqrt{K}$. Then $N = \sqrt{K}\,(|S_A| + |S_B|) = \sqrt{K}\,m/2$, and
+$\mathrm{OUT} = 0$ if $S_A \cap S_B = \emptyset$ but $\mathrm{OUT} = K$ if they
+intersect --- a single shared value $b$ produces $|D(A)| \cdot |D(C)| = K$ distinct
+projected pairs. Any multiplicative approximation separates $0$ from $K$; every
+oracle query is answered by its owner with a small number of bits (a tuple test is
+one bit; a sample is drawn locally by the owner), so $q$ queries give a disjointness
+protocol of $o(q)$ communication, contradicting Theorem~\ref{thm:cc-disj} unless
+$q = \Omega(m)$; with $K = \mathrm{OUT}$ the arithmetic
+$N/\sqrt{\mathrm{OUT}} = m/2$ evaluates the bound.
+\end{proof}
+
+Two extensions round out the family. For the star query the reduction goes through
+$k$-party disjointness: player $\ell$ holds $S_\ell \subseteq [m]$ with
+$|S_\ell| = m/2k$, builds $R_\ell = D(A_\ell) \times S_\ell$ with
+$|D(A_\ell)| = K^{1/k}$ for disjoint $D(A_\ell)$; then $N = K^{1/k} m/2$, and
+$\mathrm{OUT} = 0$ or $K = \prod_\ell |D(A_\ell)|$ according to disjointness, so
+Proposition~\ref{pro:cc-mpdisj} yields the $\Omega(N/\mathrm{OUT}^{1/k})$ query
+bound for constant $k$, matching the paper's $O(N/\mathrm{OUT}^{1/k})$ sampling and
+counting upper bounds. For uniform samplers the transfer is a
+\emph{coupon-collector} argument: a sampler with preprocessing
+$O(N/\mathrm{OUT}^{1/2-\gamma})$ and per-sample time
+$O(N/\mathrm{OUT}^{1/2+\gamma})$ would first collect samples until enough
+collisions certify a constant-factor estimate of $\mathrm{OUT}$, then draw
+$\Theta(\mathrm{OUT}\log N)$ more samples to collect every result whp (the coupon
+collector), enumerating the full join in $O(N\,\mathrm{OUT}^{1/2-\gamma}\log N)$
+time and contradicting the $\Omega(N\sqrt{\mathrm{OUT}})$ combinatorial listing
+bound for the matrix query (conditionally, via Boolean matrix multiplication
+hardness); the star-query variant, with the same $\gamma$-tradeoff around
+$N/\mathrm{OUT}^{1/k}$, contradicts the $\Omega(N\,\mathrm{OUT}^{1-1/k})$ listing
+bound the same way. Counting-from-sampling is the mirror reduction: $Y$ independent
+invocations of a sampler with per-run success probability $1/W$, with
+$Y = \Omega(W/\varepsilon^2)$, give an $\varepsilon$-approximate count from the
+success fraction (a proposition the paper imports from the literature), which is why
+the counting and sampling lower bounds coincide.
+
+On the upper-bound side, the algorithm meeting Theorem~\ref{thm:cc-jp-matrix}(i) is
+a hybrid partition at threshold $\sqrt{\mathrm{OUT}}$: heavy values of $B$ (degree
+at least $\sqrt{\mathrm{OUT}}$) are detected by repeated uniform sampling with a
+union bound over values, and indexed exactly; the light part is sampled uniformly,
+and the fraction of light-part join tuples whose projection already appeared in the
+heavy part --- the \emph{intersection} --- is estimated by Hoeffding's inequality
+from $|S| = \tfrac{1}{2\varepsilon^2}\ln\tfrac{2}{\delta}$ samples (the
+concentration rung of Chapter~\ref{ch:conc}); since $\mathrm{OUT}$ is unknown a
+priori, the algorithm runs a geometric search over guesses $\lambda = N^2, N^2/2,
+\dots$, validating each guess with Markov (cheap accept) and Chebyshev (accuracy)
+medians over $k_\delta$ independent estimators --- median amplification --- while
+exact uniform sampling inside the light part uses rejection whose retry count
+follows a negative hypergeometric distribution, with expectation $r(P-K)/(K+1)$ for
+$r$ successes among $P$ balls with $K$ marked, keeping the expected per-sample cost
+at the advertised bound.
+
+\paragraph{What it buys.}
+The reduction family certifies that $N/\sqrt{\mathrm{OUT}}$ (and
+$N/\mathrm{OUT}^{1/k}$ for stars) is the true complexity of sampled analytics over
+joins: sublinear per-sample time is possible, but not a penny cheaper, and for chain
+queries not at all. The query-cost accounting doubles as a cost model for secondary
+storage --- each oracle query is one page access --- so the lower bounds also delimit
+any index that hopes to beat a constant number of scans.
+
+\section{Representation obliviousness and pseudodeterminism in streaming}
+\label{sec:cc-ropd}
+
+The exemplar is a paper on pseudodeterministic streaming algorithms
+\citep{sigmod26-357}. A randomized algorithm is \emph{pseudodeterministic} (PD) when,
+on every input, it outputs a \emph{canonical} value with high probability ---
+different runs agree on the answer, which is what reproducibility-sensitive consumers
+(caching, auditing, downstream analytics) expect --- and a streaming algorithm for a
+frequency moment is \emph{representation oblivious} (RO) when its output
+distribution depends only on the frequency vector, not on the order in which the
+stream happens to present it. The paper asks what these two stability requirements
+cost for the most basic streaming quantity, the distinct count $F_0$: ordinary
+randomized estimators use polylogarithmic space, and known algorithms (BJKST, AMS,
+and linear sketches generally) are representation oblivious, yet none of them is
+pseudodeterministic. The main result is an $\Omega(n)$ space lower bound for
+algorithms that are both --- representation-oblivious pseudodeterministic (ROPD) ---
+extended to a tight $\Omega(n/t(n))$ for $t(n)$ passes; the proof is a three-step
+reduction chain that contradicts $\mathrm{CC}(\mathrm{DISJ}) = \Omega(m)$, the
+chapter's purest exhibit: no gadgets, just the definitions of the two stability
+properties doing the work.
+
+\paragraph{Problem.}
+For a stream $D$ over universe $[n]$, let $F_0(D)$ be the number of distinct elements
+and $f^k(D)$ the vector of $k$-th powers of frequencies; an algorithm
+$(\varepsilon,\delta)$-approximates $F_k$ when
+$\Pr[|A(D) - F_k(D)| \le \varepsilon F_k(D)] \ge 1-\delta$ for every $D$
+(Definition 2.1 of the paper; the paper fixes $\delta = 1/3$).
+
+\begin{definition}[Pseudodeterminism and representation obliviousness, Definitions
+2.2, 2.4 and 2.5 of the paper]\label{def:cc-ropd}
+A randomized algorithm $A$ is \emph{pseudodeterministic} if for every input $D$ there
+is a canonical value $g(D)$ with $\Pr[A(D) = g(D)] \ge 2/3$. Two streams are
+$R_k$-\emph{equivalent} if $f^k(D_1) = f^k(D_2)$ (for $k = 0$: the same set of
+distinct elements); $A$ is \emph{representation oblivious} if $R_k$-equivalent
+streams induce the same output distribution. $A$ is \emph{ROPD}
+(representation-oblivious pseudodeterministic) when both hold; then $g$ is constant
+on $R_k$-equivalence classes.
+\end{definition}
+
+The communication side needs one promised relation and its own obliviousness
+quotient (Definitions 2.10--2.13 of the paper): \emph{Promise-Union}$_m$ is the
+partial function of $A, B \subseteq [m]$ that outputs $1$ when $|A \cup B| \ge 3m/4$
+and $0$ when $|A \cup B| \le m/4$; two instances are $\rho_m$-equivalent when
+$A_1 \cup B_1 = A_2 \cup B_2$; an ROPD protocol for Promise-Union$_m$ is a
+$\rho_m$-oblivious pseudodeterministic one.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[$F_0$ lower bound, Theorem 3.1 of the paper]\label{thm:cc-ropd-lb}
+Let $\varepsilon, \delta \le 1/3$. Any ROPD streaming algorithm that
+$(\varepsilon,\delta)$-approximates $F_0$ requires $\Omega(n)$ space, where $n$ is
+the universe size. \eop
+\end{theorem}
+
+\begin{corollary}[Multipass tradeoff, Theorem 4.1 of the paper]\label{cor:cc-ropd-mp}
+Any ROPD $t(n)$-pass streaming algorithm that $(\varepsilon,\delta)$-approximates
+$F_0$, $\varepsilon, \delta \le 1/3$, requires $\Omega\bigl(n/t(n)\bigr)$ space; this
+is tight, as a deterministic representation-oblivious $t(n)$-pass algorithm computes
+$F_0$ exactly in $O(n/t(n))$ space (counting distinct elements in $t(n)$ blocks per
+pass, Observation 4.3 of the paper). \eop
+\end{corollary}
+
+\paragraph{How communication complexity is applied.}
+The proof chain has three links, each a black-box transformation of protocols;
+contradicting Theorem~\ref{thm:cc-disj} at the end is the only external input.
+
+\emph{Link 1: estimator to protocol} (Lemma 3.2 of the paper). Suppose an ROPD
+algorithm $A_n$ $(\tfrac13,\tfrac13)$-approximates $F_0$ over $[n]$ in space $s$. The
+protocol $P_n$ for Promise-Union$_n$: Alice turns her set into the stream $D(A)$
+(elements in lexicographic order), runs $A_n$, and communicates the final state ---
+$s$ bits; Bob continues on $D(B)$ and outputs $1$ iff the estimate is at least
+$n/2$. Three claims (Claims 3.3--3.5 of the paper) verify the ROPD protocol
+conditions: \emph{pseudodeterminism} --- the canonical value is
+$h(A,B) = \mathbf{1}\{g(D(A)\cdot D(B)) \ge n/2\}$, where $g$ is $A_n$'s canonical
+output, so Bob outputs $h$ with probability $\ge 2/3$ on every input;
+\emph{representation obliviousness} --- $\rho_n$-equivalent instances concatenate to
+$R_0$-equivalent streams (same set of distinct elements), so the output
+distributions coincide; \emph{correctness} --- on promised inputs, if
+$|A \cup B| \le n/4$ then $g \le \tfrac43 \cdot \tfrac{n}{4} = \tfrac{n}{3} <
+\tfrac{n}{2}$, while if $|A \cup B| \ge 3n/4$ then
+$g \ge \tfrac23 \cdot \tfrac{3n}{4} = \tfrac{n}{2}$, and the
+$(\tfrac13,\tfrac13)$-approximation guarantee keeps the estimate on the correct side
+of the threshold. Note the \emph{canonical-value argument}: it is $g$, not the
+algorithm's random output, that the threshold reads, which is what makes the
+protocol PD rather than merely correct.
+
+\emph{Link 2: protocol to disjointness} (Lemma 3.7 of the paper).
+
+\begin{lemma}[Promise-Union lower bound, Lemma 3.7 of the paper]\label{lem:cc-promise-union}
+The communication complexity of any ROPD protocol for Promise-Union$_m$ is
+$\Omega(m)$. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+From a family of ROPD Promise-Union protocols with $o(m)$ communication, build a
+pseudodeterministic protocol for $\mathrm{DISJ}_m$ with $o(m)$ communication. Because
+the canonical output of a $\rho$-oblivious protocol depends only on the union, the
+function $h(X) = g(X, \emptyset)$ determines everything; take an inclusion-minimal
+set $Y$ with $h(Y) = 1$ (so $h(Z) = 0$ for every proper subset $Z \subsetneq Y$),
+which exists with $m < |Y| \le 4m$. Complements inside $Y$ then turn disjointness
+into a union question by De Morgan,
+$A \cap B = \emptyset \iff \overline{A} \cup \overline{B} = Y$, and the two cases
+are separated by $h$ itself. The full proof, including why the players may agree on
+$Y$ in advance, is in the Appendix (Section~\ref{sec:cc-appendix}).
+\end{proof}
+
+\emph{Link 3: contradiction.} If an ROPD $F_0$ estimator used $o(n)$ space, Link 1
+with $m = n$ would give ROPD Promise-Union$_n$ protocols of $o(n)$ communication,
+contradicting Lemma~\ref{lem:cc-promise-union}, since $\Omega(n) = \Omega(m)$. The
+multipass version (Lemma 4.2 of the paper) simulates $t(n)$ passes with $t(n)$
+alternations of the state hand-off at cost $2s \cdot t(n)$, and plugging
+$s = o(n/t(n))$ contradicts the same lemma; the transfer is exactly
+Proposition~\ref{pro:cc-transfer} in the two-party case. The
+\emph{output-distribution argument} is the thread running through both links:
+representation obliviousness is precisely the statement that output distributions
+are invariant under input re-arrangement, and both the streaming-to-protocol step
+and the $Y$-construction exploit that invariance to pin canonical values.
+
+\paragraph{What it buys.}
+The theorem locates the price of reproducibility: each stability requirement alone
+is affordable (BJKST and AMS are representation oblivious in polylog space,
+Theorems 5.1 and 5.4 of the paper, and ordinary PD estimators for $F_0$ are not
+excluded), but together they force linear space. The paper also identifies the exact
+communication question that would extend the bound to all pseudodeterministic
+estimators --- a lower bound for New-Promise-Union (gap $0.6m$ vs $0.4m$) against
+protocols oblivious only under the identity relation --- and shows a curious phase
+transition: against the coarser $\tau_m$-equivalence (union \emph{and} intersection
+fixed), a trivial protocol solves Promise-Union, so the choice of obliviousness
+quotient is the whole game. For systems designers the message is sharp:
+order-invariant, run-stable distinct-count reporting cannot be sketched.
+
+\section{Advanced usage and further reading}
+\label{sec:cc-advanced}
+
+Three refinements extend the method past the two-party, constant-error,
+single-relation template: information cost for amortized and multi-query bounds,
+round elimination for round/pass tradeoffs, and asymmetric protocols for
+data-structure and probe lower bounds. This section sketches each in prose, one
+further corpus exhibit, then the reading list.
+
+\paragraph{Deterministic distributed lower bounds for $k$-edge connectivity
+\citep{sigmod26-070}.}
+In the distributed sketching model, every node of a graph sends one message (a
+sketch of its neighborhood) to a referee who must decide a global property. The
+paper proves that every \emph{deterministic} algorithm deciding $k$-edge
+connectivity on $n$-node graphs has a worst-case message length of $\Omega(k)$ bits,
+for every super-constant $k \le \gamma\sqrt{n}$ (Theorem 1 of the paper). The hard
+graph is built by the probabilistic method: a family of $e^{\Theta(k)}$
+neighborhoods (an almost-disjoint set family with pairwise intersections at most
+$\varepsilon d/2$, instantiated at $d = 2k-1$; Lemma 3 of the paper) is paired with
+a pigeonhole argument on nested partitions (Claim 1) showing that if every node
+sends $o(k)$ bits, then for at least a $3/4$ fraction of nodes there exist two
+neighborhoods that are \emph{indistinguishable} yet \emph{separated} --- one forcing
+$k$-edge-connectivity, the other not (Lemma 4 and Corollary 1 of the paper). The
+communication anchor is a new relation, $\mathrm{UniqueOverlap}_{m,s}$ (three
+parties with support-$s$ vectors must decide whether their inputs share a common
+element), whose deterministic complexity in the \emph{simultaneous} three-party
+model is $\Omega(m)$ (Theorem 2 of the paper): the three parties simulate the
+sketching algorithm's messages, and the indistinguishable pair supplies the fooling
+set for the tiling bound of Theorem~\ref{thm:cc-tiling} --- deterministic
+complexity, so the rectangle machinery of Section~\ref{sec:cc-det} applies verbatim
+rather than Yao's principle.
+
+\subsection{Information cost and amortized lower bounds}
+\label{sec:cc-ic-advanced}
+
+The information-cost calculus of Section~\ref{sec:cc-ic} becomes indispensable when
+the question is amortized: $k$ queries over one input, $k$ copies of a stream
+problem, or protocols where only the \emph{total} information leaked matters.
+Theorem~\ref{thm:cc-sim}(ii) turns a single-copy information bound into a $k$-fold
+communication bound, and Bar-Yossef et al.'s information-statistics approach
+\citep{communication-complexity-bg5} executes this for disjointness under Razborov's
+distribution, yielding the tight direct-sum theorem and, via the streaming transfer,
+the space lower bounds for frequency moments and distances
+\citep{communication-complexity-bg6,communication-complexity-bg7}. The practical
+recipe: pick the input distribution under which the transcript's information about
+the hidden object is easiest to bound from below (usually the mixture that
+correlates YES and NO cases as in Section~\ref{sec:cc-fp}), prove
+$\mathrm{IC} \ge c$ for one copy, conclude $\Omega(kc)$ total communication for $k$
+copies, and divide by the simulation overhead as in step 5 of the reachbox recipe.
+
+\subsection{Round elimination}
+
+Many systems bounds are stated in rounds (distributed passes, multipass streaming,
+cell-probe with amortized probes), and the matching communication technique deletes
+the first round of a protocol: if the first message carries little information about
+the queries that arrive only at the end, then a protocol for the $(r-1)$-round
+problem exists at slightly worse parameters, and induction drives the complexity to
+a contradiction at zero rounds. The asymmetric setting --- one party holds a large
+table, the other a short query --- is the natural habitat: Miltersen, Nisan, Safra,
+and Wigderson used round elimination on data-structure problems to prove that
+certain query times force large space \citep{communication-complexity-bg8}, and the
+same peeling argument gives $\Omega(1/\varepsilon^2)$-type pass--space tradeoffs in
+streaming: eliminate the first pass by arguing its state cannot anticipate which of
+the $\varepsilon$-scale blocks the hard relation hides in. When your reduction
+yields a \emph{few-round} protocol rather than a one-way one --- as in the multipass
+simulation of Corollary~\ref{cor:cc-ropd-mp} --- round elimination is the tool that
+converts ``cheap in $r$ rounds'' into ``costly in space''.
+
+\subsection{Asymmetric protocols and sketching}
+
+The asymmetric model charges the large-side player (Alice, holding the database or
+stream prefix) and lets the small side (Bob, holding the query or suffix) speak for
+free; it matches any setting where a big immutable object is summarized once and
+queried many times --- sketching, materialized samples, cell-probe structures.
+Indexing (Theorem~\ref{thm:cc-index}) is the canonical hard relation here, and its
+one-way structure is exactly what a one-pass streaming cut produces
+(Figure~\ref{fig:cc-transfer}). Simultaneous-message (sketching) protocols are the
+extreme point: all parties speak once, to a referee; hard relations there are harder
+to find, and the three-party $\mathrm{UniqueOverlap}$ relation of
+\citep{sigmod26-070} is a good corpus example of tailoring the relation to the
+model rather than forcing $\mathrm{DISJ}$ into a shape it does not fit.
+
+\subsection{Further reading}
+
+\begin{itemize}
+\item Kushilevitz and Nisan \citep{communication-complexity-bg1} --- the
+  comprehensive monograph; the deterministic theory (rectangles, tilings, rank), the
+  canonical relations, and the multiparty models all live here.
+\item The originals: Kalyanasundaram and Schnitger \citep{communication-complexity-bg3}
+  and Razborov \citep{communication-complexity-bg4} for disjointness; Babai, Frankl,
+  and Simon \citep{communication-complexity-bg2} for the complexity classes;
+  Chakrabarti, Khot, and Sun \citep{communication-complexity-bg9} for the multiparty
+  rate used in Section~\ref{sec:cc-fp}.
+\item The streaming consequences: Alon, Matias, and Szegedy
+  \citep{communication-complexity-bg6} where the frequency-moment program began, and
+  Muthukrishnan's survey \citep{communication-complexity-bg7} for the catalogue of
+  space lower bounds by communication reduction.
+\item Information complexity: Bar-Yossef, Jayram, Kumar, and Sivakumar
+  \citep{communication-complexity-bg5} for the information-statistics method; Jain,
+  Radhakrishnan, and Sen \citep{communication-complexity-bg10} for message
+  compression and direct sums; Braverman \citep{communication-complexity-bg11} for
+  the interactive theory and the simulation theorem.
+\item Asymmetric communication and data structures: Miltersen, Nisan, Safra, and
+  Wigderson \citep{communication-complexity-bg8}, the round-elimination source.
+\end{itemize}
+
+\begin{recap}
+\item \textbf{What the tool is.} Communication complexity proves that data must move
+  or state must be large: cut the input among parties, let the algorithm's memory
+  and messages be the transcript, and invoke a lower bound for a hard relation ---
+  $\mathrm{DISJ}$, $\mathrm{Index}$, $\mathrm{GT}$, or a tailored cousin.
+\item \textbf{Which relation when.} Interactive or multiparty two-sided settings:
+  $\mathrm{DISJ}$ ($\Omega(m)$ randomized; $\Omega(m/(k\log k))$ for $k$ parties).
+  One-pass streams and asymmetric summarize-then-query settings: $\mathrm{Index}$
+  ($\Omega(m)$ even one-way). Deterministic settings and threshold structure:
+  fooling sets and $\mathrm{GT}$ ($\Theta(\log N)$). Amortized/multi-copy
+  questions: information cost with the direct-sum and simulation theorems.
+\item \textbf{Why the transfer works.} A pass of a space-$S$ algorithm over $k$
+  chunks is a $kS$-bit protocol round (Proposition~\ref{pro:cc-transfer}); oracle
+  queries, sketch messages, and state hand-offs are all transcripts at known bit
+  cost, so communication bounds divide into space, round, message-length, or query
+  bounds.
+\item \textbf{What the corpus showed.} Noisy frequency moments
+  (Section~\ref{sec:cc-fp}): a multiparty-$\mathrm{DISJ}$ embedding with
+  similarity-pattern gadgets proves $\Omega(\varepsilon^{-1/p} m^{1-1/p})$ space and
+  communication. Join--project sampling and counting (Section~\ref{sec:cc-jp}):
+  two- and $k$-party $\mathrm{DISJ}$ reductions in the query model, plus a
+  coupon-collector transfer from listing hardness, certify
+  $N/\sqrt{\mathrm{OUT}}$ optimality. Representation obliviousness
+  (Section~\ref{sec:cc-ropd}): a three-link chain --- estimator to Promise-Union
+  protocol to $\mathrm{DISJ}$ --- forces $\Omega(n)$ space for ROPD $F_0$.
+\item \textbf{Advanced usage.} Information cost for amortized bounds
+  (Section~\ref{sec:cc-ic-advanced}), round elimination for pass/space tradeoffs,
+  asymmetric and simultaneous-message protocols for data structures and distributed
+  sketching (including the deterministic $\Omega(k)$ message bound of
+  \citep{sigmod26-070}). Deferred proofs are collected in the
+  Appendix (Section~\ref{sec:cc-appendix}).
+\end{recap}
+
+\section{Appendix}
+\label{sec:cc-appendix}
+
+Proofs omitted from the main text are collected here.
+
+\subsubsection*{Proof of Theorem~\ref{thm:cc-index} (indexing, one-way)}
+{\itshape Statement (recalled).} For every constant $\delta < 1/4$, any public-coin
+one-way protocol for $\mathrm{Index}_m$ with worst-case error at most $\delta$
+communicates at least $(1 - H(2\delta))\,m - 1$ bits, $H$ the binary entropy.\eop
+
+\begin{proof}
+Let $\Pi$ be such a protocol of cost $c$, and feed it a uniformly random input
+$(x, j)$. Averaging over the public coins, some fixed random string $r$ leaves the
+deterministic protocol $\Pi_r$ with error at most $\delta$ under this distribution.
+In $\Pi_r$, Alice's message is a function $\mathsf{m}(x) \in \{0,1\}^c$ and Bob
+decodes $g(\mathsf{m}, j) \in \{0,1\}$. For a message $\mathsf{m}$, let
+$z_{\mathsf{m}} = \bigl(g(\mathsf{m},1), \dots, g(\mathsf{m},m)\bigr) \in
+\{0,1\}^m$ be the answer string it induces, and let
+$X_{\mathsf{m}} = \{x : \mathsf{m}(x) = \mathsf{m}\}$. The distributional error is
+\[
+\frac{1}{2^m} \sum_{\mathsf{m}} \sum_{x \in X_{\mathsf{m}}}
+\frac{d_H\bigl(x, z_{\mathsf{m}}\bigr)}{m} \;\le\; \delta,
+\]
+where $d_H$ is Hamming distance --- the total mismatch mass is at most
+$\delta\, m\, 2^m$. Let $B_{\mathsf{m}}$ be the Hamming ball of radius $2\delta m$
+around $z_{\mathsf{m}}$; since $\delta < 1/4$ the standard volume bound gives
+$|B_{\mathsf{m}}| \le \sum_{i \le 2\delta m}\binom{m}{i} \le 2^{H(2\delta)\,m}$ (the
+binomial entropy bound; cf.\ Chapter~\ref{ch:inf}). Every $x \in
+X_{\mathsf{m}} \setminus B_{\mathsf{m}}$ contributes at least $2\delta m$ mismatches,
+so
+\[
+2\delta m \cdot \bigl|\{x : x \notin B_{\mathsf{m}(x)}\}\bigr|
+\;\le\; \delta\, m\, 2^m
+\quad\Longrightarrow\quad
+\bigl|\{x : x \in B_{\mathsf{m}(x)}\}\bigr| \;\ge\; 2^{m-1}.
+\]
+But $\{x : x \in B_{\mathsf{m}(x)}\} \subseteq \bigcup_{\mathsf{m}}
+B_{\mathsf{m}}$, a union of at most $2^c$ balls, hence $2^{m-1} \le 2^c \cdot
+2^{H(2\delta)m}$ and therefore $c \ge (1 - H(2\delta))\,m - 1$. For the
+deterministic claim, set $\delta = 0$: correctness forces
+$d_H(x, z_{\mathsf{m}(x)}) = 0$ for every $x$, so each message is used by at most
+one input, i.e.\ $2^c \ge 2^m$.
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:cc-243-reduction} (matrix-query bound)}
+{\itshape Statement (recalled).} For the matrix query
+$Q_{\mathrm{m}} = \pi_{A,C}(R_1(A,B) \Join R_2(B,C))$, any randomized algorithm that
+outputs any multiplicative-factor approximation of $\mathrm{OUT}$ with high
+probability requires $\Omega\bigl(\min\{n, N/\sqrt{\mathrm{OUT}}\}\bigr)$ queries in
+the query model.\eop
+
+\begin{proof}
+The proof (of the paper's two-party lemma, transcribed with cleaned notation)
+reduces disjointness on universe $[m]$. Alice and Bob receive $S_A, S_B \subseteq
+[m]$ with $|S_A| = |S_B| = m/4$ and construct a database over attributes $A, B, C$:
+the domain of $B$ is $[m]$ with active domain $S_A \cup S_B$ (of size $n$); $D(A)$
+and $D(C)$ are disjoint value sets of size $\sqrt{K}$ each, for a parameter
+$K > 1$. Alice sets $R_1 = D(A) \times S_A$; Bob sets $R_2 = S_B \times D(C)$. The
+input size is $N = |R_1| + |R_2| = \sqrt{K}\,(|S_A| + |S_B|) = \sqrt{K}\, m/2$.
+For the output: if $S_A \cap S_B = \emptyset$, no $b$-value joins, so
+$\mathrm{OUT} = 0$; if some $b \in S_A \cap S_B$, then every pair
+$(a,c) \in D(A) \times D(C)$ appears, so $\mathrm{OUT} = K$. Any
+multiplicative-factor approximation separates $0$ from $K$ with high probability,
+deciding disjointness.
+
+Now the transcript accounting. Each oracle query is answered by its owner with a
+small number of bits: a tuple test $(a,b) \in R_1$ is answered by Alice checking
+$b \in S_A$ (one bit); degree and neighbor queries on $a \in D(A)$ are answered
+from $S_A$ (degree $|S_A|$; the neighbors are the elements of $S_A$); a uniform
+sample from $R_1$ Alice draws locally from $D(A) \times S_A$; Bob handles $R_2$
+symmetrically; and $b$-side queries on $R_1$ use the public set $D(A)$. So $q$
+queries yield a two-party disjointness protocol of $o(q)$ communication (a constant
+number of bits per query). Since $n = |S_A \cup S_B| \ge m/4$ and, when
+$\mathrm{OUT} = K$, $N/\sqrt{\mathrm{OUT}} = m/2$, an algorithm making
+$o\bigl(\min\{n,\, N/\sqrt{\mathrm{OUT}}\}\bigr) = o(m)$ queries would solve
+disjointness with $o(m)$ communication, contradicting
+Theorem~\ref{thm:cc-disj}. When $\mathrm{OUT} = 0$ the bound reads $\Omega(n)$,
+which holds since the active domain of $B$ must be read to certify emptiness (the
+paper's hard instances for this case set $n = \Theta(N)$).
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:cc-promise-union} (Promise-Union)}
+{\itshape Statement (recalled).} The communication complexity of any ROPD protocol
+for Promise-Union$_m$ is $\Omega(m)$.\eop
+
+\begin{proof}
+The proof (of the paper's Lemma 3.7, transcribed with cleaned notation)
+contradicts Theorem~\ref{thm:cc-disj}. Suppose there is a family
+$P = (P_\ell)_{\ell \in \mathbb{N}}$ of ROPD protocols solving
+Promise-Union$_\ell$ with communication $o(\ell)$. Set $n = 4m$ and consider
+$P_n$. Since $P_n$ is pseudodeterministic, it has a canonical output $g(A,B)$ with
+$\Pr[P_n(A,B) = g(A,B)] \ge 2/3$ for all inputs; since it is $\rho_n$-oblivious,
+$g$ is constant on $\rho_n$-classes, i.e.\ $g(A,B)$ depends only on the union
+$A \cup B$. Define $h(X) = g(X, \emptyset)$, so that $g(A,B) = h(A \cup B)$ for
+all $A, B$. Because $P_n$ solves Promise-Union$_n$, $h(X) = 1$ whenever
+$|X| \ge 3n/4$ and $h(X) = 0$ whenever $|X| \le n/4$.
+
+Since $h([n]) = 1$, there exists an inclusion-minimal $Y \subseteq [n]$ with
+$h(Y) = 1$ and $h(Z) = 0$ for every proper subset $Z \subsetneq Y$ --- minimality
+over the full subset lattice, not just by cardinality. Any $|X| \le n/4$ has
+$h(X) = 0$, so $|Y| = n' > n/4 = m$; trivially $n' \le n = 4m$. The set $Y$, and a
+bijection identifying $Y$ with $[n']$, depends only on the protocol $P_n$ ---
+public information the players fix before seeing their inputs. The disjointness
+protocol $Q_m$ is: Alice and Bob receive $A, B \subseteq [m] \subseteq [n']$, form
+the complements $\overline{A} = [n'] \setminus A$ and
+$\overline{B} = [n'] \setminus B$, and run $P_{n'}$ on
+$(\overline{A}, \overline{B})$; Bob outputs its answer. By De Morgan,
+$A \cap B = \emptyset \iff \overline{A} \cup \overline{B} = [n']$. In the disjoint
+case the union is all of $[n'] = Y$, whose canonical value is $h(Y) = 1$, so the
+output is $1$ with probability $\ge 2/3$. In the intersecting case the union is a
+\emph{proper} subset of $[n'] = Y$, whose canonical value is $0$ by minimality, so
+the output is $0$ with probability $\ge 2/3$. Thus $Q_m$ is a pseudodeterministic
+protocol for $\mathrm{DISJ}_m$ of cost $o(n') = o(m)$ (as $n' \le 4m$),
+contradicting $\mathrm{CC}(\mathrm{DISJ}_m) = \Omega(m)$.
+\end{proof}
+
+\bibliographystyle{plainnat}
+\bibliography{chapters/communication-complexity-all}
