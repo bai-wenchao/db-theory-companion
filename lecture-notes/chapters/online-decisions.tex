@@ -1,102 +1,824 @@
-\chapter{Online decision-making: competitive analysis and regret}
+\chapter{Online Decision-Making: Competitive Analysis and Regret}
+\setcounter{section}{-1}   % sections start at 13.0 (see main.tex comment)
+\label{ch:onl}
 
-Online decision theory enters this corpus through systems doors: when to adapt a filter to a recurring false positive, whether to trust an ML oracle's prediction, how to clean a time series that has not yet arrived, how to tune a discretization knob. Four papers carry it---two via \emph{competitive analysis} \cite{sigmod26-242,sigmod26-094}, two via \emph{regret} \cite{sigmod26-140,sigmod26-221}, none an online-algorithms paper per se. They share one shape: the system commits to decisions while the input's future is unknown, and the committed sequence is judged against a hindsight optimum that sees everything. Two classical yardsticks quantify that gap, and choosing between them is this chapter's lesson.
+\begin{objectives}
+\item Recognize the online-decision shape: a system that must commit before the input ends.
+\item Prove the ladder: rent-or-buy at ratio $2$, its randomized $e/(e-1)$ twin, Hedge and
+  UCB at $\sqrt{T}$-type regret.
+\item Match the frame to the structure: irrevocable state $\to$ competitive ratio; repeated
+  game with feedback $\to$ regret.
+\item Dissect a paper's argument: comparator, adversary class, feedback, bound.
+\end{objectives}
 
-\section{The tools}
+Online decision-making is the theory of \emph{commitment under ignorance}. The input
+arrives --- a workload, a stream, a sequence of oracle answers --- and the system must act
+\emph{now}: adapt a filter entry or keep paying for false positives, trust an ML
+prediction or verify it, repair a data point it will never revisit, pick a configuration
+for the next round. What is judged later is the committed sequence, against a comparator
+that saw the whole input in advance. Two classical yardsticks quantify the gap.
+\emph{Competitive analysis} bounds the cost of every run by a multiple of the offline
+optimum: ``within factor $c$ of the best possible, on every input, no matter how
+adversarial.'' \emph{Regret} sums the per-round losses of a repeated decision and bounds
+the excess over the best fixed action in hindsight: ``average loss converging to the best
+configuration's, at rate $O(1/\sqrt{T})$.'' For a systems paper these convert empirical
+tuning folklore into worst-case contracts, and choosing between the two frames is the
+craft this chapter teaches.
 
-\begin{definition}[Competitive ratio]
-An online algorithm $A$ for a cost-minimization problem is \emph{$c$-competitive} if there is a constant $b$ such that
+In the SIGMOD'26 corpus this tool family is sparse --- two papers carry it via competitive
+analysis \citep{sigmod26-242,sigmod26-094} and two via online regret
+\citep{sigmod26-140,sigmod26-221}, none an online-algorithms paper per se. The pattern
+recurs wherever a system must commit before the future reveals itself: adversarial
+arrival order or worst-case oracle errors, irrevocable choices, and a guarantee quoted
+against a hindsight optimum. All four corpus exhibits double as this chapter's
+exemplars. This chapter presents the two frames and their ladder first;
+Section~\ref{sec:onl-advanced} adds learning-augmented algorithms, adaptive adversaries,
+and the primal-dual method as extension reading.
+
+\section{The tool: online decisions}
+\label{sec:onl-tool}
+
+The problem class is uniform across applications: an algorithm interacts with an input
+$\sigma = (\sigma_1, \sigma_2, \dots)$ \emph{piece by piece}, and the action at piece $t$
+is fixed before $\sigma_{t+1}$ is seen --- the filter meets the next query before knowing
+how often it recurs, the repair engine commits a cleaned point before the series ends,
+the search routine prunes on an oracle's say-so. The analysis compares the committed
+sequence against a \emph{comparator with foresight}. Two comparators define the two
+frames of this chapter: the \emph{offline optimum} --- the best decision sequence over
+the whole input --- and the \emph{best fixed action} --- the single decision best over
+all rounds. Everything else is ladder craft: which comparator, which adversary, which
+feedback.
+
+\begin{remarkbox}[Notation]
+$\mathrm{ALG}(\sigma)$ is the cost of the online algorithm on input $\sigma$ and
+$\mathrm{OPT}(\sigma)$ the cost of the offline optimum; for randomized algorithms the
+bound is on $\mathbb{E}[\mathrm{ALG}(\sigma)]$, expectation over the algorithm's coins.
+An \emph{oblivious} adversary fixes $\sigma$ before seeing any coin flip; an
+\emph{adaptive} adversary may choose $\sigma_{t+1}$ as a function of the algorithm's
+past behavior. In the regret frame, $T$ is the number of rounds, $N$ (or $K$) the number
+of actions, losses and rewards are normalized to $[0,1]$, and $R_T$ denotes regret.
+\end{remarkbox}
+
+\subsection{The ladder: ratios, then regrets}
+\label{sec:onl-ladder}
+
+The competitive frame descends from the amortized analysis of list update and paging
+\citep{online-decisions-bg1}, and its definitions are compact.
+
+\begin{definition}[Competitive ratio]\label{def:onl-cr}
+An online algorithm $A$ for a cost-minimization problem is \emph{$c$-competitive} if
+there is an input-independent constant $b$ with
 \[
-\operatorname{cost}_A(\sigma) \;\le\; c\cdot\operatorname{cost}_{\mathrm{OPT}}(\sigma) + b
-\qquad\text{for every input sequence }\sigma,
+\mathrm{ALG}(\sigma) \;\le\; c\cdot\mathrm{OPT}(\sigma) + b
+\qquad\text{for every input sequence }\sigma;
 \]
-where $\mathrm{OPT}$ is the offline optimum that observes all of $\sigma$---including where it ends---before acting.
+for randomized $A$ the bound is on $\mathbb{E}[\mathrm{ALG}(\sigma)]$, read against a
+specified adversary class.
 \end{definition}
 
-The canonical micro-example is \emph{ski rental}: skis rent for $1$ per day and cost $B$ to buy; each morning the skier learns only whether the season continues. Renting for $B$ days and then buying is $2$-competitive, and no deterministic algorithm does better; randomization lowers the barrier to $e/(e-1)\approx 1.58$ against an oblivious adversary~\cite{online-decisions-bg2}. The framework descends from the amortized analysis of list update and paging~\cite{online-decisions-bg1}. Figure~\ref{fig:ski-rental} shows the geometry; the memoryless ``when do I commit?'' structure is why this toy model reappears below in database clothing.
+The canonical exhibit is \emph{ski rental} (rent-or-buy): skis rent for $1$ per day and
+cost $B$ to buy; each morning the skier learns only whether the season continues, and
+must decide rent-or-buy before skiing. Every ``small repeated cost versus one large
+permanent cost'' trade-off in a system is this problem in disguise.
 
-\begin{figure}[ht]
-\centering
+\begin{theorem}[Deterministic ski rental]\label{thm:onl-ski-det}
+Rent for $B-1$ days, then buy. This algorithm is $(2-\tfrac{1}{B})$-competitive, and no
+deterministic algorithm achieves a smaller competitive ratio. \eop
+\end{theorem}
+
+\begin{proof}
+Let the season last $t$ days. If $t < B$ the algorithm rents throughout, paying
+$t = \mathrm{OPT}(t)$. If $t \ge B$ it pays $(B-1) + B = 2B - 1$ while
+$\mathrm{OPT}(t) = \min(t,B) = B$, a ratio of $2 - 1/B$. The matching lower bound is
+Theorem~\ref{thm:onl-ski-lb} below.
+\end{proof}
+
+\begin{theorem}[Deterministic lower bound]\label{thm:onl-ski-lb}
+Every deterministic ski-rental algorithm has an input on which its ratio is at least
+$2 - 1/B$. In particular no deterministic algorithm is $c$-competitive for any $c < 2$
+and all $B$. \eop
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+A deterministic algorithm is a buy day $b$. The adversary ends the season exactly on
+day $b$: buying too early wastes the purchase, too late wastes the rent. The full
+two-case accounting is in the Appendix (Section~\ref{sec:onl-appendix}).
+\end{proof}
+
+Randomization helps once the adversary is fixed to be \emph{oblivious}: it must commit
+to the season length before seeing the algorithm's coins, so a distribution over buy
+days cannot be targeted \citep{online-decisions-bg2,online-decisions-bg14}.
+
+\begin{theorem}[Randomized ski rental, continuous relaxation]\label{thm:onl-ski-rand}
+Let the season end at any real time $t \ge 0$, with rental rate $1$ and purchase price
+$B$. Against an oblivious adversary, the algorithm that buys at a random time
+$x \in [0,B]$ drawn from the density $p(x) = e^{x/B}/(B(e-1))$ (renting until $x$ or the
+season's end, whichever comes first) satisfies, for every $t$,
+\[
+\mathbb{E}[\mathrm{ALG}(t)] \;\le\; \frac{e}{e-1}\cdot\mathrm{OPT}(t). \eopm
+\]
+\end{theorem}
+
+The ratio $e/(e-1) \approx 1.582$ is also the optimal randomized competitive ratio
+for ski rental against oblivious adversaries \citep{online-decisions-bg2}.
+
+\begin{proof}
+The expected cost is $\mathbb{E}[\mathrm{ALG}(t)] = \int_0^t p(x)\,(x + B)\,dx + t\,
+\Pr[x > t]$. Write $s = t/B$ and substitute $u = x/B$; using
+$\int e^u (u+1)\,du = e^u u$,
+\[
+\frac{\mathbb{E}[\mathrm{ALG}(t)]}{B}
+\;=\; \frac{s\,e^{s}}{e-1} + s\Bigl(1 - \frac{e^{s}-1}{e-1}\Bigr)
+\;=\; \frac{s}{e-1} + s \;=\; \frac{e}{e-1}\cdot\frac{t}{B} \quad (t \le B),
+\]
+while for $t \ge B$ the same expression at $s = 1$ gives
+$\mathbb{E}[\mathrm{ALG}(t)] = \frac{e}{e-1}B \le \frac{e}{e-1}\,\mathrm{OPT}(t)$,
+since $\mathrm{OPT}(t) = B$ there.
+\end{proof}
+
+\begin{widefigure}[t]
+\pgfplotsset{compat=1.15}
 \begin{tikzpicture}
-\begin{axis}[width=0.38\textwidth,height=3.2cm,
-  xlabel={season length $t$ (units of $B$)}, ylabel={cost},
-  xmin=0,xmax=2.2,ymin=0,ymax=2.5,
-  legend pos=north west,legend style={font=\small},
-  tick label style={font=\small},label style={font=\small}]
-\addplot coordinates {(0,0) (1,1) (2,2)};
-\addplot coordinates {(0,0) (1,1) (2,1)};
-\legend{ALG: rent to day $1$ then buy,OPT: hindsight}
+\begin{axis}[
+  width=0.6\textwidth, height=5cm,
+  xlabel={season length $t$ (units of $B$)}, ylabel={cost (units of $B$)},
+  xmin=0, xmax=2.4, ymin=0, ymax=2.3,
+  legend pos=north west, legend cell align=left,
+  tick label style={font=\scriptsize}, label style={font=\small}]
+\addplot[black, thick]        {min(x,2)};
+\addlegendentry{deterministic: rent $B{-}1$ then buy}
+\addplot[gray, thick, dashed] {min(1.582*x,1.582)};
+\addlegendentry{randomized: $e/(e{-}1)$-competitive}
+\addplot[gray, thick, dotted] {min(x,1)};
+\addlegendentry{OPT (hindsight)}
 \end{axis}
 \end{tikzpicture}
-\caption{Ski rental with rent $1$ and buy price $B=1$: rent-to-$B$-then-buy matches OPT while $t<B$ and never exceeds $2\cdot\mathrm{OPT}$.}
-\label{fig:ski-rental}
-\end{figure}
+\caption{Ski rental geometry (prices in units of $B$): every algorithm tracks OPT while
+renting and flattens when it buys. The deterministic threshold at $B$ flattens at $2B$;
+the randomized buy time flattens, in expectation, at $\frac{e}{e-1}B$ --- the whole game
+is where to place the elbow.}
+\label{fig:onl-ski}
+\end{widefigure}
 
-\begin{definition}[Regret]
-For decisions $a_1,\dots,a_T$, where round $t$ charges a loss $\ell_t(a_t)$ revealed only after the decision, the \emph{regret} against the best fixed comparator is
+\sidenote{The discrete problem attains $e/(e-1) + O(1/B)$ with a geometric distribution
+over buy days. The pattern to remember: \emph{choose the coin distribution so the
+expected cost is a constant multiple of the optimum for every input} --- an equalization
+condition, not a tail bound.}
+
+The second frame changes the protocol: instead of one commitment against one adversarial
+input, the same decision repeats over $T$ rounds with feedback after each round.
+
+\begin{definition}[External regret]\label{def:onl-regret}
+At each round $t \in [T]$ the learner picks an action $a_t$ from a set $\mathcal{A}$ of
+size $N$, then suffers loss $\ell_t(a_t)$ for a loss vector
+$\ell_t \in [0,1]^{\mathcal{A}}$. The \emph{external regret} is
 \[
-R_T \;=\; \sum_{t=1}^{T}\ell_t(a_t)\;-\;\min_{a\in\mathcal{A}}\sum_{t=1}^{T}\ell_t(a).
+R_T \;=\; \sum_{t=1}^{T}\ell_t(a_t) \;-\; \min_{a\in\mathcal{A}}
+\sum_{t=1}^{T}\ell_t(a),
 \]
-An algorithm is \emph{no-regret} if $R_T=o(T)$: its average loss converges to that of the best action chosen once, in hindsight.
+the excess loss over the \emph{best fixed action chosen once, in hindsight}. An
+algorithm is \emph{no-regret} if $R_T = o(T)$: its average loss converges to the best
+fixed action's. In \emph{full-information} feedback the whole $\ell_t$ is revealed after
+round $t$; in \emph{bandit} feedback only $\ell_t(a_t)$.
 \end{definition}
 
-In the stochastic multi-armed bandit ($K$ actions, rewards in $[0,1]$ with fixed unknown means, only the chosen arm's reward observed), UCB plays the arm with the highest optimism index $\bar r_k+\sqrt{2\ln t/n_k}$ and achieves $R_T=O(\sqrt{KT\log T})$~\cite{online-decisions-bg3}; adversarial and unified views are surveyed in~\cite{online-decisions-bg4}. In short: the \emph{competitive ratio} prices the unknown future---unrestricted adversary, switching comparator, guarantee on every input---for one-shot commitments under adversarial workloads; \emph{regret} prices ignorance of a distribution---repeated rounds, per-round feedback, fixed comparator, $O(\sqrt{T})$ bound---for stochastic tuning loops.
+The naive candidate --- follow the leader (FTL), play the action with the least past
+loss --- is not no-regret: two actions with alternating losses make FTL wrong at every
+round, for $\Theta(T)$ regret. Every no-regret algorithm is FTL stabilized: by
+exponential damping (multiplicative weights, below), by randomization
+(follow-the-perturbed leader), or by a proximal term (online gradient descent)
+\citep{online-decisions-bg4,online-decisions-bg11}. The workhorse is:
 
-\section{Four exemplars from the corpus}
-
-\subsection{Ski rental inside a sketch filter}
-
-A streaming distinct-count filter occasionally yields a false positive; each repeat costs a database lookup $C_{DB}$, adapting the entry costs an extra reverse-map lookup $C_{RM}=\alpha\,C_{DB}$, and after adapting both costs stop. Whether and when to adapt is ski rental in disguise---rental price $C_{DB}$, purchase price $C_{DB}+C_{RM}$, adversarial arrival stream.
-
-\begin{theorem}[Adapt after $\lfloor\alpha\rfloor$ repeats; 2-competitive]
-If $\alpha\ge 1$, i.e., the cost of querying the reverse map is greater than a database lookup, the optimal deterministic strategy is to adapt immediately after the false positive repeats $\lfloor\alpha\rfloor$ times, and is 2-competitive.
-\end{theorem}
-
-\begin{remark}[The golden-ratio threshold]
-For $\alpha<1$ the two candidate policies have ratios $1+\alpha$ (adapt immediately) and $(2+\alpha)/(1+\alpha)$ (adapt on the second false positive); these cross where $\alpha^2+\alpha-1=0$, i.e.\ at $\alpha=(\sqrt{5}-1)/2\approx 0.618$. The optimal rule: adapt immediately when $\alpha<0.618$, adapt on the second occurrence otherwise.
-\end{remark}
-
-The competitive ratio is the right yardstick: the arrival stream is adversarial and the offline comparator knows when the repeats end. The skeleton also composes---augmenting a strongly adaptive filter with this routine bounds false positives by $(1+\lceil\alpha\rceil)\bigl(n\epsilon+O(\sqrt{n\epsilon\log n+\log n})\bigr)$ with high probability, the 2-competitive core living inside a high-probability bound. \cite{sigmod26-242}
-
-\subsection{Paying for oracle predictions at enumeration time}
-
-Subgraph-isomorphism (\textsc{SubIso}) enumeration is accelerated by an ML oracle that prunes the search at prediction cost $f(Q,M)$, but a wrong prediction misses matches. The paper's $\beta$-robustness---extra output cost relative to the optimal exact enumerator---is a competitive ratio; the general case is barred, then per-algorithm ratios are proved.
-
-\begin{theorem}[No constant robustness in general]
-No algorithm exists for \textsc{SubIso} that is both output polynomial and $\beta$-robust for any positive constant $\beta$ unless $\mathrm{fewP}=P$, where $\mathrm{fewP}$ denotes the class of problems recognizable by a nondeterministic Turing machine in polynomial time with only polynomially many solutions.
-\end{theorem}
-
-For the paper's oracle-guided hybrids the matching upper bounds are constant competitive ratios, e.g.\ $5N_c\,(f(Q,M)+2|G|\,|Q|)$ for $\mathrm{VF3}_M$ with probability at least $1-\epsilon$, proved via a generalized Bonferroni inequality over the oracle's false predictions. The barrier is a parsimonious reduction; the ratios fit competitive analysis since the graph is arbitrary and the comparator is the exact enumerator's cost---paid in oracle calls and output quality rather than money. \cite{sigmod26-094}
-
-\subsection{Windowed time-series repair with decay regret}
-
-Given a multivariate time series violating soft and hard constraints, the offline optimal repair is computed exactly as the maximum-weight path in a DAG over anchor points. The online algorithm is the same dynamic program restricted to a sliding window of width $W$, so its regret is precisely what the truncated lookback misses.
-
-\begin{theorem}[Exponentially decaying window regret]
-The regret $R_n$ of the online algorithm is bounded:
+\begin{theorem}[Multiplicative weights / Hedge]\label{thm:onl-mw}
+Let $N \ge 2$, $T \ge 4\ln N$, and let the loss vectors $\ell_1,\dots,\ell_T \in
+[0,1]^N$ be arbitrary --- possibly chosen adaptively, after seeing the learner's past
+actions. Exponential weights initializes $w_1(i) = 1$ for all $i$, updates
+$w_{t+1}(i) = w_t(i)\,(1-\varepsilon)^{\ell_t(i)}$, and plays action $i$ with
+probability $w_t(i)/\sum_j w_t(j)$. With $\varepsilon = \sqrt{\ln N / T}$,
 \[
-R_n \;=\; \sum_{i=1}^{n} r_i \;\le\; \sum_{i=1}^{n} e^{-\beta(W+1)} \;=\; n\,e^{-\beta(W+1)},
+\mathbb{E}[R_T] \;\le\; 2\sqrt{T\ln N}. \eopm
 \]
-where each one-step regret $r_i$ compares the score of the offline optimal anchor point with that of the best anchor visible within the window, and the strictly decreasing path weights obey $\gamma(\Delta)\le e^{-\beta\Delta}$.
 \end{theorem}
 
-The comparator is a best \emph{sequence} (the exact offline optimum), a competitive-analysis comparator, yet the guarantee is a sum of per-step gaps in the regret style; the exponential decay makes a bounded window affordable---each extra unit of window multiplies the neglected tail by $e^{-\beta}$. \cite{sigmod26-221}
+\begin{proof}[Proof idea]
+A potential argument on the total weight $W_t$: Jensen's inequality charges the
+expected loss of round $t$ to the log-decline of $W_t$, and the weights telescope; the
+best action's weight lower-bounds $W_{T+1}$. (Full proof in
+Section~\ref{sec:onl-appendix}; the scheme originates with
+\citep{online-decisions-bg6,online-decisions-bg7} and is surveyed in
+\citep{online-decisions-bg12}.)
+\end{proof}
 
-\subsection{Attribute discretization as a bandit}
+When the environment is \emph{stochastic} rather than adversarial --- each action $i$ is
+an arm with a fixed unknown reward distribution of mean $\mu_i \in [0,1]$, and only the
+played arm is observed --- the bandit rung improves on Hedge by concentrating plays on
+plausible-optimal arms only:
 
-Choosing how to bin numerical attributes is posed as maximizing $J(B,D)=\alpha\,M_{\mathrm{sem}}(B)+(1-\alpha)\,M_{\mathrm{util}}(B,D)$ over partition sets, with the search organized as an MDP over clusters of similar partitions. The only provable guarantee comes from the case where the search collapses to a repeated choice among $K$ cluster-arms.
-
-\begin{theorem}[The single-attribute case is exactly a $K$-armed bandit]
-If (i) $d=1$ (single attribute, one action per episode) and (ii) MCC uses the UCB index for action selection and updates, then Algorithm 1 becomes a UCB-guided MCC variant and reduces exactly to a stochastic multi-armed bandit with $K$ arms (one per cluster) and reward in $[0,1]$ given by $J$; this equivalence does not extend to the multi-attribute case ($d>1$). Running Algorithm 1 for $T$ episodes yields the regret guarantees inherited from UCB: gap-free regret $O(\sqrt{KT\log T})$.
+\begin{theorem}[UCB1, Theorem~1 of \citealp{online-decisions-bg3}, notation
+cleaned]\label{thm:onl-ucb}
+Play each of the $K$ arms once; thereafter play the arm maximizing the index
+$\bar r_i + \sqrt{2\ln t / n_i}$ ($\bar r_i$: empirical mean, $n_i$: play count). With
+$\Delta_i = \max_j \mu_j - \mu_i$ the gap of arm $i$, the expected regret satisfies
+\[
+\mathbb{E}[R_T] \;\le\; \sum_{i\,:\,\Delta_i > 0} \frac{8\ln T}{\Delta_i}
+\;+\; \Bigl(1 + \frac{\pi^2}{3}\Bigr)\sum_{i\,:\,\Delta_i > 0}\Delta_i
+\;=\; O\bigl(\sqrt{KT\log T}\bigr). \eopm
+\]
 \end{theorem}
 
-This is the reduction school of regret usage: engineer the system so an existing bandit theorem applies verbatim and inherit $O(\sqrt{KT\log T})$ for free. Regret fits because episodes repeat with stochastic rewards in $[0,1]$ and the comparator is the best fixed cluster; for $d>1$ the equivalence breaks and no guarantee is claimed. \cite{sigmod26-140}
+\begin{proof}[Proof idea]
+Optimism: the index is an upper confidence bound, so by Lemma~\ref{lem:onl-ucb-conv} a
+suboptimal arm is played only while its empirical mean still \emph{could} be optimal;
+each such play shrinks its confidence width by $1/\sqrt{n_i}$, and summing the widths
+yields the $\ln T/\Delta_i$ terms. The confidence lemma is proved in
+Section~\ref{sec:onl-appendix}; the completion is Theorem~1 of
+\citep{online-decisions-bg3}.
+\end{proof}
 
-\begin{reachbox}{When to reach for competitive analysis vs regret}
-\begin{itemize}
-\item \textbf{Competitive ratio}: the decision is a commitment (adapt, buy, rebuild, trust an oracle) under a possibly adversarial input, and you need a guarantee on \emph{every} run---ski-rental-shaped trade-offs between a repeated small cost and a one-time large one. Deterministic bounds are typically $2$; randomization usually improves them once an adversary model is fixed.
-\item \textbf{Regret}: the same decision repeats over many rounds with per-round feedback and tacit stochasticity---tuning, configuration search, repair over stationary error processes. The comparator is a \emph{fixed} action in hindsight; the $O(\sqrt{T})$ bound is weak per run, strong on average.
-\item \textbf{Hybrids are the corpus pattern}: reduce the system to a $K$-armed bandit and inherit UCB's bound wholesale; wrap a 2-competitive sub-routine inside a high-probability filter bound; measure a windowed online heuristic against the exact offline DP with a decay argument.
-\item \textbf{Check before you cite}: regret needs normalized rewards (here $[0,1]$) and a defined feedback model; a competitive ratio needs a well-defined offline optimum and, if randomized, an oblivious adversary.
-\end{itemize}
+The workhorse behind the index is a concentration statement --- the same
+Hoeffding-plus-union-bound skeleton as the concentration chapter of this book, uniform
+over arms and play counts.
+
+\begin{lemma}[UCB confidence width]\label{lem:onl-ucb-conv}
+Fix a round $t \ge 1$; let $\bar r_i$ be arm $i$'s empirical mean after $n_i \ge 1$
+plays. With probability at least $1 - 2K/t^{3}$, simultaneously for all arms,
+\[
+\bigl|\bar r_i - \mu_i\bigr| \;\le\; \sqrt{2\ln t\,/\,n_i}. \eopm
+\]
+\end{lemma}
+
+The two regret rungs differ in what they assume: Hedge needs no stochasticity at all,
+while UCB1 needs independent rewards and pays with a gap-structured --- often much
+smaller --- bound. Adversarial bandit feedback is handled by exp3 at
+$O(\sqrt{KT\log N})$ \citep{online-decisions-bg8}.
+
+The newest rung changes what the algorithm may know. Modern systems carry predictors ---
+learned cost models, ML oracles, LLM hints --- and the question is how to use a
+prediction that may be wrong \citep{online-decisions-bg9,online-decisions-bg13}.
+
+\begin{definition}[Consistency and robustness]\label{def:onl-laug}
+An online algorithm $A$ equipped with a prediction (advice) $\hat\tau$ is
+\emph{$\alpha$-consistent} if $\mathrm{ALG} \le \alpha\cdot\mathrm{OPT} + b$ whenever
+the prediction is correct, and \emph{$\beta$-robust} if
+$\mathrm{ALG} \le \beta\cdot\mathrm{OPT} + b$ for every input and every prediction,
+however wrong.
+\end{definition}
+
+\begin{proposition}[Advice-following is fragile]\label{prop:onl-laug-fragile}
+For ski rental with a predicted season length $\hat\tau$, the advice-following
+algorithm --- rent forever if $\hat\tau \le B$, buy immediately if $\hat\tau > B$, which
+is what OPT would do if the prediction were true --- is exactly $1$-consistent and has
+robustness $B$ (unbounded as a function of the instance). \eop
+\end{proposition}
+
+\begin{proof}
+If the prediction is correct, the algorithm plays OPT's own strategy, so its cost is
+$\mathrm{OPT}$: consistency $1$. For robustness, let the prediction be
+$\hat\tau = B+1 > B$ while the true season lasts $t = 1$ day: the algorithm buys at
+once and pays $B$, while $\mathrm{OPT}(1) = 1$, a ratio of $B$.
+\end{proof}
+
+The learning-augmented program asks for both at once --- near-$1$ consistency
+\emph{and} bounded robustness, typically by hedging the advice with a classical
+schedule; the trade-offs are developed in Section~\ref{sec:onl-laug-advanced}.
+
+\subsection{How to choose the frame}
+\label{sec:onl-choose}
+
+Frame selection is mechanical once two questions are answered. \emph{First, does the
+decision change persistent state?} If the choice is irrevocable --- adapt a filter
+entry, buy the skis, rebuild an index, commit a repair, prune a search branch --- a
+wrong commitment cannot be averaged away and the guarantee must hold on every input: use
+the competitive frame, comparator $\mathrm{OPT}$, adversary explicit (workload order is
+rarely under the system's control, so assume adversarial). If the same choice repeats
+over rounds, each ending with feedback, early mistakes amortize: use the regret frame,
+comparator the best fixed action. \emph{Second, what does the feedback reveal?}
+Full-information feedback (every candidate's score eventually observable) admits Hedge
+at $O(\sqrt{T\ln N})$; bandit feedback (only the chosen candidate's score) forces
+UCB/exp3-style exploration at $O(\sqrt{KT\log T})$.
+
+Hybrids are common and legitimate: a windowed streaming algorithm compared to the
+offline optimum with an \emph{additive, decaying} per-step gap
+(Section~\ref{sec:onl-shclean}) borrows the competitive comparator and the regret
+bookkeeping; a competitive sub-routine can sit inside a high-probability bound
+(Section~\ref{sec:onl-ski}); a stochastic tuner can be reduced to a bandit wholesale
+(Section~\ref{sec:onl-quill}). Name the frame in the paper's own terms --- corpus papers
+say ``regret'' for hindsight-optimal-sequence comparators too --- but the comparator and
+the adversary class, not the word, determine which proof technique applies.
+
+\begin{reachbox}{When to Reach for Online Analysis}
+Reach whenever a component must commit while the input is still arriving ---
+adapt-or-not choices, windowed repair, oracle trust, repeated tuning --- and the
+deliverable is a contract quoted against a hindsight optimum. Then:
+\begin{enumerate}
+\item Name the decision, what each arrival reveals, and which choices are irrevocable.
+\item Name the comparator --- offline optimum (ratio) or best fixed action (regret) ---
+  and the adversary class (oblivious or adaptive) if randomized.
+\item Pick the rung: irrevocable one-shot state $\to$ deterministic competitive analysis
+  (ratio $2$ the classic barrier; randomization buys $e/(e-1)$ vs an oblivious
+  adversary); repeated rounds with feedback $\to$ Hedge ($2\sqrt{T\ln N}$, adversarial,
+  full information) or UCB ($O(\sqrt{KT\log T})$, stochastic, bandit); windowed
+  streaming vs an offline DP $\to$ additive per-step regret with a decay argument.
+\item Verify prerequisites: losses/rewards in $[0,1]$; feedback model fixed; i.i.d.\
+  rewards for UCB-type bounds; adversary class stated for randomized ratios.
+\item If a learned predictor is available, define consistency/robustness targets and
+  hedge the advice rather than trusting it (Section~\ref{sec:onl-laug-advanced}).
+\end{enumerate}
 \end{reachbox}
+
+\section{Ski rental inside a distinct-count filter}
+\label{sec:onl-ski}
+
+The exemplar is a SIGMOD'26 paper on adaptive approximate data structures
+\citep{sigmod26-242}. Approximate membership and distinct-count filters answer
+queries in constant space, but they return false positives, and the standard
+cure is verification: each suspect answer is checked against the database, at
+exactly the cost the filter was meant to avoid. Many such filters can also
+\emph{adapt} --- materialize a reverse map that eliminates a recurring false
+positive once and for all --- but adaptation carries a one-time cost, and it is
+wasted if the false positive never recurs. The paper's observation is that this
+adapt-or-not decision is ski rental verbatim: verification is rent, the reverse
+map is the purchase, and the season length is how often the same false positive
+recurs. It derives the optimal deterministic adapt schedule for every cost
+ratio, proves it $2$-competitive, exposes a golden-ratio threshold in the
+cheap-adaptation regime, and composes the schedule with a filter bound for an
+end-to-end high-probability guarantee.
+
+\paragraph{Problem.}
+A filter answers queries over a stream; a false positive costs
+$C_{\mathrm{DB}}$ --- one database verification --- each time it recurs. The
+filter may \emph{adapt}: for a one-time cost $C_{\mathrm{RM}}$ it materializes
+a reverse map eliminating that false positive permanently. Write
+$\alpha = C_{\mathrm{RM}}/C_{\mathrm{DB}}$. The input is the sequence of
+false-positive recurrences, revealed one at a time and chosen adversarially;
+after each false positive the filter irrevocably decides adapt-or-not. The
+offline optimum knows the sequence and adapts at the best moment; the question
+is how much a blind schedule can lose against it.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Adapt threshold, Theorem~1 of the paper, notation cleaned]
+\label{thm:onl-ski-thm1}
+If $\alpha \ge 1$ (adapting costs at least one verification), the optimal
+deterministic strategy adapts immediately after the same false positive recurs
+$\lfloor\alpha\rfloor$ times, and it is $2$-competitive --- no deterministic
+schedule achieves a smaller ratio. \eop
+\end{theorem}
+
+\begin{theorem}[Cheap adaptation, Theorem~5 of the paper]\label{thm:onl-ski-thm5}
+If $\alpha < 1$, the optimal deterministic strategy adapts immediately when
+$\alpha < 0.618$ and on the second recurrence otherwise. \eop
+\end{theorem}
+
+\paragraph{How competitive analysis is applied.}
+The reduction is literal: rent $= C_{\mathrm{DB}}$ per recurrence, buy $=
+C_{\mathrm{RM}}$, season $=$ recurrence count of the worst false positive;
+Theorem~\ref{thm:onl-ski-thm1} is the $\alpha \ge 1$ rung of
+Theorem~\ref{thm:onl-ski-det}, and its proof re-runs the two-case ski-rental
+accounting: for a season of $k \le \lfloor\alpha\rfloor$ recurrences the
+schedule pays $k\,C_{\mathrm{DB}}$ and is optimal; for $k > \lfloor\alpha\rfloor$
+it pays $\lfloor\alpha\rfloor C_{\mathrm{DB}} + (C_{\mathrm{DB}} +
+C_{\mathrm{RM}})$ against an offline optimum of $C_{\mathrm{DB}} +
+C_{\mathrm{RM}}$, a ratio of $1 + \lfloor\alpha\rfloor/(1+\alpha) \le 2$. In
+the $\alpha < 1$ regime two candidate schedules compete --- adapt immediately
+(worst-case ratio $1+\alpha$) and adapt on the second recurrence (ratio
+$(2+\alpha)/(1+\alpha)$) --- and equating them gives $\alpha^2 + \alpha - 1 =
+0$, i.e.\ the golden ratio $\alpha = (\sqrt{5}-1)/2 \approx 0.618$ of
+Theorem~\ref{thm:onl-ski-thm5}; adapting on the third recurrence or later is
+dominated (ratio $\ge (3+\alpha)/(1+\alpha)$). The composition step closes the
+loop with the data structure itself: by Lemma~6 of the paper, a strongly
+adaptive filter driven by the ski-rental schedule never returns more than
+$(1+\lceil\alpha\rceil)\bigl(n\varepsilon +
+O(\sqrt{n\varepsilon\log n + \log n})\bigr)$ false positives with high
+probability --- the filter's whp false-positive budget, times the at most
+$1+\lceil\alpha\rceil$ recurrences the schedule grants any one of them.
+
+\paragraph{What it buys.}
+The filter inherits a worst-case cost contract with no assumptions on the
+workload, and the adapt threshold is a closed form computed from two measured
+constants --- verification latency and reverse-map build cost --- rather than a
+tuned parameter. Because the composition multiplies, any filter whose false
+positives are whp-bounded plugs in and inherits the same end-to-end guarantee.
+
+\section{Paying for oracle predictions in pattern enumeration}
+\label{sec:onl-oracle}
+
+The exemplar is a SIGMOD'26 paper on graph pattern matching with learned
+oracles \citep{sigmod26-094}. Subgraph isomorphism --- enumerate all matches of
+a pattern $Q$ in a graph $G$ --- sits behind motif search, fraud detection, and
+knowledge-graph queries, and it is hopeless in the worst case. The paper
+accelerates a VF3-style enumerator with an ML model $M$ that predicts, at each
+partial match, whether it can still extend to a full match, so that hopeless
+branches are pruned without exploration. The online content is not arrival
+order but \emph{irrevocable trust}: once the enumerator skips a branch on the
+oracle's word the matches beneath it are lost, and the oracle is wrong some of
+the time --- the adversary that must be survived is worst-case oracle error,
+not workload order. The paper's answer is a guarantee package imported from
+online analysis wholesale: a recall floor under oracle errors, an
+impossibility barrier from enumeration complexity, and a competitive ratio for
+total work against the offline optimal enumeration.
+
+\paragraph{Problem.}
+Given $G$ and $Q$, enumerate the match set $Q(G)$. The oracle $M$ is invoked
+on partial matches $\rho$ and predicts whether $\rho$ extends to a full match;
+the enumerator prunes on ``false''. $M$ has error rate $\eta$ and makes $N_N$
+false predictions in a run. Skipping is irrevocable: matches under a wrongly
+pruned branch never return. The paper measures accuracy by recall, packaged as
+its robustness notion:
+
+\begin{definition}[$\beta$-robustness, the paper's notion, notation cleaned]
+\label{def:onl-oracle-robust}
+An enumeration algorithm is \emph{$\beta$-robust} if its recall is at least
+$1/\beta$: it returns at least a $1/\beta$ fraction of all full matches. \eop
+\end{definition}
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Robustness barrier, Theorem~2 of the paper]
+\label{thm:onl-oracle-barrier}
+No algorithm for SubIso is simultaneously output-polynomial and $\beta$-robust
+for any positive constant $\beta$, unless $\mathrm{fewP} = \mathrm{P}$. \eop
+\end{theorem}
+
+\begin{theorem}[Recall under oracle errors, Theorem~4 of the paper, notation
+cleaned]\label{thm:onl-oracle-robust-thm}
+For constant $\varepsilon \in (0,1)$, with probability at least $1-\varepsilon$
+the recall of the pruning enumerator $\mathrm{VF3}_M^N$ is at least
+\[
+\frac{\mathrm{Output}_T}{\mathrm{Output}_T + N_N\,B}, \eopm
+\]
+where $\mathrm{Output}_T$ is the number of full matches returned, $N_N$ the
+number of false predictions of $M$, and $B$ an explicit quantity depending on
+$|G|$, the error rate $\eta$, and $\varepsilon$.
+\end{theorem}
+
+\begin{theorem}[Competitive ratio, Corollary~7 of the paper, notation
+cleaned]\label{thm:onl-oracle-cr}
+With probability at least $1-\varepsilon$, the total cost of the oracle-guided
+enumeration is at most $2|G|\,C\,f(Q,M)\cdot\mathrm{OPT}$, where $\mathrm{OPT}$
+is the offline optimal enumeration cost, $C$ depends on $|G|$, $\eta$ and
+$\varepsilon$, and $f(Q,M)$ is the cost of one oracle prediction. \eop
+\end{theorem}
+
+\paragraph{How online decisions are applied.}
+Three moves, each mapped to the recipe of Section~\ref{sec:onl-choose}.
+\emph{Comparator}: the offline optimal enumeration cost; since the enumerator
+has precision $1$, at least $\mathrm{Output}_T$ full matches exist, so
+$\mathrm{Output}_T \le \mathrm{OPT}$, and a work bound of
+$|G|(\mathrm{Output}_T+1)\,C f(Q,M)$ becomes the competitive ratio of
+Theorem~\ref{thm:onl-oracle-cr}. \emph{Adversary}: worst-case oracle errors ---
+the guarantees hold for any prediction sequence with the stated error count, an
+oblivious-style assumption on $M$'s mistakes rather than on input order, and
+the honest frame of this exemplar. \emph{Workhorse}: the generalized Bonferroni
+inequality converts a per-false-prediction bound --- each false prediction of
+$M$ misses at most $B$ matches with probability $1 - \varepsilon/N_N$ --- into
+the global recall floor of Theorem~\ref{thm:onl-oracle-robust-thm} at
+probability $1-\varepsilon$: union-bound craft, in enumeration clothing.
+
+\paragraph{What it buys.}
+ML-accelerated enumeration gets a contract, not an ablation: precision always;
+recall within an explicit factor that improves as the oracle does, so model
+quality pays off in guaranteed currency; a barrier
+(Theorem~\ref{thm:onl-oracle-barrier}) showing that robustness and
+output-polynomial time cannot both be bought; and a work bound competitive
+with offline optimal whenever predictions are cheap.
+
+\section{Windowed time-series repair with decaying regret}
+\label{sec:onl-shclean}
+
+The exemplar is a SIGMOD'26 paper on cleaning multivariate time series
+\citep{sigmod26-221}. Real sensor streams violate both soft constraints ---
+smoothness, forecast consistency --- and hard constraints such as conservation
+laws, and repairs often must be made \emph{as the stream arrives}: a fix
+committed now cannot be revisited when late evidence shows up. The paper,
+SHoTClean, first shows that offline repair under both constraint types is
+exactly a maximum-weight path in a DAG --- nodes are anchor points, edges are
+interpolations, and weight is a strictly decreasing function of gap length ---
+and then runs the same construction inside a sliding window of width $W$,
+committing each repair with only $W$ steps of lookahead. Its guarantee is
+hybrid exactly as Section~\ref{sec:onl-choose} anticipated: the comparator is
+the offline whole-stream optimum, and the bound is an additive per-step regret
+that decays \emph{exponentially} in the window width.
+
+\paragraph{Problem.}
+A time series $X = (x_1,\dots,x_n)$ must be repaired to $X'$ satisfying the
+hard constraints while staying close to $X$ under
+$\Delta(X,X') = \sum_j \lVert x_j - x'_j\rVert_2$. Offline, the problem is
+solved on a DAG: a path $P = (i_0,\dots,i_m)$ of anchor points induces the
+repaired series $X'_P$ by piecewise interpolation between consecutive anchors,
+edges carry weight $s_{i}\,\gamma(i_k - i_{k-1})$ with $s_i > 0$ and $\gamma$
+strictly decreasing (the paper uses $\gamma(t) = e^{-\beta t}$), and the
+maximum-weight path is the repair. Online, the algorithm at position $i$ sees
+only the last $W$ points and commits anchors irrevocably.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Offline optimality, Theorem~2.1 of the paper]
+\label{thm:onl-shclean-dag}
+Let $P^*$ be a maximum-weight path in the constructed DAG. Then the repaired
+series $X'_{P^*}$ is exactly an optimal solution of
+$\min_{X'}\Delta(X,X')$, over repairs satisfying the hard constraints. \eop
+\end{theorem}
+
+\begin{theorem}[Online regret, Theorem~4.1 of the paper, notation cleaned]
+\label{thm:onl-shclean-regret}
+Let $R_n$ be the total score gap between the offline algorithm and the online
+algorithm with window $W$. Then
+\[
+R_n \;\le\; n\,e^{-\beta(W+1)},
+\qquad\text{in particular}\qquad
+\frac{R_n}{n} \;\le\; e^{-\beta(W+1)}. \eopm
+\]
+\end{theorem}
+
+\paragraph{How regret analysis is applied.}
+The comparator is the offline maximum-weight path certified optimal by
+Theorem~\ref{thm:onl-shclean-dag} --- a competitive-style comparator --- while
+the bookkeeping is per-step and additive, i.e.\ regret; the paper itself calls
+$R_n$ the regret. The decomposition is the point. Fix an anchor choice of the
+offline optimum that connects $x_{k^*}$ back to anchor $x_{o_g}$. If
+$k^* - o_g \le W$ the online algorithm has the same point inside its window
+and incurs no regret on that step. If $k^* - o_g > W$ it must choose some
+$\hat k \in (o_g, i]$ within reach, and its one-step regret is
+$r_{o_g} = s_{o_g}\,[\gamma(k^* - o_g) - \gamma(\hat k - o_g)] \le s_{o_g}\,
+\gamma(W+1) \le e^{-\beta(W+1)}$, using that $\gamma$ is decreasing and $s \le
+1$. Summing over the $\le n$ steps gives the display of
+Theorem~\ref{thm:onl-shclean-regret}. The structure doing the work is that
+scores decay geometrically, so beyond-window mistakes cost exponentially
+little --- window width is a regret dial, not a correctness parameter.
+
+\paragraph{What it buys.}
+The operator tunes a single dial: $W$ trades memory and detection latency
+against repair quality, and because average regret decays as $e^{-\beta(W+1)}$,
+a modest window already matches offline repair on average. The stream is
+processed once, with no reprocessing of committed repairs and no model of the
+data needed for the guarantee.
+
+\section{Discretization search as a bandit}
+\label{sec:onl-quill}
+
+The exemplar is a SIGMOD'26 paper on interpretable attribute discretization
+\citep{sigmod26-140}. Turning numeric attributes into a few human-readable
+bins is a preprocessing step everywhere --- dashboards, analytics, ML pipelines
+--- but the ``best'' binning depends on a downstream utility such as
+visualization interestingness or causal analysis, and that utility is a black
+box: evaluable, expensive, with no exploitable functional form. The paper's
+system, Quill, searches partition sets by first clustering candidate partitions
+of each attribute by their induced data distribution, then selecting
+cluster-per-attribute assignments with a Monte Carlo control agent whose
+reward is the blended semantic/utility objective. The online-decision content
+is the search itself: each candidate evaluation is a pull of an arm with
+unknown reward distribution, and the paper proves a genuine bandit regret
+guarantee --- via an exact reduction in the single-attribute case, a boundary
+it states honestly.
+
+\paragraph{Problem.}
+Given a dataset $D$ with numeric attributes $\mathcal{A}_{\mathrm{num}}$, a
+partition set $B$ (one partition per attribute) is scored by
+$J(B,D) = \alpha\,M_{\mathrm{sem}}(B) + (1-\alpha)\,M_{\mathrm{util}}(B,D)$,
+with $M_{\mathrm{sem}}$ grading interpretability and $M_{\mathrm{util}}$ the
+black-box utility; the Pareto frontier of
+$(M_{\mathrm{sem}}, M_{\mathrm{util}})$ defines optimal partition sets.
+Candidate partitions of each attribute are grouped into clusters
+$C_1,\dots,C_K$ (DBSCAN over Earth-Mover's distances of bin distributions),
+and the search is posed as an MDP: states are partial attribute-to-cluster
+assignments, an action assigns a cluster to one attribute (a representative
+partition is sampled from it), transitions are deterministic, an episode is
+$d = |\mathcal{A}_{\mathrm{num}}|$ steps, and the reward $J(B,D) \in [0,1]$
+arrives at episode end.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Bandit reduction, Theorem~1 of the paper, notation cleaned]
+\label{thm:onl-quill-ucb}
+If (i) $d = 1$ (single attribute, one action per episode) and (ii) the Monte
+Carlo control agent selects and updates by the UCB index, then Algorithm~1 of
+the paper is a UCB-guided variant that reduces exactly to a stochastic
+multi-armed bandit with $K$ arms (one per cluster) and reward $J \in [0,1]$.
+Running it for $T$ episodes inherits the UCB regret guarantees --- gap-free
+$O(\sqrt{KT\log T})$ and gap-dependent $\sum_i O(\log T/\Delta_i)$, where
+$\Delta_i$ is how far cluster $C_i$'s expected reward falls below the optimal
+expected reward. The equivalence does not extend to the multi-attribute case
+$d > 1$. \eop
+\end{theorem}
+
+\paragraph{How online regret is applied.}
+This is the reduction school: no new bandit algorithm is invented; the system
+is engineered so that Theorem~\ref{thm:onl-ucb} applies verbatim. Three
+choices carry the load: rewards normalized to $[0,1]$ (the objective $J$ is
+bounded); arm $=$ cluster rather than raw partition, keeping $K$ small enough
+for the $\sqrt{KT\log T}$ rate to bite; and stochastic rewards, which hold
+because a fixed cluster's sampled partitions induce a fixed reward
+distribution observed i.i.d.\ across episodes. The proof is an induction on
+episodes showing selected arms, maintained statistics, and update rules
+coincide with UCB1's. The $d > 1$ boundary is honest and instructive: with
+several attributes per episode the delayed joint reward couples the arms, the
+bandit equivalence fails, and the paper claims no regret bound there --- the
+prerequisite check of the recipe in Section~\ref{sec:onl-choose}, done in
+public.
+
+\paragraph{What it buys.}
+A principled exploration budget: sublinear regret means the average quality of
+chosen partition sets converges to the best cluster's at rate
+$O(\sqrt{K\log T/T})$, so expensive utility evaluations are spent only where
+they pay off. The single-attribute contract covers exactly the common case of
+discretizing one column for one dashboard --- and the paper is explicit about
+where it ends.
+
+\section{Advanced usage and further reading}
+\label{sec:onl-advanced}
+
+Everything so far either compared one committed run against the offline
+optimum or averaged losses over rounds. Three extensions matter for systems
+work: predictions that may be wrong, adversaries that observe the algorithm,
+and online covering problems with LP structure.
+
+\subsection{Learning-augmented online algorithms}
+\label{sec:onl-laug-advanced}
+
+Definition~\ref{def:onl-laug} asked for $\alpha$-consistency and
+$\beta$-robustness at once, and Proposition~\ref{prop:onl-laug-fragile} showed
+naive advice-following fails the second clause. The repair is to \emph{hedge}
+the advice: blend the advice-following schedule with a classical competitive
+schedule, so that with correct predictions the blend tracks the advice (asymptotic
+consistency near $1$) while with adversarial predictions it degrades only to
+the classical ratio --- a constant independent of the instance. The original
+construction for ski rental is due to \citep{online-decisions-bg13}, and the
+program was put on the map for caching by \citep{online-decisions-bg9},
+yielding algorithms that are near-optimal when the predictor is good and never
+much worse than the classical bound when it is not. The craft is choosing the
+blend: it decides where on the consistency/robustness curve the system sits,
+and the $\varepsilon$ of the blend is a dial in exactly the sense the
+$\delta$-budgets of the concentration chapter are. For a systems paper the
+import is operational: any learned cost model in the loop --- predicted season
+length, predicted re-access time, predicted selectivity --- should be quoted
+as $(\alpha,\beta)$ advice, not trusted.
+
+\subsection{Adaptive adversaries}
+\label{sec:onl-adaptive}
+
+Section~\ref{sec:onl-tool} fixed the adversary class only for the randomized
+ratio; the taxonomy deserves precision \citep{online-decisions-bg14}. An
+\emph{oblivious} adversary commits the whole input up front; an
+\emph{adaptive-online} adversary chooses each piece as a function of the
+algorithm's behavior so far and must itself answer online; an
+\emph{adaptive-offline} adversary observes everything and then answers with
+hindsight. The classical fact: against adaptive-offline adversaries
+randomization buys \emph{nothing} --- the optimal randomized competitive ratio
+equals the optimal deterministic one --- so the $e/(e-1)$ of
+Theorem~\ref{thm:onl-ski-rand} is specific to the oblivious class, and a
+system whose clients can observe and react to its choices cannot buy that
+ratio. In the regret frame, Hedge and exp3 remain no-regret even against
+adaptive adversaries \citep{online-decisions-bg4,online-decisions-bg8}, which
+is one reason repeated-game guarantees travel better to contested
+environments than one-shot ratios.
+
+\subsection{Primal-dual for online covering}
+\label{sec:onl-primaldual}
+
+Ski rental is secretly a pair of linear programs: rent-or-buy per day is a
+fractional covering LP whose dual packs the season's days. The primal-dual
+method \citep{online-decisions-bg10} turns this observation into an algorithm
+schema for online covering problems: maintain a feasible dual solution as a
+potential, raise dual variables whenever cost is incurred, and buy
+(constrain) whenever a dual constraint becomes tight. The schema yields
+monotone, deterministic algorithms with competitive ratios matching the
+integrality gap of the LP relaxation, and it powers many of the classical
+results: fractional ski rental at $e/(e-1)$, online set cover at
+$O(\log^2 n)$, paging and $k$-server relaxations, and online packing problems
+(matching, ad allocation) by duality symmetry. Database admissions ---
+online index selection, admission control, resource allocation under arriving
+workloads --- are covering-shaped more often than not, and the primal-dual
+template is usually the shortest route from ``we have an LP'' to ``we have a
+competitive ratio.''
+
+\subsection{Further reading}
+
+\begin{itemize}
+\item Borodin and El-Yaniv \citep{online-decisions-bg5} --- the comprehensive
+  treatment of competitive analysis, adversary classes included.
+\item Bubeck and Cesa-Bianchi \citep{online-decisions-bg4} --- the survey of
+  regret analysis for stochastic and adversarial bandits; UCB, exp3, and
+  lower bounds in one place.
+\item The originals: Littlestone and Warmuth \citep{online-decisions-bg6} and
+  Freund and Schapire \citep{online-decisions-bg7} for multiplicative weights;
+  Auer, Cesa-Bianchi, Freund, and Schapire \citep{online-decisions-bg3} for
+  UCB and \citep{online-decisions-bg8} for exp3; Zinkevich
+  \citep{online-decisions-bg11} for online convex programming.
+\item Learning-augmented algorithms: Lykouris and Vassilvitskii
+  \citep{online-decisions-bg9} and Purohit and Svitkina
+  \citep{online-decisions-bg13}.
+\item Buchbinder and Naor \citep{online-decisions-bg10} --- the primal-dual
+  method for online covering and packing, in full generality; Arora, Hazan,
+  and Kale \citep{online-decisions-bg12} for multiplicative weights as an
+  algorithm-design meta-method.
+\end{itemize}
+
+\begin{recap}
+\item \textbf{What the tool is.} Online analysis handles components that must
+  commit while the input is still arriving: either one irrevocable run judged
+  against the offline optimum (competitive ratio), or repeated decisions with
+  feedback judged against the best fixed action in hindsight (regret).
+\item \textbf{Which frame when.} Irrevocable state, adversarial input
+  $\to$ competitive ratio (deterministic $2$ the classic ski-rental barrier;
+  randomization buys $e/(e-1)$ against oblivious adversaries only). Repeated
+  rounds with feedback $\to$ Hedge $2\sqrt{T\ln N}$ (adversarial, full
+  information) or UCB $O(\sqrt{KT\log T})$ (stochastic, bandit). Windowed
+  streaming $\to$ additive per-step regret against the offline optimum.
+\item \textbf{Why it works.} Deterministic ratios by two-case season
+  accounting; randomized ratios by equalizing coin distributions; Hedge by a
+  potential on the total weight; UCB by optimism plus confidence widths.
+\item \textbf{What the corpus showed.} Filter adaptation
+  (Section~\ref{sec:onl-ski}): ski rental verbatim, threshold at the golden
+  ratio, composed into a whp false-positive bound. Oracle-guided enumeration
+  (Section~\ref{sec:onl-oracle}): irrevocable pruning under worst-case oracle
+  error; recall floors and a competitive ratio, plus a $\mathrm{fewP} =
+  \mathrm{P}$ barrier. Windowed repair (Section~\ref{sec:onl-shclean}): regret
+  $\le n\,e^{-\beta(W+1)}$ against the offline DAG optimum. Discretization
+  search (Section~\ref{sec:onl-quill}): an exact bandit reduction, honestly
+  bounded to $d = 1$.
+\item \textbf{Advanced usage.} Learning-augmented $(\alpha,\beta)$ guarantees
+  (Section~\ref{sec:onl-laug-advanced}) for predictors in the loop; adversary
+  taxonomy (Section~\ref{sec:onl-adaptive}); the primal-dual schema for
+  online covering (Section~\ref{sec:onl-primaldual}). Deferred proofs are in
+  the Appendix (Section~\ref{sec:onl-appendix}).
+\end{recap}
+
+\section{Appendix}
+\label{sec:onl-appendix}
+
+Proofs omitted from the main text are collected here.
+
+\subsubsection*{Proof of Theorem~\ref{thm:onl-ski-lb} (ski-rental lower bound)}
+{\itshape Statement (recalled).} Every deterministic ski-rental algorithm has
+an input on which its ratio is at least $2 - 1/B$.\eop
+
+\begin{proof}
+A deterministic algorithm is a buy day $b$ (one that never buys loses
+unboundedly on long seasons, since its cost is $t$ against
+$\mathrm{OPT}(t) = B$ for $t \ge B$). The adversary ends the season on day
+$b$, so the algorithm pays $(b-1) + B$ while $\mathrm{OPT}(b) = \min(b,B)$. If
+$b \le B$, the ratio is $\frac{b-1+B}{b} = 1 + \frac{B-1}{b} \ge
+1 + \frac{B-1}{B} = 2 - \frac{1}{B}$. If $b > B$, then
+$\mathrm{OPT}(b) = B$ and the algorithm pays at least $B + B = 2B$, for a
+ratio of at least $2 \ge 2 - 1/B$. Hence no deterministic algorithm beats
+$2 - 1/B$, and in particular none is $c$-competitive for $c < 2$ and all $B$.
+\end{proof}
+
+\subsubsection*{Proof of Theorem~\ref{thm:onl-mw} (Hedge regret bound)}
+{\itshape Statement (recalled).} Exponential weights with
+$\varepsilon = \sqrt{\ln N / T} \le 1/2$ on arbitrary adversarial losses in
+$[0,1]^N$ satisfies $\mathbb{E}[R_T] \le 2\sqrt{T\ln N}$.\eop
+
+\begin{proof}
+Let $W_t = \sum_i w_t(i)$ be the total weight and
+$\bar\ell_t = \sum_i p_t(i)\,\ell_t(i)$ the expected loss of round $t$
+conditional on the past; since the adversary may be adaptive,
+$\mathbb{E}[\text{total loss}] = \mathbb{E}\bigl[\sum_t \bar\ell_t\bigr]$ by
+the tower property, so it suffices to bound $\sum_t \bar\ell_t$ pathwise.
+Because $x \mapsto (1-\varepsilon)^x$ is convex, it lies below its chord on
+$[0,1]$: $(1-\varepsilon)^x \le 1 - \varepsilon x$. Hence
+\[
+W_{t+1} \;=\; W_t \sum_i p_t(i)\,(1-\varepsilon)^{\ell_t(i)}
+\;\le\; W_t\bigl(1 - \varepsilon\,\bar\ell_t\bigr),
+\]
+and $\ln(1-u) \le -u$ gives
+$\varepsilon\,\bar\ell_t \;\le\; \ln W_t - \ln W_{t+1}$. Summing over $t$ and
+using $W_1 = N$:
+\[
+\sum_{t=1}^{T}\bar\ell_t \;\le\; \frac{\ln N \;-\; \ln W_{T+1}}{\varepsilon}.
+\]
+For any fixed action $i^\ast$ (chosen as the best in hindsight),
+$W_{T+1} \ge w_{T+1}(i^\ast) = (1-\varepsilon)^{L^\ast}$ with
+$L^\ast = \sum_t \ell_t(i^\ast)$, so
+$-\ln W_{T+1} \le L^\ast\,(-\ln(1-\varepsilon)) \le L^\ast(\varepsilon +
+\varepsilon^2)$ for $\varepsilon \le \tfrac12$. Therefore
+\[
+\mathbb{E}\bigl[\text{total loss}\bigr] \;\le\;
+\frac{\ln N}{\varepsilon} + (1+\varepsilon)\,L^\ast,
+\qquad\text{so}\qquad
+\mathbb{E}[R_T] \;\le\; \frac{\ln N}{\varepsilon} + \varepsilon\,T
+\;\le\; 2\sqrt{T\ln N},
+\]
+using $L^\ast \le T$ (losses are in $[0,1]$) and
+$\varepsilon = \sqrt{\ln N / T}$.
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:onl-ucb-conv} (UCB confidence width)}
+{\itshape Statement (recalled).} With probability at least $1 - 2K/t^3$,
+simultaneously for all $K$ arms,
+$|\bar r_i - \mu_i| \le \sqrt{2\ln t / n_i}$.\eop
+
+\begin{proof}
+Condition on the (random) play counts $n_i$; for each arm $i$ the $n_i$
+observed rewards are i.i.d.\ in $[0,1]$ with mean $\mu_i$, so additive
+Hoeffding gives, for any $u > 0$,
+$\Pr[\,|\bar r_i - \mu_i| \ge u\,] \le 2\exp(-2n_i u^2)$. Setting
+$u = \sqrt{2\ln t / n_i}$ yields $2\exp(-4\ln t) = 2t^{-4}$ per arm, and a
+union bound over the $K$ arms gives failure probability at most $2Kt^{-4}
+\le 2K/t^3$ for $t \ge 1$; the conditioning is discharged by averaging over
+the play counts.
+\end{proof}
+
+\bibliographystyle{plainnat}
+\bibliography{chapters/online-decisions-all}
