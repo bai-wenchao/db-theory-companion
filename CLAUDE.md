@@ -227,7 +227,12 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
   `lecture-notes/chapters/index.tex` from main.tex's include order + the
   `domain:` tags in notes/sigmod26/batch_*.md ("By paper domain" view + the
   alphabetical list). Re-run after adding/renaming chapters, changing theorem
-  labels, or editing domain tags, then rebuild.
+  labels, or editing domain tags, then rebuild. Layout note: entries are
+  plain unbreakable paragraphs at the full text+margin measure — entry
+  parity (odd/even leftskip) comes from the previous run's aux
+  (\gdef\idxpg<roman> written by an in-line probe), so it ALWAYS needs the
+  build.sh convergence loop; never judge index layout from a bare pdflatex
+  run (same trap as the ToC).
 - Overfull check: plain grep can miss hits (locale) — use
   `LC_ALL=C grep -a -n 'Overfull' main.log`.
 - Smoke tests: ToC orphan scan `pdftotext -f 3 -l 9 -layout main.pdf - |
@@ -318,14 +323,35 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       Index pp. 263–272, same 6 overfull survivors.
 - 2026-09-15 index layout revision (user report: two-column index wasted the
       wide margin, comma-crammed entries, unwanted PODS highlighting): both
-      index sections now tufte-fullwidth (text+margin, parity-correct), one
-      result per compactitem line, domain headers carry only the exemplar
-      count (PODS parsing kept for console stats) — a60121c. Final state:
+      index sections widened to text+margin (then via tufte fullwidth — its
+      adjustwidth* parity proved fragile, superseded by 43b7389's plain-
+      paragraph layout), one result per line, domain headers carry only the
+      exemplar count (PODS parsing kept for console stats) — a60121c. Final state:
       273 pp, Index pp. 263–273, same 6 overfull survivors. Build hygiene
       note: a manual non-build.sh build reported 270 pp from under-converged
       aux/toc (pre-index content was at 260 pp vs canonical 262) — the
       canonical page count ALWAYS comes from `./build.sh main` (byte-stable
       loop), never a bare pdflatex run.
+- 2026-09-15 index parity bug fixed (user report: pp. 269/271 "rendered too
+      left, only the right half visible"): fullwidth/adjustwidth* cannot judge
+      an entry landing at the top of a fresh page — the live \c@page test
+      still counts the PREVIOUS page (the round-8 ToC disease), and strict
+      mode's aux probe precedes the list's breakable top glue, so it too
+      ships with the previous page and the byte-stable loop converges
+      STABLY WRONG: one-line entries got the even-page leftskip (-167.4pt)
+      on odd pages → painted at x = -95pt, half off the paper (pp. 265/269/
+      271/273 fragments at x≈0; p264 entry at x=229). Fix in 11_make_index.py:
+      no fullwidth at all — each entry is ONE unbreakable paragraph
+      (interlinepenalty 10000) at the full text+overhang measure, parity per
+      entry from the PREVIOUS run's aux (\gdef\idxpg<roman>, @-free so it
+      survives aux re-tokenization; the \protected@write probe sits INSIDE
+      the entry's first line so \thepage resolves at shipout). Pagination is
+      parity-independent, so build.sh converges in 2-3 runs. Also fixed:
+      domain headers joined to their first entry by \\* — parskip glue, even
+      at 0pt, is a legal page break and orphaned a header at p264. Verified:
+      bbox+ink scans of all 11 index pages (zero words outside 58-556pt,
+      minX 61.4-72.0, formerly invisible entries back) + vision on 269/271 —
+      43b7389. Final state: 273 pp, Index pp. 263-273, same 6 overfulls.
 
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens
