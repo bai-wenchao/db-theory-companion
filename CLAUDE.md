@@ -221,11 +221,13 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
 ### Book runbook (v1.0, 2026-09-15)
 - Build: `cd lecture-notes && ./build.sh main` — loops pdflatex/bibtex until the PDF
   is byte-stable (the ToC needs the extra pass); prints "N pp, X overfulls".
-  Steady state: 275 pp, 6 known overfull survivors (all ≤4.14pt). NEVER
+  Steady state: 272 pp, 6 known overfull survivors (all ≤4.14pt). NEVER
   `git add buildstamp.tex` (gitignored per-run stamp).
 - Index back matter: `python3 scripts/11_make_index.py` (any CWD) regenerates
-  `lecture-notes/chapters/index.tex` from main.tex's include order. Re-run after
-  adding/renaming chapters or changing theorem labels, then rebuild.
+  `lecture-notes/chapters/index.tex` from main.tex's include order + the
+  `domain:` tags in notes/sigmod26/batch_*.md ("By paper domain" view + the
+  alphabetical list). Re-run after adding/renaming chapters, changing theorem
+  labels, or editing domain tags, then rebuild.
 - Overfull check: plain grep can miss hits (locale) — use
   `LC_ALL=C grep -a -n 'Overfull' main.log`.
 - Smoke tests: ToC orphan scan `pdftotext -f 3 -l 9 -layout main.pdf - |
@@ -302,6 +304,18 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       \ref-based (no makeindex): tool map + 219 named results + 65 exemplars,
       two-round vision-verified (9ce4600); \bookversion{1.0} "First complete
       edition" (fafeb8e). Final state: 275 pp, Index pp. 265–275.
+- 2026-09-15 post-v1.0 review round (user list, all verified by render+bbox):
+      chapter fixes — Fig 6.1 annotation/block overlap + Lemma 6.11's doubled
+      \eop (dp-composition), Fig 7.1 enlarged into a marginfigure in the margin
+      column (exchange-greedy), Fig 10.1 rightmost block moved off the arrow's
+      way (coresets-rnla), p.250 sidenote re-anchored off the page boundary so
+      its parity is evaluated correctly (online-decisions), Fig 12.1 streaming
+      pass redrawn at margin width (communication-complexity) — 7208285; index
+      redesigned — "Tools and chapters" and "Corpus papers used as exemplars"
+      dropped per user, new "By paper domain" section (17 domains from 39
+      exemplar papers, PODS'26 flagged; 119 corpus-derived results attributed,
+      223 total in the alphabetical list) — 2f87db0. Final state: 272 pp,
+      Index pp. 263–272, same 6 overfull survivors.
 
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens
