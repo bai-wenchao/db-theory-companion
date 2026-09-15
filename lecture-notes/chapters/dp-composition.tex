@@ -1,88 +1,920 @@
-\chapter{Differential Privacy Composition}
+\chapter{Differential Privacy: Composition and its Calculus}
+\setcounter{section}{-1}   % sections start at 6.0 (see main.tex comment)
+\label{ch:dp}
 
-Among the 26 SIGMOD'26 papers tagged \texttt{privacy-dp}, composition accounting is close to a monoculture: 69\% of them assemble their end-to-end privacy guarantee by composing mechanisms, and the tool \texttt{dp-composition} is used by 18 of the 228 tagged papers overall, its strongest pairing being \texttt{privacy-guarantee} $\times$ \texttt{dp-composition} (16 papers). The arithmetic itself is shifting: the exemplars below still mostly add plain $(\epsilon,\delta)$ budgets, but the frontier results state composition for R\'enyi DP and $f$-DP, where the composed object is a whole divergence curve rather than a pair of scalars.
+\begin{objectives}
+\item Recognize when a system's privacy proof is a \emph{ledger}: several releases, each with
+  its own budget, that must add up.
+\item Prove the ladder sequential $\to$ parallel $\to$ post-processing $\to$ group privacy,
+  and match each rung to the data-access structure.
+\item Calibrate every release: compute the sensitivity, split the budget, then pick
+  Laplace or exponential-mechanism noise.
+\item Dissect a paper's end-to-end proof: which rung carries each stage, and where budgets
+  add rather than maximize.
+\end{objectives}
 
-\section{The tool}
+A data system rarely releases one number. A private analytics engine answers many
+queries; an explanation tool selects candidates, then scores them, then publishes
+histograms; a join algorithm's \emph{access pattern} is itself a leak. Differential
+privacy makes each single release safe, but the contract the auditor signs is
+end-to-end: everything the system ever emits must jointly satisfy one
+indistinguishability guarantee. The \emph{composition calculus} is the small algebra
+that converts per-release budgets into that single contract: budgets of releases on
+the same data add (sequential composition); releases on disjoint slices cost only the
+largest budget (parallel composition); anything computed \emph{after} a private
+release is free (post-processing immunity); and a guarantee against one-record changes
+degrades linearly when the adversary's inputs differ by a whole group (group privacy).
+Around this core sits the calibration rule that decides what a single release costs
+in the first place: sensitivity $+$ calibrated noise, the Laplace and exponential
+mechanisms.
 
-\begin{definition}[Differential privacy]
-A randomized mechanism $\mathcal{M}:\mathcal{D}\to\mathcal{R}$ satisfies $(\epsilon,\delta)$-differential privacy if for all neighboring datasets $D\sim D'$ (differing in one record, edge, or node) and all measurable $S\subseteq\mathcal{R}$,
+In the SIGMOD'26 corpus the tool is close to a monoculture: among the 26 papers tagged
+\texttt{privacy-dp}, 18 assemble their end-to-end privacy guarantee by composing
+mechanisms (69\%), and the pairing \texttt{privacy-guarantee} $\times$
+\texttt{dp-composition} is the tool's strongest, with 16 papers. This chapter builds
+the ladder and walks four full exemplars through it;
+Section~\ref{sec:dp-advanced} sketches two harder uses (oblivious joins, private
+shortest paths) and points to the literature.
+
+\section{The tool: DP composition}
+\label{sec:dp-tool}
+
+The problem class is uniform: a mechanism $\mathcal{M}$ must publish several interacting
+statistics of a dataset $D$ --- selections, counts, noisy parameters, even the sequence of
+memory cells it touches --- and certify one contract over the \emph{joint} output. The
+contract is indistinguishability of neighboring inputs:
+
+\begin{definition}[Differential privacy]\label{def:dp-dp}
+A randomized mechanism $\mathcal{M}$ satisfies $(\varepsilon,\delta)$-differential
+privacy if for all \emph{neighboring} inputs $D \sim D'$ and all measurable sets $S$ of
+outputs,
 \[
-\Pr[\mathcal{M}(D)\in S] \;\le\; e^{\epsilon}\cdot \Pr[\mathcal{M}(D')\in S] + \delta .
+\Pr[\mathcal{M}(D) \in S] \;\le\; e^{\varepsilon}\,\Pr[\mathcal{M}(D') \in S] \;+\; \delta .
 \]
-With $\delta=0$ the guarantee is \emph{pure} $\epsilon$-DP \citep{dp-composition-bg1}.
+With $\delta = 0$ the guarantee is \emph{pure} $\varepsilon$-DP
+\citep{dp-composition-bg1,dp-composition-bg3}.
 \end{definition}
 
-Five primitives, one line each:
-\begin{itemize}
-  \item \textbf{Sequential composition.} An adaptive sequence of releases with budgets $(\epsilon_i,\delta_i)$ satisfies $(\sum_i \epsilon_i,\ \sum_i \delta_i)$-DP: budgets add \citep{dp-composition-bg1,dp-composition-bg3}.
-  \item \textbf{Post-processing immunity.} Any function of an $(\epsilon,\delta)$-DP output that does not touch the raw data is itself $(\epsilon,\delta)$-DP: analysis after the release is free \citep{dp-composition-bg3}.
-  \item \textbf{Group privacy.} Datasets at distance $\lambda$ inherit $(\lambda\epsilon,\lambda\delta)$-DP: the guarantee degrades linearly in group size \citep{dp-composition-bg3}.
-  \item \textbf{The R\'enyi ladder.} The Gaussian mechanism (noise $\mathcal{N}(0,\sigma^2 I)$, $\ell_2$-sensitivity $\Delta_2$) is $\bigl(\alpha,\ \alpha\Delta_2^2/(2\sigma^2)\bigr)$-RDP for every $\alpha>1$; RDP composes by adding the $\rho(\alpha)$; and $(\alpha,\rho)$-RDP converts to $\bigl(\rho(\alpha)+\log(1/\delta)/(\alpha-1),\ \delta\bigr)$-DP, optimized over $\alpha$ --- the engine behind $O(\epsilon\sqrt{k})$ rather than $k\epsilon$ for $k$ releases \citep{dp-composition-bg2,dp-composition-bg4}. $f$-DP makes the divergence curve itself the composed object \citep{dp-composition-bg5}.
-  \item \textbf{Amplification by subsampling.} An $\epsilon$-DP mechanism run on a $p$-rate Poisson subsample satisfies $\log\!\bigl(1+p(e^{\epsilon}-1)\bigr)$-DP: smaller samples buy smaller budgets \citep{dp-composition-bg6}.
-\end{itemize}
+\begin{remarkbox}[Notation]
+Neighboring means ``one unit apart'' in whichever granularity the contract names: one
+tuple added or removed (the relational default; the \emph{unbounded} setting, versus
+bounded when a size cap is public), one edge (edge-DP), or one node with all its incident
+edges (node-DP) --- Section~\ref{sec:dp-337} lives entirely in the gap between the last
+two. Typical calibrations keep $\varepsilon$ a constant and $\delta \le 1/N$ for $N$ data
+subjects. $\operatorname{Lap}(b)$ is the Laplace distribution of scale $b$, and
+$\operatorname{Lap}$ noise is added independently per coordinate.
+\end{remarkbox}
 
-\section{Exemplars from SIGMOD'26}
+What a single release costs is governed by how much one unit of input change can move it:
 
-\paragraph{Budget ledgers for private cluster explanations.}
-The paper privately explains a given clustering by selecting the attribute combination that best accounts for it: top-$k$ candidate selection, then an exponential mechanism over combinations, then per-cluster histograms \cite{sigmod26-298}.
+\begin{definition}[Global sensitivity]\label{def:dp-sens}
+For a query $Q$ on datasets, the \emph{global sensitivity} is
+\[
+GS_Q \;=\; \max_{D \sim D'} \;\bigl|Q(D) - Q(D')\bigr|,
+\]
+the maximum over neighboring pairs, in the norm of the output space.
+\end{definition}
 
-\begin{proposition}[Sequential composition]
-Let $\mathcal{M}_1:\mathcal{D}\to\mathcal{R}_1$ and $\mathcal{M}_2:\mathcal{D}\times\mathcal{R}_1\to\mathcal{R}_2$. Suppose $\mathcal{M}_1$ satisfies $\epsilon_1$-DP and, for every $y\in\mathcal{R}_1$, $\mathcal{M}_2(\cdot,y)$ satisfies $\epsilon_2$-DP (as a function of its first input). Define $\mathcal{M}_3:\mathcal{D}\to\mathcal{R}_2$ by $\mathcal{M}_3(D)=\mathcal{M}_2(D,\mathcal{M}_1(D))$. Then $\mathcal{M}_3$ satisfies $(\epsilon_1+\epsilon_2)$-DP.
+Counting queries have $GS_Q = 1$; a sum over values in $[0,U]$ has $GS_Q = U$; a
+histogram has sensitivity $1$ in $\ell_1$. Two mechanisms convert sensitivities into
+releases:
+
+\begin{theorem}[Laplace mechanism]\label{thm:dp-laplace}
+Let $Q$ have global sensitivity $GS_Q$. Then
+$\mathcal{M}(D) = Q(D) + \operatorname{Lap}(GS_Q/\varepsilon)$ (i.i.d.\ noise per
+coordinate) satisfies $\varepsilon$-DP. \eop
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+For any output $y$, the ratio of densities at $y$ under the two neighbors is at most
+$\exp(|Q(D)-Q(D')|/b) = e^{GS_Q/b} = e^{\varepsilon}$ with $b = GS_Q/\varepsilon$;
+integrating over $y \in S$ preserves the bound (full proof in
+Section~\ref{sec:dp-appendix}).
+\end{proof}
+
+For selecting a discrete object (an attribute, a plan, a candidate set), noise per
+coordinate is replaced by a biased lottery:
+
+\begin{theorem}[Exponential mechanism]\label{thm:dp-em}
+Given candidates $\mathcal{R}$ and a quality function $q(D,r)$ of sensitivity
+$\Delta_q$, the mechanism selecting $r \in \mathcal{R}$ with probability proportional to
+$\exp(\varepsilon \cdot q(D,r) / (2\Delta_q))$ satisfies $\varepsilon$-DP. Moreover the
+selected $r_E$ is nearly optimal:
+\[
+\Pr\bigl[\,q(D,r_E) \;\le\; \max_{r \in \mathcal{R}} q(D,r) - 2\Delta_q
+\bigl(\ln|\mathcal{R}| + t\bigr)\bigr] \;\le\; e^{-t}. \eopm
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Each candidate's selection-probability ratio between neighbors is at most
+$e^{\varepsilon}$ because $q$ moves by at most $\Delta_q$ and the exponent normalizes
+by $2\Delta_q$; the utility clause integrates the tail of the same lottery. (Statement
+as restated in \citep{sigmod26-298}, which cites the original.)
+\end{proof}
+
+These are the coins; the calculus is how coins combine. The workhorse is sequential
+composition --- note that it covers \emph{adaptive} pipelines, where later mechanisms see
+earlier outputs:
+
+\begin{theorem}[Sequential composition]\label{thm:dp-seq}
+Let $\mathcal{M}_1\colon \mathcal{D} \to \mathcal{R}_1$ satisfy
+$(\varepsilon_1,\delta_1)$-DP and let $\mathcal{M}_2\colon \mathcal{D} \times
+\mathcal{R}_1 \to \mathcal{R}_2$ satisfy $(\varepsilon_2,\delta_2)$-DP in its first
+input for \emph{every} fixed value of the second. Then
+$\mathcal{M}_3(D) = \mathcal{M}_2(D, \mathcal{M}_1(D))$ satisfies
+$(\varepsilon_1+\varepsilon_2,\ \delta_1+\delta_2)$-DP; iterating, $k$ adaptive releases
+satisfy $(\sum_i \varepsilon_i,\ \sum_i \delta_i)$-DP. \eop
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Condition on $\mathcal{M}_1$'s output $y$: each conditional law obeys its own bound, and
+integrating over $y$ multiplies the $e^{\varepsilon_i}$ factors and adds the
+$\delta_i$'s (full proof in Section~\ref{sec:dp-appendix}).
+\end{proof}
+
+When releases touch \emph{disjoint} parts of the data, the arithmetic improves from sums
+to maxima:
+
+\begin{theorem}[Parallel composition]\label{thm:dp-parallel}
+Let $\mathcal{M}_1, \mathcal{M}_2$ satisfy $(\varepsilon_1,\delta_1)$- and
+$(\varepsilon_2,\delta_2)$-DP, and let $D_1, D_2$ be disjoint subsets of the input
+domain. Then $\mathcal{M}'(D) = (\mathcal{M}_1(D_{D_1}), \mathcal{M}_2(D_{D_2}))$ ---
+each mechanism seeing only the records of its slice --- satisfies
+$(\max\{\varepsilon_1,\varepsilon_2\},\ \max\{\delta_1,\delta_2\})$-DP. \eop
+\end{theorem}
+
+\begin{proof}
+A unit input change lands in exactly one slice, say $D_1$; the other mechanism's output
+distribution is then identical under both neighbors, so only the $\varepsilon_1$ bound
+survives the product-measure factorization.
+\end{proof}
+
+Theorem~\ref{thm:dp-seq} charges for every release; the next rule charges for none:
+
+\begin{theorem}[Post-processing immunity]\label{thm:dp-post}
+If $\mathcal{M}$ satisfies $(\varepsilon,\delta)$-DP and $g$ is any (deterministic or
+randomized) function that does not touch the raw data, then $g(\mathcal{M}(D))$
+satisfies $(\varepsilon,\delta)$-DP. \eop
+\end{theorem}
+
+\begin{proof}
+Disintegrate $g$ against the output law: $\Pr[g(\mathcal{M}(D)) \in T] =
+\int \Pr[g(y) \in T]\, d\mathcal{M}(D)(y) \le e^{\varepsilon}
+\int \Pr[g(y) \in T]\, d\mathcal{M}(D')(y) + \delta$.
+\end{proof}
+
+\sidenote{Post-processing immunity is what licenses \emph{system artifacts} as private
+objects: clipped graphs (Section~\ref{sec:dp-337}), pruned indices, and even access
+patterns of algorithms whose memory layout is a function of a private release
+(Section~\ref{sec:dp-advanced}). No cleverness \emph{after} the release can repair a
+broken release, either.}
+
+When the two inputs differ by a whole group of $\lambda$ units, the guarantee degrades
+linearly:
+
+\begin{theorem}[Group privacy]\label{thm:dp-group}
+If $\mathcal{M}$ satisfies $(\varepsilon,\delta)$-DP, then for any two inputs
+$G, G'$ at neighborhood distance $\lambda$ and any output set $S$,
+\[
+\Pr[\mathcal{M}(G) \in S] \;\le\; e^{\lambda\varepsilon}\,
+\Pr[\mathcal{M}(G') \in S] \;+\; \lambda\delta. \eopm
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Insert $\lambda$ intermediates $G = G_0 \sim G_1 \sim \dots \sim G_\lambda = G'$ and
+telescope the DP bound along the chain; the $\delta$ terms accumulate geometrically and
+are absorbed by $\lambda e^{(\lambda-1)\varepsilon}\delta \ge \lambda\delta$
+(Section~\ref{sec:dp-appendix}).
+\end{proof}
+
+Plain summation is not the end of the story: $k$ adaptive releases can be accounted
+far better than $k\varepsilon$, because the privacy-loss random variables concentrate
+(Chapter~\ref{ch:conc}):
+
+\begin{theorem}[Advanced composition]\label{thm:dp-advanced}
+For $\varepsilon, \delta \in (0,1)$ and $\delta' \in (0,1)$, the $k$-fold adaptive
+composition of $(\varepsilon,\delta)$-DP mechanisms satisfies
+$(\varepsilon',\ k\delta + \delta')$-DP for
+\[
+\varepsilon' \;=\; \sqrt{2k\ln(1/\delta')}\cdot\bigl(e^{\varepsilon}-1\bigr)
+\;\le\; 2\varepsilon\sqrt{2k\ln(1/\delta')}. \eopm
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Write the log-likelihood ratio of outputs along the adaptive chain; each increment is
+bounded and (near-)centered, so Azuma--Hoeffding concentrates the total loss at
+$O(\varepsilon\sqrt{k})$ with failure $\delta'$ \citep{dp-composition-bg2}. R\'enyi DP
+composes the same loss in moments and converts back
+\citep{dp-composition-bg4,dp-composition-bg5}; subsampling buys a further discount
+\citep{dp-composition-bg6}.
+\end{proof}
+
+\begin{widefigure}[t]
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, align=center, inner sep=4pt, font=\small},
+  lab/.style={font=\scriptsize, text=black!60},
+  arr/.style={-latex}]
+  \node[box] (m1) at (0,0) {$\mathcal{M}_1$\\$\varepsilon_1$};
+  \node[box] (m2) at (2.9,0) {$\mathcal{M}_2(\cdot, y_1)$\\$\varepsilon_2$};
+  \node[box] (p1) at (6.1,0.75)  {$\mathcal{P}_1(D_{R_1})$\\$\varepsilon_{p}$};
+  \node[box] (p2) at (6.1,-0.75) {$\mathcal{P}_2(D_{R_2})$\\$\varepsilon_{p}$};
+  \node[box] (g)  at (9.2,0) {$g$\\free};
+  \node[font=\small] (d) at (-2.0,0) {$D$};
+  \draw[arr] (d) -- (m1);
+  \draw[arr] (m1) -- node[lab, below, align=center] {adaptive: sees $y_1$\\sequential: add} (m2);
+  \draw[arr] (m2) -- (4.6,0) -- (4.6,0.75) -- (p1);
+  \draw[arr] (4.6,0) -- (4.6,-0.75) -- (p2);
+  \node[lab, align=center] at (6.1,-1.7) {disjoint slices $R_1 \cap R_2 = \emptyset$\\parallel: max};
+  \draw[arr] (p1) -- (8.0,0.75) -- (8.0,0.28) -- (g);
+  \draw[arr] (p2) -- (8.0,-0.75) -- (8.0,-0.28) -- (g);
+  \draw[arr] (g) -- ++(1.4,0) node[right, font=\small] {output};
+  \node[lab] at (4.6,-2.3) {ledger: $\varepsilon_1 + \varepsilon_2 + \varepsilon_p$, all
+    downstream computation post-processing};
+\end{tikzpicture}
+\caption{The composition ledger. Sequential releases (left) add budgets even when
+adaptive; releases on disjoint data slices (middle) cost only the maximum budget;
+everything after a private output (right) is post-processing and costs nothing.}
+\label{fig:dp-ledger}
+\end{widefigure}
+
+\subsection{How to compose a privacy proof}
+\label{sec:dp-howto}
+
+Composing an end-to-end proof is mechanical once the system is drawn as the DAG of
+Figure~\ref{fig:dp-ledger}. \emph{First}, enumerate every channel that touches the raw
+data: released statistics, private hyperparameters that steer later computation, and
+--- in oblivious settings --- access patterns. \emph{Second}, fix the neighborhood each
+channel is analyzed under and compute its query's sensitivity; a wrong neighborhood
+(edge when the contract says node) silently breaks the ledger. \emph{Third},
+instantiate each channel with the mechanism matching its output type: Laplace for
+numeric aggregates, the exponential mechanism for selections, the sparse vector
+technique for threshold searches (Section~\ref{sec:dp-337}). \emph{Fourth}, read off
+the total: sums along adaptive chains, maxima across disjoint slices, linear inflation
+across groups; post-processing edges carry zero. Budgets are \emph{split}, not
+discovered: fix the total $\varepsilon$ first and allocate shares so no single stage
+dominates the error.
+
+\begin{reachbox}{When to Reach for DP Composition}
+Reach whenever a system releases \emph{several} interacting statistics --- candidate
+selections, noisy summaries, clipped releases, adaptive searches --- and the
+deliverable is one end-to-end privacy contract. Then run the recipe:
+\begin{enumerate}
+\item Identify the releases: every mechanism that reads raw data, including private
+  parameters that steer later stages and observable access patterns.
+\item Split the budget: fix the target $(\varepsilon,\delta)$, allocate
+  $(\varepsilon_i,\delta_i)$ per release; spend less on stages whose error matters
+  less.
+\item Compute each query's sensitivity under the neighborhood the contract names
+  (tuple/edge/node; add/remove); calibrate Laplace or exponential-mechanism noise to
+  it.
+\item Compose: add along adaptive chains, take the maximum over disjoint data slices,
+  multiply by group size when converting between neighborhoods; union-bound the
+  failure probabilities over stages.
+\item Post-process freely: clipping, rounding, index building, and all downstream
+  analytics ride on the released values at zero cost --- but never re-touch the raw
+  data.
+\end{enumerate}
+Skip the machinery when a single calibrated release suffices: composing there only
+overcounts. With many ($k \gtrsim 50$) releases, plain summation goes vacuous ---
+switch the ledger to advanced or moment accounting (Theorem~\ref{thm:dp-advanced}).
+\end{reachbox}
+
+\section{Private explanations for clusters}
+\label{sec:dp-298}
+
+The exemplar is a SIGMOD'26 paper on explainable clustering under privacy
+\citep{sigmod26-298}. Clustering is a workhorse of exploratory data analysis, but a bare
+cluster label tells a stakeholder nothing: analysts want an \emph{explanation} --- which
+attribute combination accounts for the partition, e.g.\ that customers grouped together
+because of age bracket and spending band. Computing such explanations requires scanning
+the tuples inside each cluster, and the explanation itself (``cluster~3 is explained by
+salary'') leaks information about those individuals, so it must be privatized like any
+other release. Prior private explanation tools could explain one cluster at a time but
+not certify a \emph{global} assignment --- one attribute per cluster, jointly chosen
+--- under a single privacy budget. The paper builds the first mechanism for such global
+histogram-based explanations (HBE), combining top-$k$ candidate selection, an
+exponential mechanism over combinations, and noisy per-cluster histograms, and proves an
+end-to-end budget that is exactly the sum of three named dials. By direct sensitivity
+analysis it also shows that the standard divergence scores used in explanation systems
+are \emph{high-sensitivity}, and replaces them with low-sensitivity surrogates so each
+dial can be calibrated tightly.
+
+\paragraph{Problem.}
+A dataset $D$ and a clustering function $f$ partitioning the tuples into clusters
+$D_c$, $c \in C$, are given; $f$ is already public. A \emph{single-cluster HBE
+candidate} is a tuple $(c, A, h_A(D \setminus D_c), h_A(D_c))$ pairing cluster $c$ with
+an explanatory attribute $A$ and two histograms; a \emph{global HBE candidate} assigns
+one such candidate per cluster. Quality is scored by an \emph{interestingness} (how
+skewed $A$'s distribution is inside $c$ relative to the rest of $D$), a
+\emph{sufficiency}, and a \emph{diversity} score (how distinct the chosen attributes
+are across clusters), combined by convex weights $\lambda$ (summing to one) into a
+global score $\psi_\lambda(D, f, \mathbf{e})$. The mechanism must choose a global
+candidate and publish supporting histograms under pure DP, neighbors $D \sim D'$
+differing by one tuple.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Privacy of the global explanation, Theorem of the paper]\label{thm:dp-298-main}
+Given a clustering function $f$, a number of candidates $k$, and privacy parameters
+$\varepsilon_{\mathrm{CandSet}}, \varepsilon_{\mathrm{TopComb}},
+\varepsilon_{\mathrm{Hist}}$, the algorithm \textsc{gen\_global\_explanation} is
+$(\varepsilon_{\mathrm{CandSet}} + \varepsilon_{\mathrm{TopComb}} +
+\varepsilon_{\mathrm{Hist}})$-DP. \eop
+\end{theorem}
+
+\paragraph{How DP composition is applied.}
+The proof is the ledger of Figure~\ref{fig:dp-ledger} instantiated stage by stage. The
+top-$k$ candidate selection is realized as $|C| \cdot k$ iterated exponential
+mechanisms, each at budget $\varepsilon_{\mathrm{CandSet}}/(|C| k)$; sequential
+composition (Theorem~\ref{thm:dp-seq}) totals $\varepsilon_{\mathrm{CandSet}}$. The
+combination selection is one exponential mechanism (Theorem~\ref{thm:dp-em}) at unit
+sensitivity, costing $\varepsilon_{\mathrm{TopComb}}$. The histogram stage splits
+$\varepsilon_{\mathrm{Hist}}$ in half: per-attribute histograms all read the full
+dataset, so their budgets add sequentially to $\varepsilon_{\mathrm{Hist}}/2$;
+per-cluster histograms read \emph{disjoint} clusters, so parallel composition
+(Theorem~\ref{thm:dp-parallel}) caps their total at $\varepsilon_{\mathrm{Hist}}/2$ ---
+maxima, not sums. The complementary histograms $\tilde h^{-c}$ are computed from
+already-released values, so post-processing immunity (Theorem~\ref{thm:dp-post}) makes
+them free; summing the three stages gives the theorem. The unit-sensitivity input to
+the exponential mechanism is itself the paper's workhorse lemma:
+
+\begin{lemma}[Convex combinations of scores, Lemma of the paper]\label{lem:dp-298-convex}
+For $i = 1,\dots,m$ let $\alpha_i \ge 0$ be scalars and $f_i$ functions of sensitivity
+$\Delta_i$. Then $f = \sum_{i=1}^m \alpha_i f_i$ has sensitivity at most
+$\sum_{i=1}^m \alpha_i \Delta_i$. \eop
+\end{lemma}
+
+\begin{proof}
+For neighboring $D \sim D'$, the triangle inequality gives
+\[
+\bigl|f(D) - f(D')\bigr|
+\;=\;\Bigl|\textstyle\sum_i \alpha_i f_i(D) - \sum_i \alpha_i f_i(D')\Bigr|
+\;\le\; \sum_i \alpha_i \bigl|f_i(D) - f_i(D')\bigr|
+\;\le\; \sum_i \alpha_i \Delta_i. \eopm
+\]
+\end{proof}
+
+Since $\psi_\lambda$ is a convex combination (weights summing to one) of three
+sensitivity-$\le 1$ scores, Lemma~\ref{lem:dp-298-convex} bounds its sensitivity by $1$,
+and the exponential mechanism runs at exactly one unit. The sensitivity-$1$ bounds are
+direct $\ell_1$ histogram algebra: for the interestingness score
+$\iota(D,f,c,A) = \tfrac12 \bigl\| h_A(D_c) - \tfrac{|D_c|}{|D|} h_A(D) \bigr\|_1$,
+adding one tuple adds a unit basis vector $h_a$ ($\|h_a\|_1 = 1$) to one histogram and
+rescales the other by $\|h_A(D)\|_1 = |D|$; a two-case analysis (tuple inside vs.\
+outside the cluster) totals at most $1$ in both cases. The replacement is justified by
+proving the \emph{standard} scores cannot do better:
+
+\begin{proposition}[Jensen--Shannon sensitivity, Proposition of the paper, notation
+cleaned]\label{prop:dp-298-jsd}
+The Jensen--Shannon distance $d_{JS}$, used as a diversity score on neighboring
+datasets, has sensitivity at least $\tfrac12$: there are neighbors $D \sim D'$ with
+$|d_{JS}(D) - d_{JS}(D')| > \tfrac12$. \eop
 \end{proposition}
 
-The end-to-end guarantee is the budget sum $\bigl(\epsilon_{\mathrm{CandSet}}+\epsilon_{\mathrm{TopComb}}+\epsilon_{\mathrm{Hist}}\bigr)$-DP, while inside the histogram stage the clusters are disjoint, so per-attribute and per-cluster releases compose \emph{in parallel}, each contributing $\epsilon_{\mathrm{Hist}}/2$ --- pure multiplicative $e^{\epsilon}$ arithmetic, no divergence needed.
+\begin{proof}[Proof sketch]
+Take $D$ where every tuple carries value $a$ on attribute $A$ and a singleton cluster
+$D_c = \{t\}$; both distributions are point masses, so the score is $0$. Add one tuple
+$t'$ with a fresh value $a'$: the dataset distribution becomes
+$(\tfrac{n}{n+1}, \tfrac{1}{n+1})$ and the cluster's becomes
+$(\tfrac12,\tfrac12)$. The Jensen--Shannon divergence works out to
+$H_b\bigl(\tfrac{n}{2(n+1)} + \tfrac14\bigr) - \tfrac12 H_b\bigl(\tfrac{1}{n+1}\bigr)
+- \tfrac12 H_b\bigl(\tfrac12\bigr) \to H_b(\tfrac14) - \tfrac12 \approx 0.311$ bits,
+so the distance exceeds $\sqrt{0.311} > \tfrac12$ for large $n$ (full computation in
+Section~\ref{sec:dp-appendix}).
+\end{proof}
 
-\begin{center}
-\begin{tikzpicture}[box/.style={draw,rounded corners,align=center,inner sep=3pt,font=\small}]
-  \node[box] (a) at (0,0) {top-$k$ candidates\\ $\epsilon_{\mathrm{CandSet}}$};
-  \node[box] (b) at (3.9,0) {exponential mechanism\\ $\epsilon_{\mathrm{TopComb}}$};
-  \node[box] (c) at (8.2,0) {noisy histograms\\ $\epsilon_{\mathrm{Hist}}/2 \;\parallel\; \epsilon_{\mathrm{Hist}}/2$};
-  \draw[-latex] (a) -- (b);
-  \draw[-latex] (b) -- (c);
-  \node[font=\small] at (4.1,-1.0) {sequential total: $\epsilon_{\mathrm{CandSet}}+\epsilon_{\mathrm{TopComb}}+\epsilon_{\mathrm{Hist}}$};
-\end{tikzpicture}
-\end{center}
+The same binary-entropy limit holds for the total-variation interestingness of prior
+work, so no divergence-based score can shrink the noise --- the sensitivity-$1$
+surrogates are within a factor of two of optimal \emph{and} admit the clean algebra
+above.
 
-\paragraph{Node-DP from edge-DP via group privacy.}
-N2E converts any edge-DP graph mechanism into a node-DP one by clipping the input graph to a degree bound $\Delta^{*}$ that is itself privately approximated, then running the edge mechanism on the clipped graph \cite{sigmod26-337}.
+\paragraph{What it buys.}
+The deployed system gets a private explanation engine whose contract is three readable
+dials --- candidates, combination, histograms --- each independently tunable;
+parallel composition across disjoint clusters means adding clusters costs no histogram
+budget; and the exponential mechanism's utility theorem (Theorem~\ref{thm:dp-em})
+converts the unit sensitivity directly into near-optimal explanation quality.
 
-\begin{lemma}[Group privacy]
-If a mechanism $\mathcal{M}$ satisfies $(\epsilon,\delta)$-differential privacy, then for any two graphs $G,G'$ with $d(G,G')=\lambda$ (i.e., differing by $\lambda$ edges or nodes) and any subset of outputs $S\subseteq\mathcal{R}$,
+\section{Optimal pure-DP sparse histograms in deterministic linear time}
+\label{sec:dp-178}
+
+The exemplar is a PODS'26 paper on private histogram release \citep{sigmod26-178}\pods.
+Releasing a histogram --- how many users hold each value --- is the most basic private
+analytics primitive, and it is delicate when the domain $[d]$ is enormous but any real
+dataset touches few values: the mechanism must publish a \emph{sparse} histogram whose
+support tracks the data, not the domain. Two older constraints sat uneasily together:
+the samplers that produce pure $\varepsilon$-DP noise (no $\delta$ slack) have
+data-dependent running times, and the known linear-time mechanisms paid with
+randomized- or approximate-DP only --- so timing side channels or approximate
+guarantees leaked in through the implementation. The paper closes both gaps at once: a
+pure-DP mechanism that releases a histogram over $n$ users and domain $[d]$ in
+\emph{deterministic} $O(n)$ time in the word-RAM model, with per-coordinate error
+asymptotically matching the known lower bound of Balcer and Vadhan. The privacy proof
+is a case-by-case dominance analysis over the supports of neighboring histograms,
+composed with a private upper-bound search.
+
+\paragraph{Problem.}
+The input is a dataset of $n$ user-contributed elements from a domain $[d]$, viewed as
+its histogram $h \in \mathbb{Z}_{\ge 0}^d$; neighbors differ by one added or removed
+element (the unbounded setting, so the dataset size itself is sensitive). The
+mechanism must output a \emph{sparse} $\hat h$ ($\|\hat h\|_0 \le O(n)$) approximating
+$h$ in every coordinate simultaneously under pure DP, in deterministic linear time ---
+the running time may depend only on $n$, never on which values the users hold.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Private sparse histogram, informal version of Theorem 6.1 of the
+paper]\label{thm:dp-178-main}
+Let $n, d \in \mathbb{Z}_{>0}$ and $\varepsilon > 0$, with representations that fit in a
+constant number of machine words. Given a dataset of $n$ elements from $[d]$, there is
+an $\varepsilon$-differentially private algorithm that runs deterministically in $O(n)$
+time and outputs a histogram $\hat h$ with $\|\hat h\|_0 \le O(n)$ and
+$\ell_\infty$ error asymptotically optimal --- matching the lower bound
+$\Omega\bigl(\min\{\tfrac{1}{\varepsilon}\ln d,\ n\}\bigr)$ of Balcer and Vadhan quoted
+in the paper:
 \[
-\Pr[\mathcal{M}(G)\in S] \;\le\; e^{\lambda\epsilon}\cdot \Pr[\mathcal{M}(G')\in S] + \lambda\delta .
+\|\hat h - h\|_\infty \;=\; O\Bigl(\tfrac{1}{\varepsilon}\ln d\Bigr). \eopm
 \]
-The mechanism satisfies $(\lambda\epsilon,\lambda\delta)$-DP for the group of $\lambda$ edges or nodes.
-\end{lemma}
-
-The composition primitive doing the lifting is group privacy: a one-node change is a group of $\lambda$ edge changes, so the edge-DP calculus transfers to node-DP neighborhoods. The degree search spends sparse-vector-technique queries at a logarithmic scale, so only logarithmically many sequential compositions are consumed before post-processing turns the noisy degree into the clipping $\Delta^{*}$; the whole framework satisfies $(\epsilon,\delta)$-node-DP \cite{sigmod26-337}.
-
-\paragraph{Per-record budgets: composition of functions, not scalars.}
-Per-record DP replaces the global $\epsilon$ by a budget function $\epsilon_{\mathcal{E}}(r)$ (a bank may assign wealthier clients smaller budgets), and estimates sums/counts by partitioning records into geometrically doubling budget slices, one Laplace mechanism per slice \cite{sigmod26-263}.
-
-\begin{lemma}[PrDP parallel composition]
-Let $R_1,\dots,R_k$ be disjoint subdomains and $\mathcal{M}_1,\dots,\mathcal{M}_k$ a series of $\mathcal{E}_i$-PrDP mechanisms. Their parallel composition $\mathcal{M}(D):=\bigl(\mathcal{M}_1(D_{R_1}),\dots,\mathcal{M}_k(D_{R_k})\bigr)$ satisfies $\mathcal{E}'$-PrDP, where $\mathcal{E}'(r)=\max\{\mathcal{E}_i(r)\}_{i=1}^{k}$ for all $r\in[U]^d$.
-\end{lemma}
-
-Here the composed object is a budget \emph{function}: releases on disjoint subdomains take a pointwise maximum instead of a sum, so a record is only ever charged the largest budget of any slice touching it. Near-optimality of the resulting error is certified against down-neighborhood lower bounds \cite{sigmod26-263}.
-
-\paragraph{Concurrent composition for continual mechanisms.}
-Continual mechanisms answer streams of queries; the hard question is what composition survives an adversary who adaptively and \emph{concurrently} interleaves access to many such mechanisms \cite{sigmod26-049}.
-
-\begin{theorem}[Concurrent composition of continual mechanisms, informal]
-The concurrent composition of continual mechanisms $\mathcal{M}_i$ that are $(\epsilon_i,\delta_i)$-DP with respect to a verification function $f_i$ is $(\epsilon,\delta)$-DP for the same $(\epsilon,\delta)$ that holds for composing noninteractive mechanisms that are $(\epsilon_i,\delta_i)$-DP. This allows the adversary to adaptively and concurrently choose the neighboring sequences fed to each $\mathcal{M}_i$ based on the responses received from the other mechanisms.
 \end{theorem}
 
-What carries the guarantee is a simulation: every $(\epsilon,\delta)$-DP interactive mechanism can be realized by interactive post-processing of randomized-response outputs, so the divergence arithmetic of ordinary composition transfers verbatim to concurrent adversaries. The same paper pushes the frontier from $(\epsilon,\delta)$ to $f$-DP and R\'enyi DP, complete with a counterexample showing where intuition breaks --- the direction in which the currency is moving. \cite{sigmod26-049}\pods
+\paragraph{How DP composition is applied.}
+The noise source is the discrete cousin of the Laplace mechanism
+(Theorem~\ref{thm:dp-laplace}): a \emph{geometric} (discrete Laplace) variable with
+per-coordinate tail
+\[
+\Pr[X \ge t] \;\le\; \frac{2\,e^{-\varepsilon t}}{1 + e^{-\varepsilon}}
+\qquad (t \ge 1)
+\]
+(Fact of the paper, notation cleaned). A union bound over the $d$ coordinates turns the
+per-coordinate tail into the simultaneous accuracy
+$\alpha = (c_\alpha/\varepsilon)\ln(d/\beta)$ at confidence $1-\beta$ --- the
+$(\alpha,\beta)$-simultaneous estimator of the formal theorem. The sampler itself is
+engineered to be \emph{timing-oblivious}, with an indistinguishability contract of its
+own (the ``purified'' relaxed discrete Laplace sampler, informal Theorem of the paper):
+for each $t \in [n]$, $\Gamma(t-1)$ and $\Gamma(t)$ are
+$(\varepsilon,0)$-indistinguishable, and for $\beta > 2\gamma$, $\Gamma(t)$ estimates
+$t$ to within $\alpha = O\bigl(\tfrac1\varepsilon \ln\tfrac1\beta\bigr)$ with
+probability $1-\beta$. Privacy of the histogram is \emph{not} a one-line sensitivity
+argument, because neighboring datasets have different supports: writing $i^*$ and $j^*$
+for the heaviest coordinates of $h$ and $h'$ and $I_1, I_1'$ for the two sampled
+supports, the output distributions $\mu, \mu'$ are compared in \emph{four cases}
+according to which of $i^*, j^*$ lie in $I_1, I_1'$; in each case the mixture
+decomposes over the shared support and the per-coordinate dominance ratio
+$r_J \in (e^{-\varepsilon/2}, e^{\varepsilon/2})$ yields
+$\mu'(S) \le e^{\varepsilon}\mu(S)$. Finally, because the setting is unbounded, the
+algorithm first runs a private \emph{upper-bound search} on the dataset size (an
+$\varepsilon_1$-DP time-oblivious search quoting prior work, restated in the paper),
+truncates the input, and pads with the $\varepsilon_2$-parameterized geometric
+mechanism; the paper quotes basic sequential composition
+(Theorem~\ref{thm:dp-seq}) to combine the two stages into the stated pure budget.
 
-\paragraph{Composing obliviousness in a multi-way join.}
-The differentially oblivious join evaluates queries in untrusted memory while leaking only the input size $|I|$ plus a DP-noisy upper bound $\widehat{OUT}$ on the join size \cite{sigmod26-073}.
+\paragraph{What it buys.}
+Analytics stacks needing per-value counts --- contingency tables, heavy-hitter
+dashboards, training features --- get a black-box release whose running time is
+worst-case, so the implementation leaks nothing through timing; the optimal
+$\ell_\infty$ certificate means the noise is provably not improvable, and the sparse
+support keeps storage at $O(n)$ regardless of the domain.
 
-\begin{theorem}[Meta-join]
-Algorithm~1 is $(\epsilon_1+\epsilon_2,\ \delta_1+\delta_2)$-DO.
+\section{Reducing node-DP to edge-DP}
+\label{sec:dp-337}
+
+The exemplar is a SIGMOD'26 paper on private graph analytics \citep{sigmod26-337}.
+Publishing graph statistics --- triangle counts, degree moments, subgraph counts ---
+under differential privacy requires choosing the unit of protection: \emph{edge-DP}
+hides one edge, while \emph{node-DP} hides one vertex together with all its incident
+edges --- the right contract when vertices are people. Node-DP is strictly harder: a
+single high-degree vertex can shift many statistics, so sensitivities explode with the
+maximum degree, and existing node-DP techniques mostly assume a predefined degree
+bound. Setting that bound conservatively destroys utility; the paper quotes the naive
+escape --- dividing the budget by the bound via group privacy --- as exactly this
+failure mode. The N2E framework instead \emph{privately learns} a degree bound from the
+graph itself, clips the graph to it, and runs any off-the-shelf edge-DP mechanism on the
+clipped graph, converting the whole edge toolbox to node-DP with error governed by the
+data's actual degree structure. The end-to-end proof is sequential composition over
+three steps, with group privacy and post-processing doing the conversion.
+
+\paragraph{Problem.}
+Work on graphs with two neighborhood relations: $G \sim_{\mathrm{edge}} G'$ differ by
+one edge, $G \sim_{\mathrm{node}} G'$ by one node and its incident edges;
+$(\varepsilon,\delta)$-DP is Definition~\ref{def:dp-dp} under either. A
+\emph{clipping} $\mathrm{Clip}(G,\Delta)$ keeps, for each node, its $\Delta$
+smallest-order edges. Given any graph task $Q$ and any edge-DP mechanism
+$\mathcal{M}^{\mathrm{edge}}_Q$ for it, N2E must output a node-DP estimate of $Q(G)$
+whose error degrades with the true maximum degree $\mathit{deg}(G)$, not a worst-case
+bound $N$.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[N2E accuracy and privacy, Theorems of the paper, notation cleaned]
+\label{thm:dp-337-main}
+Given any $\varepsilon, \beta, \delta$, for any graph $G$, task $Q$, and edge-DP
+mechanism $\mathcal{M}^{\mathrm{edge}}_Q$: with probability at least $1-\beta$, N2E
+outputs a node-DP result with error
+\[
+\bigl|Q(G) - Q(\tilde G)\bigr| \;+\;
+\operatorname{Err}^{\mathrm{edge}}_Q\bigl(\tilde G,\;
+\varepsilon/(6\Delta^*),\; \delta/(4\Delta^*),\; \beta/3\bigr),
+\]
+where $\tilde G$ is obtained by clipping the edges of
+$O\bigl(\log(\log(\mathit{deg}(G))/\beta)/\varepsilon\bigr)$ nodes of $G$, and the
+framework as a whole satisfies $(\varepsilon,\delta)$-node-DP. \eop
 \end{theorem}
 
-Two primitives carry it: an $(\epsilon_1,\delta_1)$-DO subroutine releases the $(\epsilon_2,\delta_2)$-DP bound $\widehat{OUT}$, and the advised join's access pattern is a deterministic function of $|I|$ and $\widehat{OUT}$ only. Sequential composition adds both coordinates, and post-processing immunity is precisely what makes an \emph{access pattern} a legitimate object to compose \cite{sigmod26-073}.
+\paragraph{How DP composition is applied.}
+The framework is a three-step ledger. \emph{Step 1} privately approximates the maximum
+degree by a search over decreasing thresholds $\Delta$, at budget
+$(2\varepsilon/3, \delta/2)$; \emph{step 2}, the clipping, consumes no budget --- it is
+post-processing (Theorem~\ref{thm:dp-post}) of $\Delta^*$; \emph{step 3} runs the edge
+mechanism at $\varepsilon/(6\Delta^*)$ and $\delta/(4\Delta^*)$. Group privacy
+(Theorem~\ref{thm:dp-group}) is the rung doing the reduction: a node change becomes at
+most $\lambda \le 2\Delta^*$ edge changes after clipping (with probability
+$1-\delta/2$, by a clipping-distance lemma below), so an edge-DP mechanism at budget
+$\varepsilon/\lambda$ is node-DP at $\varepsilon/3$. Sequential composition
+(Theorem~\ref{thm:dp-seq}) totals the steps to $(\varepsilon,\delta)$. The degree
+search is a sparse-vector-technique (SVT) instance whose queries are chosen to have
+unit sensitivity:
 
-\begin{reachbox}{When to reach for DP composition}
-Reach for it whenever a system releases \emph{several} interacting statistics and the privacy proof is a ledger: candidate selections, noisy summaries, clipped releases. Then budgets add (exemplars 1 and 5 above, with $\delta$'s summed too in the approximate case), disjoint data slices switch the arithmetic from sums to maxima (exemplars 1 and 3), and group privacy reduces an expensive neighborhood (node-DP) to a cheap one (edge-DP) at linear cost in group size (exemplar 2). Reach for divergence arithmetic --- RDP or $f$-DP curves --- when many releases would make summed $\epsilon$'s vacuous, buying $O(\epsilon\sqrt{k})$ over $k\epsilon$ (the frontier of exemplar 4); reach for subsampling amplification when releases are computed on samples anyway. Post-processing immunity ships every downstream artifact --- clipped graphs, access patterns, indices --- for free. Skip the machinery when a single calibrated release suffices, or when every output is a post-processing of one DP output: composing there only overcounts.
-\end{reachbox}
+\begin{lemma}[SVT over sensitivity-monotonic queries, Lemma of the paper, restating
+prior work]\label{lem:dp-337-svt}
+If the query sequence used in SVT is sensitivity-monotonic, then with threshold
+calibration $c=1$ SVT preserves $\varepsilon$-DP. Moreover, given failure probability
+$\beta$, if some query satisfies $Q_k(G) \ge T + 4\ln(2k/\beta)/\varepsilon$, then with
+probability at least $1-\beta$ SVT returns an index $\hat\imath \le k$ with
+$Q_{\hat\imath}(G) \ge T - 4\ln(2k/\beta)/\varepsilon$. \eop
+\end{lemma}
+
+The query family is $Q_{\mathrm{Del\text{-}N}}(G,\Delta)$ --- minus the number of
+nodes that must be deleted to cap the degree at $\Delta$ --- which the paper shows is
+monotone in $\Delta$, has global sensitivity $1$ under node-DP, and is
+\emph{sensitivity-monotonic} (neighboring graphs order its values consistently): the
+three properties SVT needs. Because the search evaluates $\Delta$ on a
+\emph{logarithmic} scale, only $\ln\log(4\,\mathit{deg}(G))$ iterations are ever
+consumed. For tasks where node deletion is combinatorial, the paper relaxes it to an
+LP over variables $(x_v, y_e)$ --- $x_v$ = delete node $v$, $y_e$ = drop edge $e$ ---
+whose optimum $Q_{\mathrm{LP\text{-}Del\text{-}N}}(G,\Delta)$ keeps the same three
+properties, and rounds:
+
+\begin{lemma}[LP rounding, Lemma of the paper]\label{lem:dp-337-lp}
+For any graph $G$ and any $\Delta$, the LP optimum upper-bounds the deletion query in
+the sense that
+$|Q_{\mathrm{Del\text{-}N}}(G, 3\Delta)| \;\le\; 3\,|Q_{\mathrm{LP\text{-}Del\text{-}N}}(G,\Delta)|$. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+From the optimal LP solution, keep every edge with $x_v, x_{v'} \le \tfrac13$ (so
+$y_e \ge 1 - x_v - x_{v'} \ge \tfrac13$) and delete every node with $x_v > \tfrac13$
+(paying $n_v \le 3x_v$ per node). Each retained node's degree is at most
+$3\sum_{e \ni v} y_e \le 3\Delta$, and the number of deletions is at most
+$3\sum_v x_v = 3|Q_{\mathrm{LP\text{-}Del\text{-}N}}(G,\Delta)|$ --- a feasible
+deletion scheme at threshold $3\Delta$.
+\end{proof}
+
+The remaining ingredient --- that clipping does not explode the edge distance --- is the
+paper's clipping lemma; since a node change can saturate many nodes, the proof bounds
+the two directions of edge difference separately (deferred to
+Section~\ref{sec:dp-appendix}):
+
+\begin{lemma}[Clipping distance, Lemma of the paper, notation cleaned]
+\label{lem:dp-337-clip}
+Let $G \subseteq G'$ be neighboring under node addition, and let $k$ be the number of
+nodes of $G$ with degree at least $\Delta$. Then the edge distance between
+$\mathrm{Clip}(G,\Delta)$ and $\mathrm{Clip}(G',\Delta)$ is at most $\Delta + k$. \eop
+\end{lemma}
+
+\paragraph{What it buys.}
+Every edge-DP graph algorithm becomes node-DP --- protecting individuals rather than
+single relationships --- by plugging it into N2E, with error tracking the actual
+degree profile through the $O(\log(\log(\mathit{deg}(G))/\beta)/\varepsilon)$-node
+clipping overhead instead of a worst-case bound; the LP-rounded variant keeps the
+framework polynomial-time even when the exact deletion query is NP-hard.
+
+\section{Per-record differential privacy}
+\label{sec:dp-263}
+
+The exemplar is a SIGMOD'26 paper on heterogeneous privacy budgets \citep{sigmod26-263}.
+Classical DP charges every record the same $\varepsilon$, but real deployments often
+want per-record budgets: a bank may owe wealthier clients stronger protection, and
+regulations may grade protection by record type. This \emph{per-record DP} (PrDP)
+replaces the scalar $\varepsilon$ with a budget function
+$\varepsilon_\mathcal{E}\colon [U]^d \to [\varepsilon_{\min}, \varepsilon_{\max}]$ ---
+now the privacy contract itself is a \emph{function}, and so is the composition
+arithmetic. The paper gives a general framework: privately discard the records whose
+budgets are too small to be worth noise, then run any existing DP mechanism on the
+survivors at the minimum surviving budget. For sums and counts it builds direct
+mechanisms that partition records into geometrically doubling budget slices, one
+Laplace mechanism per slice, and proves them near-optimal against down-neighborhood
+lower bounds --- the same yardstick style as Section~\ref{sec:dp-337}.
+
+\paragraph{Problem.}
+Records come from a universe $[U]^d$; a budget function $\varepsilon_\mathcal{E}$
+assigns each record $r$ a budget in $[\varepsilon_{\min}, \varepsilon_{\max}]$ (for
+the bank: a constant factor times wealth, capped). The \emph{privacy-specified domain}
+$X_{[\varepsilon_a, \varepsilon_b]} = \{r : \varepsilon_\mathcal{E}(r) \in
+[\varepsilon_a, \varepsilon_b]\}$ collects records whose budgets fall in a band. The
+contract: $\mathcal{M}$ is $\varepsilon_\mathcal{E}$-PrDP if for all neighbors
+$D \sim_r D'$ (differing in record $r$) and all outputs $y$,
+$\Pr[\mathcal{M}(D) = y] \le e^{\varepsilon_\mathcal{E}(r)}\,
+\Pr[\mathcal{M}(D') = y]$. Queries of interest are sums and counts.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[General framework, Theorem of the paper]\label{thm:dp-263-main}
+For any budget function $\varepsilon_\mathcal{E}(\cdot)$, $\beta \in (0,1)$, and any DP
+mechanism $\mathcal{M}$ for query $Q$, the framework returns $\hat Q(D)$ such that, with
+probability at least $1-\beta$,
+\[
+\bigl|\hat Q(D) - Q(D)\bigr| \;\le\;
+\underbrace{\bigl|Q(D) - Q(D')\bigr|}_{\text{(I)}}
+\;+\;
+\underbrace{\operatorname{Err}_{\mathcal{M}}\bigl(D',\;
+\varepsilon_{\min}(D)/4,\; \beta/2\bigr)}_{\text{(II)}},
+\]
+where $D'$ is obtained by removing
+$O\bigl(\tfrac{1}{\varepsilon_{\min}(D)}\log\log(\cdot/\beta)\bigr)$ records from $D$
+(hiding the argument of the iterated logarithm), and $\varepsilon_{\min}(D)$ is the
+smallest budget among records of $D$. \eop
+\end{theorem}
+
+\paragraph{How DP composition is applied.}
+Term~(I) is a \emph{bias} term --- the query change caused by discarding the budget-poor
+records --- and term~(II) is the noise of the black-box mechanism run on the survivors:
+a sensitivity-vs-truncation trade, as in Section~\ref{sec:dp-337} but with budgets, not
+degrees, deciding the cut. To locate the cut, the count estimation searches over the
+doubling partition $X_i = X_{[2^{i-1}\varepsilon_a,\ 2^i\varepsilon_a)}$: it releases
+per-slice counts with slice-specific Laplace noise, thresholds them (Laplace tail
+bounds plus a union bound over the $\log(\varepsilon_{\max}/\varepsilon_{\min})$
+slices), and certifies that the first surviving slice has budget
+$\hat\varepsilon \ge \tfrac12\varepsilon_{\min}(D)$ while the discarded slices together
+hold only $O(\tfrac1{\varepsilon_{\min}(D)} \log\log(\cdot/\beta))$ records --- the
+failure budget $\beta$ split per slice and union-bounded, exactly the recipe of
+Section~\ref{sec:dp-howto}. The sum estimation composes per-slice mechanisms, with the
+composition arithmetic lifted from scalars to functions:
+
+\begin{lemma}[PrDP parallel composition, Lemma of the paper]\label{lem:dp-263-parallel}
+Let $R_1,\dots,R_k$ be disjoint subdomains and $\mathcal{M}_1,\dots,\mathcal{M}_k$
+$\varepsilon_{\mathcal{E}_i}$-PrDP mechanisms. Their parallel composition
+$\mathcal{M}(D) := (\mathcal{M}_1(D_{R_1}),\dots,\mathcal{M}_k(D_{R_k}))$ satisfies
+$\varepsilon_{\mathcal{E}'}$-PrDP with
+$\varepsilon_{\mathcal{E}'}(r) = \max\{\varepsilon_{\mathcal{E}_i}(r)\}_{i=1}^k$. \eop
+\end{lemma}
+
+\begin{proof}
+A record $r$ lives in exactly one slice, so changing $r$ perturbs exactly one component,
+whose mechanism carries its own $\varepsilon_{\mathcal{E}_i}(r)$ bound; the other
+components are identical functions of unchanged data.
+\end{proof}
+
+The sequential twin states
+$\varepsilon_{\mathcal{E}'}(r) = \sum_{i=1}^k \varepsilon_{\mathcal{E}_i}(r)$ (Lemma
+of the paper): sums along chains, maxima across slices --- the same two rules as
+Theorems~\ref{thm:dp-seq} and~\ref{thm:dp-parallel}, now pointwise in the record. The
+sum mechanism calibrates each slice's Laplace scale to the largest sensitivity that
+slice contributes; because slice budgets double, the per-slice noise forms a geometric
+series on the order of its largest term --- error governed by the best-budgeted
+survivors, not by $\varepsilon_{\min}$. An LDP variant (Theorem of the paper) removes
+$O\bigl(\tfrac{\sqrt n}{\varepsilon_{\min}(D)}\log\log(\cdot/\beta)\bigr)$ records
+instead, the $\sqrt n$ inflation being the standard price of aggregating $n$ locally
+randomized responses. Near-optimality is certified against the \emph{down-neighborhood
+lower bound}
+$L_\varepsilon(D) = \max_{M' \in \mathcal{M}} \min_{D'\,:\, d(D,D') \le
+\varepsilon^{-1}} \{\tau : \Pr[|M'(D') - Q(D')| \le \tau] \ge \tfrac23\}$
+(Definition of the paper, quoting prior work): no mechanism beats the error of the best
+mechanism on the best nearby dataset, and the paper's mechanisms sit within a constant
+factor $c$ of this bound ($(\varepsilon,c)$-down-neighborhood optimality).
+
+\paragraph{What it buys.}
+Regulated deployments can honor per-record protection levels --- different $\varepsilon$
+per customer or record class --- without giving up the machinery of standard DP: any
+existing mechanism drops into the framework, the error adapts to the budgets actually
+present in the data, and the optimality certificate says the residual error is the
+unavoidable price of the worst-protected records, not an artifact of the design.
+
+\section{Advanced usage and further reading}
+\label{sec:dp-advanced}
+
+Everything so far composes \emph{statistics}. Two harder corpus uses push the same
+calculus onto objects one would not at first call releases --- memory access patterns
+and distance labels; each is sketched in one paragraph, and the chapter's deferred
+proofs live in the Appendix (Section~\ref{sec:dp-appendix}).
+
+\paragraph{Differentially oblivious multi-way join \citep{sigmod26-073}.}
+Running a join in untrusted memory exposes not the output but the \emph{access pattern}
+--- which cells were read, and when. Fully oblivious (FO) algorithms erase that leak at
+the price of touching the whole memory; the paper defines \emph{differentially
+oblivious} (DO) algorithms, whose access-pattern distribution satisfies DP over
+neighboring input instances, and asks how cheap a DO multi-way join can be. The meta
+algorithm is the ledger of Figure~\ref{fig:dp-ledger} with an access pattern as the
+composed object: an $(\varepsilon_1,\delta_1)$-DO subroutine releases an
+$(\varepsilon_2,\delta_2)$-DP \emph{upper bound} $\widehat{OUT}$ on the join size
+$|Q(I)|$, calibrated via smooth sensitivity --- the paper proves smoothness lemmas for
+the join's residual-set terms (RST/EST monotonicity under dropping attributes, plus a
+``relaxed smooth sensitivity'' RRS damping local sensitivity by $e^{-\beta k}$ across
+$k$-step neighborhoods), and a hybrid construction picks the cheapest valid bound per
+subset of relations. The join itself then runs as an \emph{advised FO} algorithm: an FO
+algorithm whose access pattern is a deterministic function of the input size $|I|$ and
+the advice $\widehat{OUT}$ only --- so its leak is $|I|$ plus one DP release, and the
+construction is $(\varepsilon_1+\varepsilon_2,\ \delta_1+\delta_2)$-DO by sequential
+composition (Theorem~3.2 of the paper), with post-processing immunity licensing the
+pattern as a private object. The payoff: $O((N^w + |Q(I)| + \mathrm{RRS}(I))\cdot
+\log N)$ time under data complexity ($w$ = fractional hypertree width) instead of full
+obliviousness.
+
+\paragraph{Privacy-preserving shortest path via 2-hop labeling \citep{sigmod26-214}.}
+Two parties hold subgraphs of one weighted graph, connected by public cut edges, and
+must answer shortest-path distance queries between their vertices without revealing
+the private weights. Each party builds a 2-hop labeling of its subgraph --- every
+vertex stores exact distances to higher-ranked \emph{boundary} vertices --- and the
+parties exchange secret-shared boundary graphs instead of raw data. The proof that
+this loses no information is an \emph{induction on the optimal substructure of
+shortest paths} (Lemma~4.4 and Lemma~5.2 of the paper): any shortest path crossing
+partitions decomposes at boundary vertices, so the combined boundary graph preserves
+all boundary-to-boundary distances exactly. Privacy is the truncated Laplace
+mechanism: edge weights are perturbed with Laplace noise truncated to a bounded range
+--- guaranteeing that the iterative label construction converges (no unbounded noise
+ever enters a distance) --- and the released labeling satisfies
+$(\varepsilon,\delta)$-DP (Theorem~5.4 of the paper), with weight-neighborhood
+$\|w - w'\|_1 \le 1$. The composition lesson: the labeling is built by a pipeline of
+per-vertex noisy aggregations composed sequentially, and correctness is proved
+independently of privacy --- post-processing immunity lets the exact-labeling argument
+ride on top of the noisy weights for free.
+
+\subsection*{Further reading}
+
+\begin{itemize}
+\item The monograph: Dwork and Roth \citep{dp-composition-bg3} --- the algorithmic
+  foundations, with all composition proofs and the privacy-loss calculus done from
+  first principles; the natural companion to this chapter.
+\item The originals: Dwork, McSherry, Nissim, and Smith \citep{dp-composition-bg1} ---
+  sensitivity and calibrated noise; Dwork, Rothblum, and Vadhan
+  \citep{dp-composition-bg2} --- the advanced-composition theorem and the
+  privacy-loss random variable.
+\item Beyond scalar budgets: Mironov's R\'enyi DP \citep{dp-composition-bg4} composes in
+  moments and converts back to $(\varepsilon,\delta)$; Dong, Roth, and Su's Gaussian/f-DP
+  \citep{dp-composition-bg5} makes the divergence curve itself the composed object ---
+  the direction in which budget accounting is moving.
+\item Subsampling: Balle, Barthe, and Gaboardi \citep{dp-composition-bg6} --- privacy
+  amplification, the discount rule when mechanisms run on samples.
+\item For a refresher with the corpus exemplars in one place: the DP sections of the
+  concentration chapter (Section~\ref{sec:conc-ldp} in Chapter~\ref{ch:conc}) treat the
+  noise tails; the present chapter treats the accounting.
+\end{itemize}
+
+\begin{recap}
+\item \textbf{What the tool is.} The DP composition calculus turns per-release
+  guarantees into one end-to-end contract: budgets add along adaptive chains
+  (sequential), collapse to maxima on disjoint data slices (parallel), survive any
+  downstream computation unchanged (post-processing), and inflate linearly in group size
+  (group privacy); single releases are calibrated by sensitivity --- Laplace for
+  numbers, the exponential mechanism for selections.
+\item \textbf{Which rung when.} Same data, several releases: sequential. Disjoint
+  records/clusters/slices: parallel. Converting neighborhoods (node$\to$edge,
+  group$\to$individual): group privacy. Anything after a private output: free. Many
+  releases ($k \gtrsim 50$): advanced or moment accounting.
+\item \textbf{Why it works.} Indistinguishability multiplies: a product of
+  per-release density ratios bounded by $e^{\varepsilon_i}$ is bounded by
+  $e^{\sum_i \varepsilon_i}$; disjointness kills all but one factor; post-processing
+  integrates against a fixed output law; distance-$\lambda$ chains telescope.
+\item \textbf{What the corpus showed.} Cluster explanations (Section~\ref{sec:dp-298}):
+  a three-dial ledger with sequential + parallel + post-processing stages and
+  sensitivity-$1$ scores by $\ell_1$ algebra. Sparse histograms
+  (Section~\ref{sec:dp-178}): four-case dominance over neighboring supports composed
+  with a private upper-bound search, optimal $\ell_\infty$ error. N2E
+  (Section~\ref{sec:dp-337}): SVT at logarithmic scale, group privacy at
+  $\varepsilon/(6\Delta^*)$, LP rounding of the deletion query. Per-record DP
+  (Section~\ref{sec:dp-263}): composition lifted from scalars to budget functions ---
+  pointwise sums and maxima --- with down-neighborhood optimality.
+\item \textbf{Advanced usage.} The calculus also composes non-statistical objects:
+  access patterns of differentially oblivious joins and noisy 2-hop distance labelings
+  (Section~\ref{sec:dp-advanced}); deferred proofs are collected in the Appendix
+  (Section~\ref{sec:dp-appendix}).
+\end{recap}
+
+\section{Appendix}
+\label{sec:dp-appendix}
+
+Proofs omitted from the main text are collected here.
+
+\subsubsection*{Proof of Theorem~\ref{thm:dp-laplace} (Laplace mechanism)}
+{\itshape Statement (recalled).} If $GS_Q$ is the global sensitivity of $Q$, then
+$Q(D) + \operatorname{Lap}(GS_Q/\varepsilon)$ satisfies $\varepsilon$-DP.\eop
+
+\begin{proof}
+Let $b = GS_Q/\varepsilon$ and write $p_D$ for the density of
+$Q(D) + \operatorname{Lap}(b)$ at a point $y$. For every coordinate $j$,
+$|(Q(D) - y_j) - (Q(D') - y_j)| \le |Q(D) - Q(D')| \le GS_Q$, so the density ratio is
+\[
+\frac{p_D(y)}{p_{D'}(y)}
+= \prod_j \exp\!\Bigl(\frac{|Q(D')_j - y_j| - |Q(D)_j - y_j|}{b}\Bigr)
+\le \exp\!\Bigl(\frac{\|Q(D)-Q(D')\|_1}{b}\Bigr)
+\le e^{GS_Q/b} = e^{\varepsilon}.
+\]
+Integrating over any measurable $S$ gives
+$\Pr[\mathcal{M}(D) \in S] \le e^{\varepsilon}\Pr[\mathcal{M}(D') \in S]$.
+\end{proof}
+
+\subsubsection*{Proof of Theorem~\ref{thm:dp-seq} (sequential composition)}
+{\itshape Statement (recalled).} If $\mathcal{M}_1$ is
+$(\varepsilon_1,\delta_1)$-DP and $\mathcal{M}_2(\cdot,y)$ is
+$(\varepsilon_2,\delta_2)$-DP in its first input for every fixed $y$, then
+$\mathcal{M}_3(D) = \mathcal{M}_2(D,\mathcal{M}_1(D))$ is
+$(\varepsilon_1{+}\varepsilon_2,\ \delta_1{+}\delta_2)$-DP.\eop
+
+\begin{proof}
+For $y$ in the range of $\mathcal{M}_1$ let $p_D(y) = \Pr[\mathcal{M}_1(D) = y]$ and
+let $q_D(S \mid y) = \Pr[\mathcal{M}_2(D,y) \in S]$. For any measurable $S$ of the
+composed output space,
+\[
+\Pr[\mathcal{M}_3(D) \in S]
+= \int q_D(S \mid y)\, d p_D(y).
+\]
+Let $T = \{y : p_D(y) \le e^{\varepsilon_1} p_{D'}(y)\}$; by the DP bound on
+$\mathcal{M}_1$ (applied to the complement), $\Pr[\mathcal{M}_1(D) \notin T] \le
+\delta_1$. Splitting the integral at $T$ and using the two per-mechanism bounds on each
+part,
+\[
+\Pr[\mathcal{M}_3(D) \in S]
+\;\le\; e^{\varepsilon_2}\!\int_T q_{D'}(S\mid y)\, d p_D(y) + \delta_2
+\;\le\; e^{\varepsilon_2} e^{\varepsilon_1}\!\int q_{D'}(S\mid y)\, d p_{D'}(y)
++ e^{\varepsilon_2}\delta_2 + \delta_1,
+\]
+which is at most $e^{\varepsilon_1+\varepsilon_2}
+\Pr[\mathcal{M}_3(D') \in S] + (\delta_1+\delta_2)$ for $\varepsilon_2 \ge 0$.
+Iteration over $k$ adaptive stages is this argument unrolled along the chain.
+\end{proof}
+
+\subsubsection*{Proof of Theorem~\ref{thm:dp-group} (group privacy)}
+{\itshape Statement (recalled).} An $(\varepsilon,\delta)$-DP mechanism satisfies
+$\Pr[\mathcal{M}(G) \in S] \le e^{\lambda\varepsilon}\Pr[\mathcal{M}(G') \in S] +
+\lambda\delta$ for inputs at neighborhood distance $\lambda$.\eop
+
+\begin{proof}
+Induction on $\lambda$; $\lambda = 1$ is DP itself. For the step, fix intermediates
+$G = G_0 \sim G_1 \sim \dots \sim G_\lambda = G'$ and apply DP twice:
+\[
+\Pr[\mathcal{M}(G_0) \in S]
+\;\le\; e^{\varepsilon}\Pr[\mathcal{M}(G_1) \in S] + \delta
+\;\le\; e^{2\varepsilon}\Pr[\mathcal{M}(G_2) \in S] + e^{\varepsilon}\delta + \delta.
+\]
+After $\lambda$ steps the error term is $\sum_{i=0}^{\lambda-1} e^{i\varepsilon}\delta
+\le \lambda e^{(\lambda-1)\varepsilon}\delta$; since
+$\lambda e^{(\lambda-1)\varepsilon} \ge \lambda$ this is absorbed by
+$\lambda\delta$ as claimed (the paper's statement).
+\end{proof}
+
+\subsubsection*{Proof of Proposition~\ref{prop:dp-298-jsd} (JSD sensitivity bound)}
+{\itshape Statement (recalled).} The Jensen--Shannon distance score has sensitivity at
+least $\tfrac12$: some neighbors $D \sim D'$ change it by more than $\tfrac12$.\eop
+
+\begin{proof}
+Let $D$ have $n \ge 1$ tuples, all carrying value $a$ on attribute $A$, and let
+$D_c = \{t\}$ be a singleton cluster. Both $P_A(D)$ and $P_A(D_c)$ are point masses on
+$a$, so $d_{JS}(P_A(D), P_A(D_c)) = 0$. Let $D' = D \cup \{t'\}$ and
+$D'_c = D_c \cup \{t'\}$ with $t'[A] = a' \ne a$. Then
+\[
+P_A(D') = \Bigl(\tfrac{n}{n+1}, \tfrac{1}{n+1}\Bigr),
+\qquad
+P_A(D'_c) = \Bigl(\tfrac12, \tfrac12\Bigr),
+\]
+over $\{a, a'\}$, and the mixture puts mass
+$\tfrac{n}{2(n+1)} + \tfrac14$ on $a$. Writing $H_b$ for the binary entropy (bits),
+\[
+\mathit{JSD}\bigl(P_A(D'), P_A(D'_c)\bigr)
+= H_b\Bigl(\tfrac{n}{2(n+1)} + \tfrac14\Bigr)
+- \tfrac12 H_b\Bigl(\tfrac{1}{n+1}\Bigr)
+- \tfrac12 H_b\Bigl(\tfrac12\Bigr).
+\]
+As $n \to \infty$, the mixture mass tends to $\tfrac34$, so the limit is
+$H_b(\tfrac34) - 0 - \tfrac12 \cdot 1 = H_b(\tfrac14) - \tfrac12 \approx 0.811 - 0.5
+= 0.311$ bits, using $H_b(\tfrac{1}{n+1}) \to H_b(0) = 0$ and $H_b(\tfrac12) = 1$.
+Hence for all large $n$ the divergence exceeds $0.30$ bits, so the Jensen--Shannon
+\emph{distance} (its square root) exceeds $\sqrt{0.30} > \tfrac12$ while it was $0$ on
+$D$ --- a change of more than $\tfrac12$ between neighbors, as computed in the paper.
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:dp-337-clip} (clipping distance, N2E)}
+{\itshape Statement (recalled).} For node-neighboring $G \subseteq G'$ and $k$ = number
+of nodes of $G$ of degree $\ge \Delta$, the clipped graphs
+$\mathrm{Clip}(G,\Delta)$, $\mathrm{Clip}(G',\Delta)$ differ in at most $\Delta + k$
+edges.\eop
+
+\begin{proof}
+Let $u$ be the node of $G' \setminus G$. Count each direction of the difference.
+\emph{Edges present after clipping $G'$ but not after clipping $G$}: any such edge
+$e = (v_1, v_2)$ with both endpoints in $V$ is among the $\Delta$ smallest-order edges
+of $v_1, v_2$ in both graphs, so it survives both clippings; hence every edge in this
+category touches $u$, and $u$ keeps at most $\Delta$ edges --- at most $\Delta$ edges
+total. \emph{Edges present after clipping $G$ but not after clipping $G'$}: such an edge
+$e$ is among the $\Delta$ smallest-order edges of its endpoints in $G$, yet is pushed
+out in $G'$ only if one of its endpoints is \emph{saturated} in $G$ (degree
+$\ge \Delta$) and one of the new edges incident to $u$ displaces it in that endpoint's
+smallest-order set. Each saturated node loses at most one edge per new edge of $u$, and
+the new edges number at most the number of saturated nodes they touch; since $G$ has at
+most $k$ saturated nodes, this category contributes at most $k$ edges. Together,
+$\Delta + k$.
+\end{proof}
+
+\bibliographystyle{plainnat}
+\bibliography{chapters/dp-composition-all}
