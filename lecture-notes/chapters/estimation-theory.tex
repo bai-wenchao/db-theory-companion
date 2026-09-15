@@ -1,153 +1,850 @@
 \chapter{Estimation Theory}
-\label{ch:estimation-theory}
+\setcounter{section}{-1}   % sections start at 4.0 (see main.tex comment)
+\label{ch:est}
 
-\section{Estimators: the interface between sampling and guarantees}
+\begin{objectives}
+\item Recognize when a reported number is an \emph{estimator}, and state its bias and variance.
+\item Build unbiased estimators by inverse-probability weighting; know why nonlinearity breaks them.
+\item Invert tail bounds to set sample counts analytically, not by tuning.
+\item Certify optimality with entropy-, communication-, or information-based lower bounds.
+\end{objectives}
 
-Database systems rarely compute quantities exactly: sketches compress frequency vectors, samplers select a few rows or a few random spanning trees, and privacy mechanisms deliberately add noise. Estimation theory is what lets a paper say something rigorous about the resulting number. Whenever a data structure or mechanism reports a value $\hat\theta$ together with a claim of the form ``within $\varepsilon$ of the truth with probability at least $1-\delta$,'' an \emph{estimator} has been constructed and its error has been bounded. The three classical questions transfer verbatim: is $\hat\theta$ \emph{unbiased}, how large are its \emph{variance} or mean-squared error, and can \emph{any} estimator in the same situation do better, i.e., what does a \emph{minimax} or information-theoretic lower bound permit \cite{estimation-theory-bg1,estimation-theory-bg2}? In the SIGMOD'26 corpus, estimation theory is used by 27 of the 228 tagged papers and is the most frequent companion of the \emph{error-bound} (16 papers) and \emph{probabilistic-guarantee} (13 papers) tags: it is the tool that turns a data reduction into a guarantee.
+Database systems constantly answer questions with numbers they did not exactly compute: a
+sketch reports a frequency, a sample reports a cardinality, simulated diffusions report an
+influence score. Estimation theory says how far such a number can sit from the truth. It
+builds an \emph{estimator} --- a function of the randomness the
+system has chosen to expend --- and asks the classical questions in order: is it
+\emph{unbiased} (correct in expectation), how large is its \emph{variance} or mean-squared
+error, and could \emph{any} estimator do better \citep{estimation-theory-bg1,
+estimation-theory-bg2}? Where the previous chapter bounded how far a random quantity strays
+from its mean, this chapter supplies the upstream half: what the mean should estimate, and how
+many samples make the estimate trustworthy --- together the standard systems promise, a
+$(1\pm\varepsilon)$ estimate holding with probability $1-\delta$.
 
-The workflow typically runs backwards from the target guarantee: build a sketch or sampler; read an estimator off it; bound the estimator's variance; convert variance into a confidence statement with a concentration inequality; pay a union bound over the keys, nodes, or rounds that must be simultaneously correct; and, in the strongest papers, prove a matching lower bound showing the error or the space is optimal.
+In the SIGMOD'26 corpus this is among the most-used theoretical tools: estimation theory is
+tagged in 27 of the 228 tagged papers, the most frequent companion of the
+\emph{error-bound} (16 papers) and \emph{probabilistic-guarantee} (13 papers) tags. The
+corpus workflow is constant: read an estimator off a sketch, sample, or simulation; prove
+it unbiased; bound its variance or range; convert to a confidence statement; union-bound
+over all keys, nodes, or rounds; and, in the strongest papers, match with a lower bound
+proving the error or space optimal. This chapter presents the ladder and four basic
+exemplars first; Section~\ref{sec:est-advanced} adds sequential (anytime-valid)
+confidence and two harder exemplars as extension reading.
 
-\section{The tool}
+\section{The tool: estimation theory}
 
-\paragraph{Bias--variance decomposition.} For an estimator $\hat\theta$ of a parameter $\theta$,
-\begin{equation}
+The problem class is uniform. Some parameter $\theta$ of the data --- a frequency moment, a
+distance, an influence score --- is inaccessible at the accuracy the system can afford, but
+the system can run a randomized experiment: draw a sample, hash into a sketch, simulate a
+diffusion, walk a graph. An estimator $\hat\theta$ is the function converting the outcome
+into a reported number. Estimation theory climbs a four-rung ladder, each rung a clause a
+paper must earn before printing a guarantee: \emph{correctness in expectation}
+(unbiasedness), \emph{how fast the error shrinks} (variance, MSE), \emph{whether any
+estimator shrinks it faster} (Cram\'er--Rao-style efficiency), and \emph{high-probability
+accuracy surviving union bounds} (concentration). The exemplars show papers on each rung.
+
+\subsection{The ladder}
+\label{sec:est-ladder}
+
+\begin{definition}[Estimator, bias, MSE]\label{def:est-estimator}
+Let the data be drawn from a distribution $P_\theta$ indexed by a parameter $\theta \in \Theta$.
+An \emph{estimator} is a statistic $\hat\theta = \hat\theta(X)$ not depending on $\theta$. Its
+\emph{bias} is $\mathbb{E}_\theta[\hat\theta] - \theta$ and its \emph{mean-squared error} is
+$\mathrm{MSE}_\theta(\hat\theta) = \mathbb{E}_\theta[(\hat\theta-\theta)^2]$. The estimator is
+\emph{unbiased} if $\mathbb{E}_\theta[\hat\theta] = \theta$ for all $\theta$.
+\end{definition}
+
+The two error components separate exactly, and every design decision in a sketch or sampler is a
+move between them:
+
+\begin{proposition}[Bias--variance decomposition]\label{prop:est-mse}
+For any estimator $\hat\theta$ with finite variance,
+\[
 \mathrm{MSE}_\theta(\hat\theta)
-= \mathbb{E}\big[(\hat\theta-\theta)^2\big]
-= \underbrace{\big(\mathbb{E}[\hat\theta]-\theta\big)^2}_{\text{squared bias}}
-+ \underbrace{\mathrm{Var}(\hat\theta)}_{\text{variance}},
-\label{eq:bias-variance}
-\end{equation}
-and every design decision in a sketch or mechanism is a move between the two terms. Unbiasedness ($\mathbb{E}[\hat\theta]=\theta$) is prized because variances \emph{add} over independent contributions --- per-key counters, per-round messages, per-node estimates --- so one variance computation feeds Chebyshev or Chernoff bounds and yields the $(\varepsilon,\delta)$ statement directly \cite{estimation-theory-bg3}. Its fragility matters equally: unbiasedness is destroyed by nonlinear post-processing, $\mathbb{E}[g(X)] \neq g(\mathbb{E}[X])$, so estimating $x^p$ from an unbiased estimate of $x$ requires a Taylor-series or geometric-mean correction rather than plugging in.
-
-\paragraph{Unbiasedness versus minimax.} A single unbiased estimator says nothing about optimality. The minimax risk
-\[
-\inf_{\hat\theta}\;\sup_{\theta\in\Theta}\;\mathbb{E}\big[(\hat\theta-\theta)^2\big]
+\;=\;
+\underbrace{\bigl(\mathbb{E}_\theta[\hat\theta]-\theta\bigr)^2}_{\text{squared bias}}
+\;+\;
+\underbrace{\operatorname{Var}_\theta(\hat\theta)}_{\text{variance}}. \eopm
 \]
-benchmarks \emph{all} estimators at once. For unbiased estimators the Cram\'er--Rao inequality $\mathrm{Var}_\theta(\hat\theta)\ge 1/I(\theta)$, with $I(\theta)=\mathbb{E}\big[(\partial_\theta\log p_\theta(X))^2\big]$ the Fisher information, gives a local benchmark; two-point (Le Cam) and Fano arguments give distribution-free ones \cite{estimation-theory-bg2}. In DB papers the ``information'' is usually combinatorial rather than Fisherian: the sensitivity of a query under neighboring inputs, the norm of the stream, or the entropy of any encoding of the sketch. The last turns estimation error into a space lower bound: if the estimator must be $(E,\delta)$-accurate, the sketch state must be incompressible below the entropy of what it has to distinguish \cite{estimation-theory-bg1}.
+\end{proposition}
 
-\paragraph{The estimator-to-bound pipeline.} Corpus papers instantiate the same five-step pipeline:
-(i) construct $\hat\theta$ from a sketch, a sample, or a randomized mechanism, and check its expectation;
-(ii) bound $\mathrm{Var}(\hat\theta)$ or a sub-Gaussian proxy in terms of structural parameters (stream norms, degrees, sensitivities);
-(iii) apply a concentration inequality to pass from variance to a per-quantity $(\varepsilon,\delta)$ statement;
-(iv) union-bound over all coordinates that must hold simultaneously, paying a $\log(\#\text{quantities})$ factor;
-(v) match with a lower bound (variance, Le~Cam/Fano, or entropy) to certify optimality \cite{estimation-theory-bg2,estimation-theory-bg3,estimation-theory-bg4}.
+\begin{proof}
+Expand $\mathbb{E}[(\hat\theta-\theta)^2] =
+\mathbb{E}\bigl[(\hat\theta-\mathbb{E}\hat\theta)^2\bigr] +
+(\mathbb{E}\hat\theta-\theta)^2 + 2(\mathbb{E}\hat\theta-\theta)\,
+\mathbb{E}[\hat\theta-\mathbb{E}\hat\theta]$; the cross term vanishes.
+\end{proof}
 
-\begin{center}
-\begin{tikzpicture}[
-  box/.style={draw, rounded corners=2pt, inner sep=3pt, align=center, font=\footnotesize}]
-\node[box] (s)   at (0,0)    {sketch, sampler,\\ or DP mechanism};
-\node[box] (e)   at (2.9,0)  {estimator $\hat\theta$\\ (unbiased?)};
-\node[box] (v)   at (5.8,0)  {variance bound\\ $\to$ concentration};
-\node[box] (g)   at (8.7,0)  {$(\varepsilon,\delta)$\\ guarantee};
-\node[box, dashed] (lb) at (8.7,-1.25) {lower bound:\\ is it optimal?};
-\draw[->] (s) -- (e);
-\draw[->] (e) -- (v);
-\draw[->] (v) -- (g);
-\draw[<->, dashed] (g) -- (lb);
-\end{tikzpicture}
+Unbiasedness is prized for a structural reason: it makes errors \emph{add}. Independent unbiased
+pieces --- per-key counters, per-round messages, per-node visits --- combine into an unbiased
+average whose variance is the average of the variances:
 
-\smallskip
-{\small The estimator pipeline: every exemplar below walks left to right; the strongest also close the loop.}
-\end{center}
-
-\section{Exemplars from the SIGMOD'26 corpus}
-
-\subsection{Perfect $\ell_p$ sampling from exponential variables (streaming)}
-
-One-pass streaming algorithms must output a single index $i$ distributed with probability proportional to $|f_j|^p$, the ideal $\ell_p$ sample; the classical difficulty is that the stream must be tracked under this unusual distribution. The paper treats the output index itself as the estimator and bounds its accuracy per coordinate.
-
-\begin{theorem}[Theorem 1 of \cite{sigmod26-247}: $\ell_p$ sampler]
-For any constant $p\in(0,2]$, there is a one-pass streaming algorithm that runs in space $\widetilde{O}(\log^{c(p)} n\cdot\log(1/\delta))$ and outputs an index $i$ such that, with probability at least $1-\delta$, for every $j\in[n]$,
+\begin{lemma}[Averaging independent copies]\label{lem:est-averaging}
+Let $\hat\theta_1,\dots,\hat\theta_t$ be independent, each with
+$\mathbb{E}[\hat\theta_i] = \theta$ and $\operatorname{Var}(\hat\theta_i) \le \sigma^2$. Then
+$\bar\theta = \frac1t\sum_{i=1}^t \hat\theta_i$ is unbiased and
 \[
-\Pr[i=j] \;=\; \frac{|f_j|^p}{\lVert f\rVert_p^p} \;\pm\; \frac{1}{\mathrm{poly}(n)},
-\qquad
-c(p)=\begin{cases} 1 & 0<p<2,\\ 2 & p=2.\end{cases}
+\operatorname{Var}(\bar\theta) \;=\; \frac{1}{t^2}\sum_{i=1}^t
+\operatorname{Var}(\hat\theta_i) \;\le\; \frac{\sigma^2}{t}. \eopm
 \]
-\end{theorem}
-
-\begin{corollary}[Corollary 3.3 of \cite{sigmod26-247}]
-Let $f\in\mathbb{R}^n$ be a frequency vector and let $(e_1,\dots,e_n)$ be i.i.d.\ exponential random variables with rate $1$. Define $z_i = f_i/e_i^{1/p}$ and let $(D^{(1)},\dots,D^{(n)})$ be the anti-rank vector of the vector $(z_1^{-p},\dots,z_n^{-p})$. Then
-\[
-\Pr\big[D^{(1)}=i\big] \;=\; \frac{|f_i|^p}{\lVert f\rVert_p^p}.
-\]
-\end{corollary}
-
-What is estimated is a whole distribution rather than a scalar, and the error bound is an $\ell_\infty$ bound on the sampled probabilities. The estimator trick is the exponential race: by scaling, $e_i/f_i^p = z_i^{-p}$ is exponential with rate $|f_i|^p$, so the minimum is attained at $i$ with exactly $\ell_p$ probability; the streaming algorithm then only has to track the rescaled vector $z$ (via BPTree, CountSketch, and AMS sketches), repairing the nonlinear $x^p$ step with Taylor-series and geometric-mean estimators, with Chebyshev and union bounds supplying the $\pm 1/\mathrm{poly}(n)$ accuracy. \cite{sigmod26-247}\pods
-
-\subsection{Unbiased Laplace-noised walk counting (local differential privacy on graphs)}
-
-Counting $k$-line walks in a graph where every node privatizes its own view (edge-local DP) forces fresh Laplace noise at each of $k$ synchronous rounds, so the naive error compounds with $k$; the question is how much accuracy a $k$-round message-passing mechanism can retain.
-
-\begin{theorem}[Theorem 4.2 of \cite{sigmod26-012}]
-For any graph $G$, walk length $k$, and parameters $\varepsilon$ and $\beta$, the $k$-round mechanism $\mathcal{M}_{k\text{-wk}}$ satisfies $\mathbb{E}[\mathcal{M}_{k\text{-wk}}(G,\varepsilon)] = W_k$, and with probability at least $1-\beta$,
-\[
-\big|\mathcal{M}_{k\text{-wk}}(G,\varepsilon) - W_k\big|
-\;\le\; k\gamma\sqrt{N}\,\big(d(G)+\gamma\big)^{k-1}
-\;=\; \widetilde{O}\big(\sqrt{N\, d(G)^{k-1}}\big),
-\]
-where $\gamma = 2k\sqrt{8\log(2kN/\beta)}/\varepsilon = \widetilde{O}(1)$, with $N$ the number of nodes and $d(G)$ a degree parameter of $G$.
-\end{theorem}
-
-What is estimated is $W_k$, the number of $k$-line walks; the bound is unbiasedness plus a high-probability additive error of $\widetilde{O}\big(\sqrt{N\,d(G)^{k-1}}\big)$, improving on the typical $O(N^{k/2})$ of naive Laplace counting. The estimator trick is sensitivity control by induction: each round adds per-node Laplace noise scaled by the running maximum $\lVert X^{(\ell-1)}\rVert_\infty$, a Laplace concentration bound (failure budget $\beta'/N$ per node per round) yields $\lVert X^{(\ell)}\rVert_\infty \le (d(G)+\gamma)^{\ell}$, and union bounds close the loop; a complementary variance lower bound of $\Omega(N^{k+1})$ for the baseline estimator, obtained by summing variances over all oriented $k$-line walks, shows the multi-round design is genuinely needed. \cite{sigmod26-012}
-
-\subsection{Variance recursion and an entropy lower bound for expandable sketches}
-
-A frequency-estimation (FE) sketch for streams of unknown, unbounded length must expand as the stream grows; the paper asks both how accurate such a sketch can be and how much memory the expansion forces, matching the two sides.
-
-\begin{lemma}[Variance of the sketch \cite{sigmod26-231}]
-Like CountSketch, the sketch provides unbiased estimates. Moreover, letting $V(F)$ denote its estimation variance when using a size function $W(\cdot)$ and one array on a stream with squared $\ell_2$-norm $F=\sum_y (f(y))^2$, we have at the end of epoch $i$ that
-\[
-V(F_{i+1}) \;\le\; \frac{1}{W_i}\cdot\sum_{j=0}^{i} 2^{\,i-j}\cdot\big(F_{j+1}-F_j\big),
-\]
-where $F_j$ denotes the squared $\ell_2$-norm of the stream at the start of epoch $j$.
 \end{lemma}
 
-\begin{theorem}[Space lower bound \cite{sigmod26-231}]
-Consider an FE sketch with only overestimation errors that processes growing streams with an error bound of $E(N)$ and a confidence of $1-\delta$. Such a sketch must use at least
+\begin{proof}
+Unbiasedness is linearity of expectation; independence zeroes the cross terms in
+$\operatorname{Var}(\sum_i \hat\theta_i) = \sum_i \operatorname{Var}(\hat\theta_i) +
+\sum_{i\ne j}\operatorname{Cov}(\hat\theta_i,\hat\theta_j)$.
+\end{proof}
+
+\sidenote{Unbiasedness is \emph{fragile under nonlinearity}: $\mathbb{E}[g(X)] \ne
+g(\mathbb{E}X)$, so an unbiased estimate of $x$ does not yield one of $x^p$ by plugging
+in. Corpus papers either estimate the nonlinear functional directly
+(Section~\ref{sec:est-bd}) or \emph{truncate}, capping the estimator and booking the
+bias into the guarantee (Section~\ref{sec:est-fp}).}
+
+The second rung asks whether the variance is not just bounded but \emph{good}. The classical
+benchmark is the Cram\'er--Rao inequality: no unbiased estimator can beat the inverse of the
+information the data carries about the parameter
+\citep{estimation-theory-bg1,estimation-theory-bg2}.
+
+\begin{theorem}[Cram\'er--Rao lower bound]\label{thm:est-cr}
+Let $\{p_\theta\}_{\theta\in\Theta}$ be a regular parametric family (support independent of
+$\theta$; differentiation and expectation exchange) and $\hat\theta$ an unbiased estimator with
+finite variance. Then
 \[
-\frac{N}{E(N)}\cdot\Big[\Omega\Big(\log\tfrac{1}{\delta}+\log\log\tfrac{N}{E(N)}\Big)-\Theta(1)\Big]
+\operatorname{Var}_\theta(\hat\theta) \;\ge\; \frac{1}{I(\theta)},
+\qquad
+I(\theta) = \mathbb{E}_\theta\Bigl[\bigl(\partial_\theta \log p_\theta(X)\bigr)^2\Bigr],
+\]
+the \emph{Fisher information}. An unbiased estimator attaining the bound is called
+\emph{efficient}. \eop
+\end{theorem}
+
+\begin{proof}[Proof idea]
+The \emph{score} $S = \partial_\theta\log p_\theta(X)$ has mean zero and covariance $1$ with
+any unbiased estimator; Cauchy--Schwarz gives $1 \le \operatorname{Var}(\hat\theta)\cdot
+\operatorname{Var}(S) = \operatorname{Var}(\hat\theta)\,I(\theta)$ (full proof in
+Section~\ref{sec:est-appendix}).
+\end{proof}
+
+\sidenote{In database papers the ``information'' is rarely Fisherian --- the data model is
+combinatorial, not a smooth family. The Cram\'er--Rao \emph{role} --- no estimator can do
+better --- is played by entropy-incompressibility (Section~\ref{sec:est-sublime}),
+communication reductions (Section~\ref{sec:est-fp}), and minimax arguments: whatever the
+estimator must distinguish dictates the samples or bits it must pay.}
+
+The third and fourth rungs convert moments into the contracts systems actually print. First the
+cheap, moment-only rung:
+
+\begin{proposition}[Variance to confidence: the Chebyshev rung]\label{prop:est-chebyshev}
+Let $\hat\theta$ be unbiased with $\operatorname{Var}(\hat\theta) \le \sigma^2$, and let $\bar\theta$
+average $t$ independent copies. Then for any accuracy $E > 0$ and failure probability $\delta > 0$,
+choosing $t \ge \sigma^2/(\delta E^2)$ gives
+\[
+\Pr\bigl[\,|\bar\theta - \theta| \ge E\,\bigr] \;\le\; \delta. \eopm
+\]
+\end{proposition}
+
+\begin{proof}
+Chebyshev: $\Pr[|\bar\theta-\theta| \ge E] \le \operatorname{Var}(\bar\theta)/E^2 \le
+\sigma^2/(tE^2) \le \delta$.
+\end{proof}
+
+Chebyshev spends samples proportionally to $1/\delta$ --- fine for one estimate, unaffordable over
+many. When the copies are bounded, the concentration rung spends only logarithmically:
+
+\begin{proposition}[Sample-count inversion: the Hoeffding rung]\label{prop:est-hoeffding-inv}
+Let $\hat\theta_1,\dots,\hat\theta_t$ be i.i.d.\ copies of an unbiased estimator with
+$\hat\theta_i \in [a, a+r]$ a.s.\ (range width $r$), and $\bar\theta$ their average. Then
+\[
+\Pr\bigl[\,|\bar\theta - \theta| \ge E\,\bigr] \;\le\; 2\exp\!\Bigl(-\,\frac{2tE^2}{r^2}\Bigr),
+\]
+so $t = r^2\ln(2M/\delta)/(2E^2)$ makes $M$ such estimates simultaneously $(E,\delta)$-accurate.
+\eop
+\end{proposition}
+
+\begin{proof}[Proof idea]
+Additive Hoeffding on bounded i.i.d.\ summands
+\citep{estimation-theory-bg3,estimation-theory-bg4}, then a union bound over the $M$ estimates:
+each fails with probability at most $\delta/M$.
+\end{proof}
+
+This inversion is the most reusable formula of the chapter: samples $=$ range squared $\times$
+$\log(\text{events}/\delta)$ over twice the squared accuracy --- derived, never tuned.
+Sections~\ref{sec:est-bd} and~\ref{sec:est-tcim} run exactly this computation, with
+$r = d_v\Delta$ and $M = n$ nodes.
+
+\begin{widefigure}[t]
+\pgfplotsset{compat=1.15}
+\begin{tikzpicture}
+\begin{axis}[
+  width=0.62\textwidth, height=5.4cm,
+  xlabel={shrinkage $\lambda$ applied to an unbiased $\hat\theta$ with
+           $\mathbb{E}\hat\theta=\theta$, $\operatorname{Var}=\sigma^2$},
+  ylabel={error ($\theta=\sigma=1$)},
+  domain=0:2, samples=100,
+  legend pos=north west, legend cell align=left,
+  tick label style={font=\scriptsize}, label style={font=\small}
+]
+\addplot[gray, thick, dashed]  {(1-x)^2};
+\addlegendentry{squared bias $(1-\lambda)^2\theta^2$}
+\addplot[gray, thick, dotted]  {x^2};
+\addlegendentry{variance $\lambda^2\sigma^2$}
+\addplot[black, thick]         {x^2+(1-x)^2};
+\addlegendentry{MSE (Prop.~\ref{prop:est-mse})}
+\end{axis}
+\end{tikzpicture}
+\caption{The bias--variance ledger: shrinking or capping an unbiased estimator
+($\hat\theta \mapsto \lambda\hat\theta$, or the truncations of Sections~\ref{sec:est-fp}
+and~\ref{sec:est-sublime}) buys variance at the price of bias; the MSE-optimal
+$\lambda^\ast = \theta^2/(\theta^2+\sigma^2)$ balances the two curves, and truncation
+estimators sit at an interior point chosen so the bias lands inside the stated factor.}
+\label{fig:est-mse}
+\end{widefigure}
+
+\begin{remarkbox}[Notation]
+The generic parameter of \S\ref{sec:est-ladder} is $\theta$ and its estimator $\hat\theta$. An
+\emph{$(E,\delta)$-estimate} means $|\hat\theta - \theta| \le E$ with probability at least
+$1-\delta$; a \emph{$(1\pm\varepsilon)$ estimate} is the multiplicative form. Sample counts
+appear as $t$ (generic), $\omega_t$ (trees, Section~\ref{sec:est-bd}), and $\theta$ again in
+$\theta_{\max}$ (sample-set threshold, Section~\ref{sec:est-tcim}) --- always redefined
+locally. Space upper bounds are stated in machine \emph{words}, lower bounds in \emph{bits}.
+\end{remarkbox}
+
+\subsection{How to choose an estimator}
+\label{sec:est-choose}
+
+The selection procedure is mechanical once three questions are answered. \emph{First, what
+is the parameter, and what is the randomness?} Name the quantity $\theta$ and the random
+experiment that touches it; the estimator is whatever function of the outcome you report.
+\emph{Second, can the expectation be computed exactly?} If each sampled object carries a
+known inclusion probability, weight by its inverse (Horvitz--Thompson): the weighted sum
+is unbiased by linearity alone; a nonlinear functional is estimated directly per copy,
+not by plugging into a good estimate of something else. \emph{Third, what do you control
+--- the variance or the range?} Variance only: the Chebyshev rung
+(Proposition~\ref{prop:est-chebyshev}), $t \propto 1/(\delta E^2)$, boostable by
+medians. Bounded range: the Hoeffding rung (Proposition~\ref{prop:est-hoeffding-inv}),
+$t = r^2\ln(2M/\delta)/(2E^2)$ --- derive the count, do not tune it. If neither is tame,
+cap the estimator and pay the bias into the guarantee, as Section~\ref{sec:est-fp} does.
+
+\begin{reachbox}{When to Reach for Estimation Theory}
+Reach whenever a system reports numbers from a sample, sketch, simulation, or randomized
+mechanism --- approximate query processing, cardinality and frequency estimation, graph
+distances, influence and pattern counts --- and the deliverable is an error bar or an
+$(\varepsilon,\delta)$ contract; or when a lower bound must certify the design optimal. Recipe:
+\begin{enumerate}
+\item Name the parameter $\theta$ and the random experiment; write the reported number as a
+  function $\hat\theta$ of the outcome.
+\item Make $\hat\theta$ unbiased by inverse-probability weighting (indicator $\times$
+  $1/\Pr[\text{inclusion}]$); verify $\mathbb{E}[\hat\theta] = \theta$ by linearity.
+\item If heavy tails blow up the variance, cap or shrink the estimator and book the induced
+  bias into the approximation factor (the ledger of Proposition~\ref{prop:est-mse}).
+\item Bound what you control --- $\operatorname{Var}$ (Chebyshev rung, $t \propto
+  \sigma^2/(\delta E^2)$) or range width $r$ (Hoeffding rung, $t =
+  r^2\ln(2M/\delta)/(2E^2)$) --- and invert for the sample count analytically.
+\item Union-bound over every key, node, or coordinate that must be simultaneously correct;
+  the $\ln(2M/\delta)$ in the count is that union bound, pre-paid.
+\item Certify optimality (entropy incompressibility, a communication reduction, or
+  Theorem~\ref{thm:est-cr}); matching within logarithmic factors is the gold standard.
+\end{enumerate}
+\end{reachbox}
+
+\section{Frequency moments from noisy, ambiguous streams}
+\label{sec:est-fp}
+
+The exemplar is a PODS'26 paper on streaming statistics under noisy identity resolution
+\citep{sigmod26-115}\pods. Frequency moments, $F_p = \sum_j f_j^p$, are canonical streaming
+quantities behind cardinality, skew, and heavy-hitter analytics, and decades of sketching theory
+estimate them accurately when every item is identified exactly. Real pipelines resolve
+identities imperfectly: each item arrives \emph{ambiguous}, compatible with several
+ground-truth identities, as after record matching or noisy deduplication. The paper
+introduces a per-instance noise measure, the $F_p$-\emph{mismatch-ambiguity} $\Lambda_p$,
+and proves that $F_p$ of the unknown ground
+truth is approximable to factor $(\varepsilon + O(\Lambda_p))$ in one pass over $m$ items with
+$O(\varepsilon^{-2} m^{1-1/p})$ words of space, essentially optimally. The algorithm is
+estimation theory in one exhibit: an unbiased ordered-clique sampler whose variance is tamed by
+truncation, with H\"older supplying the moment bound and Chebyshev the confidence.
+
+\paragraph{Problem.}
+A noisy dataset is a stream $\sigma = (\sigma_1,\dots,\sigma_m)$ of items over a universe $U$;
+the ground truth is an assignment of each position to a true identity, $\mu = (\mu_1,\dots,
+\mu_m) \in U^m$. Writing $f_j = |\{i : \mu_i = u_j\}|$, the goal is $F_p(\mu) = \sum_{j=1}^n
+f_j^p$ for constant $p \ge 1$, but the algorithm sees only $\sigma$. Define two positions as
+\emph{similar} ($\sigma_i \sim \sigma_{i'}$) when they are compatible with a common identity, and
+let $G^\sigma = ([m], E^\sigma)$ be the resulting \emph{similarity graph}; write $B_i^\sigma$ for
+the clique of position $i$ in $G^\sigma$ and $B_i^\mu$ for its ground-truth clique (the positions
+sharing $i$'s true identity). The paper's per-instance noise measure is:
+
+\begin{definition}[$F_p$-mismatch-ambiguity; Definition of the paper, notation cleaned]
+\label{def:est-fp-lambda}
+For $p \ge 1$,
+\[
+\Lambda_p(\sigma,\mu) \;=\; \frac{1}{F_p(\mu)} \sum_{i\in[m]}
+\Bigl(\bigl|B_i^\sigma \cup B_i^\mu\bigr|^{p-1} -
+\bigl|B_i^\sigma \cap B_i^\mu\bigr|^{p-1}\Bigr).
+\]
+\end{definition}
+
+When $\sigma = \mu$ the cliques coincide and $\Lambda_p = 0$; the quantity measures the
+relative excess clique mass the ambiguity injects. A $(c, 0.01)$-approximation means an
+estimate within factor $(1\pm c)$ of $F_p(\mu)$ with probability at least $0.99$.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[One-pass estimation under mismatch ambiguity; Theorem of the paper, compressed]
+\label{thm:est-fp-upper}
+For any constant $p \ge 1$ and any noisy stream of length $m$ with
+$\Lambda_p \le 1/(3\cdot p!)$, there is a one-pass algorithm computing an
+$\bigl(\varepsilon + O(\Lambda_p),\, 0.01\bigr)$-approximation of $F_p(\mu)$ using
+$O(\varepsilon^{-2} m^{1-1/p})$ words of space. \eop
+\end{theorem}
+
+\begin{theorem}[Space lower bound; Corollary of the paper, compressed]\label{thm:est-fp-lower}
+For any constants $p > 1$, $C > 0$ and $\varepsilon \in (0,\tfrac13)$, any $O(1)$-pass
+$\bigl(\varepsilon + C\Lambda_p,\, 0.48\bigr)$-approximation algorithm for $F_p$ over noisy
+streams of length at most $m$ requires $\Omega(\varepsilon^{-1/p} m^{1-1/p})$ bits of space.
+\eop
+\end{theorem}
+
+\paragraph{How estimation theory is applied.}
+The random object is an \emph{ordered $p$-clique} of the observable similarity graph --- a tuple
+$(i_1,\dots,i_p)$ of positions that are pairwise similar. The key identity is that clique mass
+\emph{is} the frequency moment: for noiseless data the ground-truth cliques partition $[m]$ into
+classes $V_1,\dots,V_{n_\mu}$ of sizes equal to the frequencies, so the ordered-clique count is
+$\sum_k |V_k|^p = F_p(\mu)$ (Fact of the paper); a divergence lemma bounds the noisy count,
+$|K_p^\sigma \setminus K_p^\mu| \le \Lambda_p F_p$ and $|K_p^\mu \setminus K_p^\sigma| \le
+\tfrac{p}{2}\Lambda_p F_p$ (Lemma of the paper), so the observable clique mass is a
+$(1 + O(\Lambda_p))$-proxy for the target. The estimator is pure Horvitz--Thompson: sample
+$I_1$ uniformly from $[m]$ and, given the prefix, $I_k$ uniformly from the \emph{tail set}
+$\Phi(I_1,\dots,I_{k-1}) = \{i \ge I_{k-1} : i \sim I_{j'} \text{ for all } j' < k\}$.
+
+\begin{lemma}[Unbiased clique-count estimator; Lemma of the paper, notation cleaned]
+\label{lem:est-fp-unbiased}
+Let $R_1 = m$ and $R_k = |\Phi(I_1,\dots,I_{k-1})|$ for $k = 2,\dots,p$, and let
+$X = \prod_{k\in[p]} R_k$. Then
+\[
+\mathbb{E}[X] \;=\; \bigl|K_p^\sigma\bigr|, \eopm
+\]
+the number of increasingly ordered $p$-cliques of $G^\sigma$.
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Each fixed increasingly ordered clique is sampled with probability exactly $\frac1m
+\prod_{k=2}^p \frac{1}{|\Phi(i_1,\dots,i_{k-1})|}$ and then contributes $X = \prod_k R_k$,
+the reciprocal of that probability; summing over cliques (linearity) counts each once.
+\end{proof}
+
+The raw estimator is unbiased but heavy-tailed --- a draw into a huge clique inflates $X$ ---
+so the paper truncates: $Y = \min\{X,\; m\,(d_I^\mu)^{p-1}\}$ with $d_I^\mu$ the ground-truth
+clique size of the sampled position $I$. The truncation level makes the bias land inside the
+$\Lambda_p$ term of the guarantee while the second moment collapses to a H\"older consequence:
+
+\begin{lemma}[Truncation controls the variance; Claim of the paper, notation cleaned]
+\label{lem:est-fp-trunc}
+With $Y$ as above, $(1-2\Lambda_p)F_p(\mu) \le \mathbb{E}[Y] \le F_p(\mu)$ and
+\[
+\operatorname{Var}(Y) \;\le\; \mathbb{E}[Y^2] \;\le\; m^{1-1/p}\, F_p(\mu)^2. \eopm
+\]
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+The sandwich sums per-position clipping errors into $\Lambda_p F_p$; the moment bound chains
+$Y \le m \max_k |V_k|^{p-1}$ with $\max_k |V_k|^{p-1} \le F_p^{1-1/p}$ and H\"older's $m =
+\sum_k |V_k| \le n_\mu^{1-1/p} F_p^{1/p}$ (full derivation in
+Section~\ref{sec:est-appendix}).
+\end{proof}
+
+The confidence assembly runs on the ladder's rungs. \emph{Lower tail}: Chebyshev
+(Proposition~\ref{prop:est-chebyshev}) on $t = \Theta(\varepsilon^{-2}m^{1-1/p})$ copies gives
+$\Pr[\bar Y < (1-\varepsilon-2\Lambda_p)F_p] \le 10^{-5}$. \emph{Upper tail}: a R\'enyi-style
+inequality due to Feige --- for independent nonnegative $Z_i$ with means $\mu_i \le 1$,
+$\Pr[\sum_i Z_i < \sum_i \mu_i + \delta] > \min(\frac{\delta}{1+\delta},\frac1{13})$ --- shows
+the average is not too \emph{large} with constant probability, boosted to $0.99$ by
+repetition. The space bound is this $t$, and the lower bound
+(Theorem~\ref{thm:est-fp-lower}) is the estimation-theoretic mirror: DISJ reduces to
+$F_p$-under-ambiguity --- each player's bits become items whose similarity pattern encodes
+set intersection --- so beating the stated space would solve DISJ with too little
+communication.
+
+\paragraph{What it buys.}
+The streaming engine reports frequency-moment analytics over dirty, unresolved data with a
+certificate that degrades gracefully with the ambiguity: error $\varepsilon + O(\Lambda_p)$,
+one pass, sublinear space, and a lower bound proving nothing substantially better exists. The
+pattern --- unbiased Horvitz--Thompson core, truncation paid into the approximation factor,
+Chebyshev below and a reverse-Markov bound above --- transfers to any heavy-tailed estimator.
+
+\section{Epoch analysis and an entropy bound for expandable sketches}
+\label{sec:est-sublime}
+
+The exemplar is a SIGMOD'26 paper on sketches for unbounded streams \citep{sigmod26-231}.
+Frequency-estimation (FE) sketches --- Count-Min, CountSketch --- are standard equipment, but they
+commit to a fixed width at initialization, while real streams have unknown, unbounded length and
+heavy skew: a fixed sketch either wastes memory up front or degrades silently as it overflows.
+The paper's system, \emph{Sublime}, is an expandable, CountSketch-style FE sketch that grows
+with the stream while keeping every per-key estimate unbiased, supported by a two-sided theory:
+a variance recursion over the expansion \emph{epochs} shows the estimation error stays sublinear
+in the stream length, a matching memory analysis bounds the footprint of the skewed counters,
+and an entropy-incompressibility argument proves any expandable FE sketch must pay within a
+small logarithmic factor of Sublime's space.
+
+\paragraph{Problem.}
+A stream of keys $y$ (insertions and deletions) is processed by a sketch answering frequency
+queries $f(y)$ at any time; the total length $N$ is unknown and unbounded, and the frequency
+distribution is skewed, so counters holding heavy keys must encode large values compactly.
+\emph{Sublime} maintains $d$ counter arrays whose width follows a \emph{size function}
+$W(\cdot)$ --- e.g.\ $W(N) = N/\varepsilon$ (linear) or $W(N) = N^\alpha/\varepsilon$
+(sublinear, $0 \le \alpha < 1$) --- and expands over \emph{epochs}: at epoch $j$ the width is
+$W_j = W(N_j)$, $N_j$ the keys seen by epoch $j$'s start. Expansion rehashes and
+\emph{decrements} counters rather than rebuilding, so old contributions stay visible; the price
+is that updates from epoch $j$ survive into epoch $i$'s counters only with probability
+$2^{i-j}/W_i$. The target is the per-key frequency $f(y)$, estimated CountSketch-style by
+signed counter reads.
+
+\paragraph{Guarantee.}
+
+\begin{lemma}[Variance recursion over epochs; Lemma of the paper, notation cleaned]
+\label{lem:est-sublime-var}
+The estimates are unbiased, like CountSketch's. Moreover, letting $V(F)$ denote the estimation
+variance under size function $W(\cdot)$ and one array, on a stream with squared $\ell_2$-norm
+$F = \sum_y (f(y))^2$, at the end of epoch $i$:
+\[
+V(F_{i+1}) \;\le\; \frac{1}{W_i}\cdot\sum_{j=0}^{i} 2^{\,i-j}\cdot\bigl(F_{j+1} - F_j\bigr),
+\]
+where $F_j$ is the squared $\ell_2$-norm at the start of epoch $j$. \eop
+\end{lemma}
+
+The recursion telescopes (geometric series in $2^{\,i-j}$, evaluated per size function): for
+$W(N) = N^\alpha/\varepsilon$ the error is $O(N/W(N))$ --- sublinear --- while for $W(N) =
+N/\varepsilon$ it is $O(\varepsilon\log N)$. The complementary memory statement is:
+
+\begin{theorem}[Space lower bound for expandable FE sketches; Theorem of the paper]
+\label{thm:est-sublime-lb}
+Consider an FE sketch with only overestimation errors that processes growing streams with an
+error bound of $E(N)$ and a confidence of $1-\delta$. Such a sketch must use at least
+\[
+\frac{N}{E(N)}\cdot\Bigl[\Omega\Bigl(\log\tfrac{1}{\delta} +
+\log\log\tfrac{N}{E(N)}\Bigr) - \Theta(1)\Bigr] \eopm
 \]
 bits of memory at some point in time while processing a stream.
 \end{theorem}
 
-What is estimated are per-key frequencies, unbiasedly as in CountSketch; the error bound is a variance recursion over geometrically spaced epochs, each past expansion contributing with weight $2^{\,i-j}$, and Markov/Chebyshev convert it into the stated confidence. The complementary trick is the lower bound: an entropy-incompressibility argument (by reduction to filters) shows any sketch achieving error $E(N)$ at confidence $1-\delta$ must pay the displayed bits, and the constructed sketch lands within a small logarithmic factor of it --- the estimation-theoretic ideal of a matched pair. \cite{sigmod26-231}
+\paragraph{How estimation theory is applied.}
+The random objects are the hash placements and the $\pm1$ signs of the CountSketch read;
+unbiasedness is the classical sign-orthogonality computation ($\mathbb{E}[\sigma(x)\sigma(y)] = 0$
+for $x \ne y$), re-run with the epoch structure: a key's contribution from epoch $j$ reaches the
+current counter of a query only with probability $2^{i-j}/W_i$, so the variance integrates those
+geometric weights over the $\ell_2$-mass \emph{increments} $(F_{j+1}-F_j)$ --- the variance term
+of Proposition~\ref{prop:est-mse}, bookkept per epoch. Confidence is the Chebyshev rung
+(Proposition~\ref{prop:est-chebyshev}): a sketch with $|\mathbb{E}[\hat f(x)] - f(x)| \le E(N)$ and
+$\operatorname{Var}(\hat f(x)) \le \delta E(N)^2$ guarantees error $2E(N)$ at confidence
+$1-\delta$ by Chebyshev, and the theorem holds for any such sketch. The memory \emph{upper}
+bound is where convexity earns its keep: counters are encoded as short \emph{stubs} plus rare
+\emph{extensions}, and since the logarithm is concave, Jensen bounds the total stub length by
+the logarithm of the \emph{average} counter value --- $w$ counters with total absolute value
+$k$ encode in $w\cdot[4.41 + 1.26\log_2(k/w)]$ bits (Lemma of the paper). The lower bound is
+the entropy-incompressibility mirror in the Cram\'er--Rao role: a smaller sketch would compress
+sequences of $N/E(N)$ keys from a large universe below their entropy --- using the law of total
+variance to find an epoch state with small second moment, then fixing the internal randomness
+so the state plus a few bits reconstruct the sequence. Information cannot be destroyed.
 
-\subsection{Concentration-chosen sample sizes for influence minimization}
+\paragraph{What it buys.}
+The system gets a frequency-estimation sketch whose accuracy and memory are certified
+\emph{while it grows}, with no prior knowledge of the stream's length or skew: near-sublinear
+error at confidence $1-\delta$, a footprint of roughly $d\cdot W(N)\cdot[4.41 +
+1.26\log_2(N/W(N))]$ bits, and a lower bound within a small log factor of optimal.
 
-Blocking nodes to curb time-critical misinformation spread requires maximizing a benefit function $D(\cdot)$ that is $\#P$-hard to evaluate and non-submodular, so greedy must run on sampled surrogates; the question is how many samples suffice for the greedy choice to provably transfer to the true objective.
+\section{Spanning-tree estimators for biharmonic distance}
+\label{sec:est-bd}
 
-\begin{theorem}[Theorem 6.7 of \cite{sigmod26-373}]
-Given $0\le\varepsilon,\delta\le 1$, CBFM returns $B^{*}$ satisfying
+The exemplar is a SIGMOD'26 paper on graph distance estimation \citep{sigmod26-102}. The
+\emph{biharmonic distance} (BD) between two nodes is defined through the square of the
+Laplacian pseudoinverse; like resistance distance it rewards \emph{multiple} connecting
+paths, and it is more robust to noise and degree skew than shortest-path or resistance
+measures --- attractive for similarity search and network analysis. But its definition
+seems to demand global matrix computations: exact BD needs the Moore--Penrose pseudoinverse
+($O(n^3)$), and the fastest prior approximations need $\widetilde{O}(m/\varepsilon^2)$
+preprocessing over the whole graph --- prohibitive when only a few pairs matter. The
+paper instead answers BD queries for a \emph{queried set} of pairs locally: reformulate
+BD around a pivot via Sherman--Morrison, interpret each term as a statistic of absorbing
+random walks, and estimate those statistics by averaging sampled spanning trees --- the
+tree count \emph{derived} from the Hoeffding inversion of
+Proposition~\ref{prop:est-hoeffding-inv}, pivot degree times diameter as the range.
+
+\paragraph{Problem.}
+Let $G = (V,E)$ be a connected undirected graph with Laplacian $L$ and pseudoinverse
+$L^\dagger$. For distinct $s,t \in V$ and $\mathbf{b}_{st} = \chi_s - \chi_t$, the biharmonic
+distance is $\beta(s,t) := \mathbf{b}_{st}^\top (L^\dagger)^2\, \mathbf{b}_{st}$
+(Definition~2.1 of the paper, notation cleaned). Fix a \emph{pivot} $v \in V$ and let $L_v$ be
+$L$ with row and column $v$ deleted, and $a$ the column of $L$ linking $v$ to the rest. The
+paper's reformulation --- Sherman--Morrison applied to the $v$-deleted Laplacian square
+$L_v^2 + aa^\top$ (Lemma~3.1 of the paper) --- reduces BD to quantities of $L_v^{-1}$:
+
+\begin{theorem}[Pivoted reformulation of BD; Theorem~3.5 of the paper, notation cleaned]
+\label{thm:est-bd-reform}
+For any pivot $v$ and $s,t \ne v$,
 \[
-\Pr\big[D(B^{*}) \;\ge\; \tau\big(1-\tfrac{1}{e}-\varepsilon\big)\cdot D(B_{o})\big] \;\ge\; 1-3\delta,
+\beta(s,t) \;=\; \mathbf{x}_b^\top \mathbf{x}_b -
+\frac{(\mathbf{x}_b^\top \mathbf{x}_a)^2}{1 + \mathbf{x}_a^\top \mathbf{x}_a},
+\qquad
+\mathbf{x}_a = a^\top L_v^{-1},\;\; \mathbf{x}_b = \mathbf{b}_{st}^\top L_v^{-1},
 \]
-where $B_{o}$ denotes an optimal solution.
+i.e., BD is a rational function of the two vectors $\mathbf{x}_a, \mathbf{x}_b \in
+\mathbb{R}^{V\setminus\{v\}}$. \eop
 \end{theorem}
 
-What is estimated is $D(B)$ itself, by an unbiased estimator $\hat D(B)$ built from reverse-score sample sets (GRS/TRS) whose coverage terms are unbiased; the error bound is an end-to-end $(1-1/e-\varepsilon)$-style approximation holding with probability $1-3\delta$, where $\tau$ reflects that greedy optimizes $D$ through the submodular surrogates sandwiching it ($D_L \le D \le D_{U'}$). The estimator trick is to derive the sample threshold analytically: concentration bounds fix the maximal sample size $\theta_{\max}$, and three union-bound events account for the $3\delta$. \cite{sigmod26-373}
+So the problem becomes: estimate the $n$ coordinates of $\mathbf{x}_a$ and $\mathbf{x}_b$ well
+enough that the rational function is accurate. Two structural facts make the coordinates
+estimable without inverting anything. First, $(L_v^{-1})_{us} = \pi^v(u,s)/d_s$, where
+$\pi^v(u,s)$ is the expected number of visits to $s$ of a random walk from $u$ absorbed at
+$v$ --- the \emph{absorbing-random-walk interpretation} of the inverse. Second, the paper's
+\emph{BackPush} computes the needed visit counts locally via the invariant
 
-\subsection{How many random trees? (biharmonic distance)}
-
-Pairwise biharmonic distance requires quantities from the square of the Laplacian pseudoinverse, which no near-linear graph algorithm computes exactly; the paper reformulates the distance and estimates each term by averaging over randomly sampled spanning trees.
-
-\begin{theorem}[Theorem 6.3 of \cite{sigmod26-102}]
-If $\omega_t = d_v^2\Delta^2\log(2n/\delta)/(2\varepsilon^2)$, FastTree samples $\omega_t$ trees, and the corresponding estimators satisfy that for each node $u$,
+\begin{lemma}[Pushback invariant; Lemma~4.1 of the paper]\label{lem:est-bd-invariant}
+For each node $u \in V \setminus \{v\}$ and target $x$, throughout the algorithm,
 \[
-\big|x_a(u)-\tilde{x}_a(u)\big| \le \varepsilon
+\pi^v(u,x) \;=\; \hat\pi^v(u,x) + \sum_{w \in V} r(w,x)\,\pi^v(u,w), \eopm
+\]
+where $\hat\pi^v(u,x)$ is the (partial) estimate returned so far and $r(w,x)$ the pending
+residual at $w$.
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Induction over pushback operations: initially all mass is residual; pushing back at node $y$ moves
+$r(y,x)/d_y$ to each neighbor's residual (and to $\hat\pi$ when $y = u$), and the walk
+interpretation of $\pi^v(\cdot,x)$ makes the two sides change by exactly the same amount.
+\end{proof}
+
+The invariant certifies that when residuals are small the local estimate is exact
+(additive error $\sum_w \pi^v(u,w)\, r^{\max}$, Lemma~4.2 of the paper) --- but for estimates, the
+paper's \emph{FastTree} replaces deterministic pushes by sampling.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Tree-sampling accuracy; Theorem~6.3 of the paper]\label{thm:est-bd-fasttree}
+For error parameter $\varepsilon \in (0,1)$ and failure probability $\delta \in (0,1)$, let
+\[
+\omega_t \;=\; \frac{d_v^2\,\Delta^2 \log(2n/\delta)}{2\varepsilon^2},
+\]
+where $d_v$ is the pivot degree and $\Delta$ the graph diameter. Then sampling $\omega_t$ spanning
+trees yields estimators $\tilde x_a(u), \tilde x_b(u)$ satisfying, for every node $u$,
+\[
+\bigl|x_a(u) - \tilde x_a(u)\bigr| \le \varepsilon
 \qquad\text{and}\qquad
-\big|x_b(u)-\tilde{x}_b(u)\big| \le \varepsilon .
+\bigl|x_b(u) - \tilde x_b(u)\bigr| \le \varepsilon, \eopm
 \]
+and FastTree runs in $O\bigl(\omega_t \cdot (h_{s,v} + h_{t,v} + \sum_{w\in N(v)} h_{w,v})\bigr)$
+time, where $h_{u,v}$ is the hitting time from $u$ to $v$.
 \end{theorem}
 
-What is estimated are the two terms $x_a,x_b$ of the reformulated distance (a pivoted identity rewrites $\beta(s,t)$ via $\widehat L_v^{-1}$ and a rank-structured correction), each by the average of $\omega_t$ unbiased tree-sampling estimators grounded in electrical-network/Kirchhoff identities; the error bound is per-node $\varepsilon$-accuracy from Chernoff--Hoeffding plus a union bound over all $n$ nodes. The trick is visible in the sample count itself: it is exactly the canonical Hoeffding size (range scale $d_v\Delta$, with $d_v$ the pivot degree and $\Delta$ a graph parameter) squared, times $\log(2n/\delta)$, over $2\varepsilon^2$ --- the matrix inverse is replaced by an expectation over absorbing random walks. \cite{sigmod26-102}
+\paragraph{How estimation theory is applied.}
+The random object is a uniform spanning tree.\footnote{Sampled by Wilson's algorithm, which runs a
+loop-erased random walk to the root; its cost is governed by the same hitting times that appear in
+the running-time bound.} The bridge from trees to Laplacian entries is an electrical-network
+identity the paper proves with Kirchhoff's laws:
 
-\begin{reachbox}{When to reach for estimation theory}
+\begin{lemma}[Spanning-tree expression of the inverse; Lemma~6.1 of the paper, notation cleaned]
+\label{lem:est-bd-kirchhoff}
+Let $N$ be the number of spanning trees of $G$, let $N_{sv}(a,b)$ be the number of spanning trees
+in which the unique path from $s$ to $v$ traverses the edge $(a,b)$ in this order, and let
+$P_{uv}$ be any path from $u$ to $v$. Then
+\[
+\bigl(L_v^{-1}\bigr)_{su} \;=\; \frac{1}{N}\sum_{(a,b) \in P_{uv}}
+\bigl(N_{sv}(a,b) - N_{sv}(b,a)\bigr). \eopm
+\]
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Treat $G$ as a unit-resistor network with unit current injected at $s$ and extracted at $v$: the
+current on edge $(a,b)$ is exactly $\bigl(N_{sv}(a,b)-N_{sv}(b,a)\bigr)/N$ (a classical
+Kirchhoff fact), the voltage at $u$ is the current summed along any path $P_{uv}$, and
+$(L_v^{-1})_{su}$ \emph{is} that voltage.
+\end{proof}
+
+By Lemma~\ref{lem:est-bd-kirchhoff}, each coordinate $x_a(u)$, $x_b(u)$ of
+Theorem~\ref{thm:est-bd-reform} is a sum of oriented edge indicators along paths of a random
+tree, so a single tree yields per-coordinate contributions whose expectations are the true
+coordinates, and averaging $\omega_t$ independent trees gives unbiased estimators
+$\tilde x_a(u), \tilde x_b(u)$ (Corollary~6.2 of the paper; its walk-based sibling averages
+the collision estimators of Lemma~5.1). The variance side is the Hoeffding rung in its purest
+form: each per-tree contribution is bounded, $|\tilde x_a^i(u)| \le d_v\Delta$ and
+$|\tilde x_b^i(u)| \le 2\Delta$ (range bounds of Corollary~6.2, at most $d_v$ neighbor paths
+feeding $\mathbf{x}_a$). Additive Hoeffding then gives per-node failure $\delta/n$ at exactly
+the displayed $\omega_t$, and the union bound over the $n$ nodes --- pre-paid as the
+$\log(2n/\delta)$ inside $\omega_t$ --- delivers the simultaneous statement (proof in
+Section~\ref{sec:est-appendix}); the tuning is mechanical, $r = d_v\Delta$, $M = 2n$.
+
+\paragraph{What it buys.}
+The graph engine answers biharmonic-distance queries for targeted node pairs in time governed
+by hitting times between the query nodes and the pivot --- no $O(n^3)$ pseudoinverse, no
+whole-graph preprocessing. Every coordinate carries its accuracy certificate, and the sample
+count was derived, not tuned --- the chapter's formula applied verbatim.
+
+\section{Concentration-sized sampling for influence blocking}
+\label{sec:est-tcim}
+
+The exemplar is a SIGMOD'26 paper on curbing misinformation spread \citep{sigmod26-373}. When
+false information diffuses through a social network, harm depends on \emph{time}: a node
+infected early contributes more damage, so interventions have a deadline. The paper studies
+\emph{time-critical influence minimization} (TCIM): given a diffusion process with edge
+probabilities and delays, a seed set of misinformation, a deadline $T$, and a budget $k$, choose
+$k$ nodes to block so that the total \emph{activation-duration-weighted} spread is minimized.
+The objective is maximally hostile to exact optimization: evaluating the blocking benefit
+$D(B)$ is \#P-hard, $D$ is monotone but \emph{non-submodular}, and no polynomial-time method
+can approximate TCIM within any constant factor unless $P = NP$. The algorithm, CBFM,
+therefore \emph{sandwiches} the objective between submodular surrogates $D_L \le D \le D_U$,
+maximizes them greedily on randomly sampled \emph{reverse-score sample sets}, and --- the
+estimation-theoretic core --- derives unbiased coverage estimators and concentration bounds
+that set the number of sample sets analytically and power anytime stopping, with the final
+guarantee holding with probability $1-3\delta$.
+
+\paragraph{Problem.}
+Diffusion follows the independent-cascade model with delays: each edge $\langle u,v\rangle$ is
+live with probability $p(u,v)$ and carries a random delay, inducing a distribution over
+\emph{possible worlds} $w$; node $v$'s activation time $t_v^w$ determines its weight
+$U(T - t_v^w)$ under a monotone weight function $U$, zero past the deadline $T$. The
+\emph{AD influence spread} is $\sigma_G^T(S) = \sum_{v\in V}\mathbb{E}[U(T-t_v)]$, and the
+blocking benefit of $B \subseteq V\setminus S$ is $D(B) = \sigma_G^T(S) -
+\sigma_G^T[V\setminus B](S)$; the goal is a size-$k$ $B$ maximizing $D(B)$. Since $D$ resists
+optimization, CBFM maximizes the submodular bounds $D_L \le D \le D_U$ ($D_L$ from delayed
+activations, $D_U$ from \emph{time-aware reachable trees}; Lemmas 4.1--4.8 of the paper),
+where evaluating either bound is again \#P-hard (Lemma~5.1 of the paper) --- hence estimation.
+A \emph{GRS/TRS sample set} $R_i$ draws a source node with probability proportional to a
+computable weight and records, in a random possible world, which candidate blockers would
+\emph{reverse-reach} the source before $T$, each with its potential score; $X_i(B)$ is the
+total score in $R_i$ covered by $B$, and $\Lambda_R(B) = \sum_{i=1}^{\theta} X_i(B)$ the
+\emph{coverage} of $B$ over $\theta$ sample sets.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Approximation guarantee of CBFM; Theorem~6.7 of the paper, notation cleaned]
+\label{thm:est-tcim-main}
+Given $0 \le \varepsilon,\delta \le 1$, CBFM returns $B^\ast$ satisfying
+\[
+\Pr\Bigl[D\bigl(B^\ast\bigr) \;\ge\; \tau \bigl(1 - \tfrac{1}{e} - \varepsilon\bigr)\cdot
+D(B_o)\Bigr] \;\ge\; 1 - 3\delta, \eopm
+\]
+where $B_o$ is the optimal size-$k$ blocker set and
+$\tau = \max\bigl\{D_L(B_o^L)/D(B_o),\; D_U(B_U^o)\cdot(1-\varepsilon)/\bigl((1+\varepsilon)
+D(B_o)\bigr)\bigr\}$ is a data-driven sandwich ratio.
+\end{theorem}
+
+\paragraph{How estimation theory is applied.}
+The random objects are the reverse-score sample sets; the estimated parameters are the surrogate
+objectives $\psi \in \{D_L, D_U\}$. The workhorse is an unbiasedness lemma of exactly the
+Horvitz--Thompson shape of the ladder:
+
+\begin{lemma}[Unbiased coverage estimation; Lemma~5.8 of the paper, notation cleaned]
+\label{lem:est-tcim-unbiased}
+For any $B \subseteq V\setminus S$ and generalized sample set $R_i$,
+\[
+\psi(B) \;=\; I_{T^\ast}(S)\cdot \mathbb{E}\bigl[X_i(B)\bigr], \eopm
+\]
+the expectation over the randomness of $R_i$, where $I_{T^\ast}(S)$ is the computable total
+reverse-reachability weight --- the normalizer of the weighted source sampling. Consequently,
+with $\theta$ sample sets, $I_{T^\ast}(S)\cdot \Lambda_R(B)/\theta$ is an unbiased estimator of
+$\psi(B)$.
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Each possible world enters the sample with probability proportional to its weight; the weighted
+source choice times the recorded score is the world's contribution to $\psi(B)$ divided by its
+inclusion probability, so expectation sums the worlds back in (the RIS accounting of
+influence-maximization sampling, re-derived for time-aware scores).
+\end{proof}
+
+The second ingredient converts the estimator into a \emph{stopping rule}: concentration of the
+coverage around its mean, with the target value itself as the variance proxy.
+
+\begin{lemma}[Coverage concentration; Lemma~6.4 of the paper, compressed]\label{lem:est-tcim-conc}
+For any $\lambda > 0$, the coverage deviation obeys a Bernstein-style two-tail bound:
+\[
+\Pr\Bigl[\bigl|\Lambda_R(B)/\theta - \psi(B)\bigr| \;\ge\; \lambda\cdot U(T-1)\Bigr] \;\le\;
+2\exp\!\Bigl(-\,\Theta\Bigl(\frac{\theta\,\psi(B)\,\lambda^2}
+{I_{T^\ast}(S)\,U(T-1)}\Bigr)\Bigr),
+\]
+i.e.\ deviations decay exponentially in $\theta\cdot\psi(B)$, at range scale
+$I_{T^\ast}(S)\,U(T-1)$. \eop
+\end{lemma}
+
+Inverting this bound --- the same move as Proposition~\ref{prop:est-hoeffding-inv}, variance
+proxy in place of squared range --- yields the threshold analytically (Lemma~6.5 of the paper,
+compressed): $\theta_{\max} = \widetilde{O}\bigl(n\,U(T-1)/(\varepsilon^2\cdot
+\mathrm{OPT}_L)\bigr)$ with $\mathrm{OPT}_L$ a computable lower bound on the optimum ($U(1)$
+times the $k$ largest activation probabilities). The threshold certifies greedy on
+$\theta_{\max}$ sample sets $(1-\tfrac1e-\varepsilon)$-approximate for both surrogates with
+failure $\delta/3$ each; a third $\delta/3$ guards the anytime stopping rule, which
+estimates the sandwich ratio $\tau$ on the fly and stops once it cannot improve.
+A union bound over the three events assembles Theorem~\ref{thm:est-tcim-main} --- the $3\delta$,
+itemized.
+
+\paragraph{What it buys.}
+The system selects blockers on graphs with billions of edges with a \emph{certified},
+instance-adapted guarantee (the ratio $\tau$ measures how tightly the submodular sandwich hugs
+$D$), while the concentration-derived threshold and stopping rule mean it draws exactly as
+many sample sets as the accuracy target demands --- the modern template for
+influence-style optimization under simulation access.
+
+\section{Advanced usage and further reading}
+\label{sec:est-advanced}
+
+Everything so far fixes the sample size in advance; the two papers sketched here instead let
+the \emph{data} decide when to stop, or rest unbiasedness on a sampling invariant.
+
+\paragraph{Betting confidence sequences as stopping rules \citep{sigmod26-293}.}
+When an expensive oracle --- an LLM, a human --- processes records behind a cheap proxy
+score, the system routes records above a cascade threshold $\theta$ to the oracle and
+must certify that recall meets a target $T$ with few oracle calls. Checking a fixed-sample
+confidence interval after every record invalidates its $\delta$: errors stack over
+repeated looks. The paper adopts \emph{anytime-valid} confidence sequences derived from
+betting (empirical-Bernstein capital processes of Waudby-Smith and Ramdas, simplified):
+the capital $K(m,Y) = \prod_j \bigl(1 + \min(\lambda_j, \tfrac{3}{4m})(Y_j - m)\bigr)$,
+bets tuned to the running variance, stays bounded in expectation unless the mean crosses
+$m$, so a threshold on $K$ certifies a mean bound at \emph{every} sample count
+simultaneously. Estimation becomes a \emph{sequential stopping rule}: sample, update the
+capital, stop when the certified recall lower bound clears the target; a
+without-replacement variant handles finite populations, and a companion lower bound
+prices any proxy-monotone sampler by its precision cost.
+
+\paragraph{Reservoir unbiasedness for hypergraph triangle counting \citep{sigmod26-377}.}
+Counting triangles in a hypergraph stream --- one-, two-, and three-hyperedge notions
+alike --- is confounded by memory limits: the stream cannot be stored, so the count must
+be estimated from a reservoir sample, and the estimator is only as good as the
+reservoir's \emph{inclusion probabilities}. The paper's foundation is a reservoir lemma:
+its partitioned sampler holds each hyperedge with equal probability $|G_s[i]|/m[i]$, so
+each hyperedge seen so far is in the reservoir with probability $|G_s^{(t)}|/m^{(t)}$ at
+\emph{every} time $t$ --- including after the replacement cascades that evictions force.
+Unbiasedness is then immediate: each triangle's indicator, weighted by the inverse joint
+inclusion probability of its hyperedges, has expectation equal to its presence, and
+linearity sums to $\mathbb{E}[\hat c] = c$ (Theorems of the paper); direct variance
+computations --- e.g.\ $\operatorname{Var}[\hat c_{\mathrm{otr}}] \le
+(2c_{\mathrm{otr}}^2 - c_{\mathrm{otr}})\cdot
+\frac{m(m-1)(m-2)}{|G_s|(|G_s|-1)(|G_s|-2)}$ --- complete the analysis. The lesson:
+\emph{unbiasedness under sampling is a property of the sampler's inclusion
+probabilities}, and maintaining them under memory pressure is itself a theorem.
+
+\subsection{Further reading}
+
 \begin{itemize}
-\item You report a number derived from a sketch, a sample, or a randomized mechanism, and must attach error bars or an $(\varepsilon,\delta)$ confidence to it.
-\item Unbiasedness is the workhorse: it makes variances add across keys, rounds, or nodes, so one variance bound plus Chebyshev/Chernoff delivers the guarantee.
-\item Nonlinearity breaks unbiasedness ($\mathbb{E}[g(X)] \neq g(\mathbb{E}[X])$); fix it with Taylor-series or geometric-mean corrections instead of ignoring the bias.
-\item To size a structure, invert the concentration bound: sample counts of the form $\omega \approx \mathrm{range}^2\log(n/\delta)/(2\varepsilon^2)$ should fall out analytically, not be tuned.
-\item To certify optimality, pair the upper bound with a variance, Cram\'er--Rao, Le~Cam/Fano, or entropy-incompressibility lower bound; matching within logarithmic factors is the gold standard.
-\item Remember the two hidden costs: union bounds charge $\log(\#\text{quantities})$, and minimax bounds rate the estimator class, not your implementation.
+\item Lehmann and Casella \citep{estimation-theory-bg1} --- the classical treatment of point
+  estimation: unbiasedness, sufficiency, and the decision-theoretic view of MSE.
+\item Tsybakov \citep{estimation-theory-bg2} --- minimax lower bounds (Le Cam, Fano); the
+  source for the role our corpus papers fill with entropy and communication bounds.
+\item Boucheron, Lugosi, and Massart \citep{estimation-theory-bg3} --- the non-asymptotic
+  concentration machinery behind this chapter's rungs.
+\item Mitzenmacher and Upfal \citep{estimation-theory-bg4} --- the randomized-algorithms view:
+  sampling, Chernoff/Hoeffding, and the median trick, with CS applications.
 \end{itemize}
-\end{reachbox}
+
+\begin{recap}
+\item \textbf{What the tool is.} Estimation theory certifies numbers a system did not exactly
+  compute: an estimator $\hat\theta$ of a parameter $\theta$, its bias and variance
+  ($\mathrm{MSE} = \text{bias}^2 + \mathrm{Var}$), and the $(E,\delta)$-accuracy contracts
+  built from them by Chebyshev (samples $\propto 1/\delta$) or Hoeffding (samples $\propto
+  \ln(\text{events}/\delta)$).
+\item \textbf{Which rung when.} Inclusion probabilities known: Horvitz--Thompson weighting,
+  unbiased by linearity. Heavy tails: truncate, pay the bias into the approximation factor.
+  Only a variance bound: Chebyshev, boost by medians. Bounded range: Hoeffding, $t =
+  r^2\ln(2M/\delta)/(2E^2)$ --- derive the sample count, never tune it. Nonlinear functional:
+  estimate it directly per copy; unbiasedness does not survive plug-ins.
+\item \textbf{Why unbiasedness first.} It makes errors add: independent unbiased pieces
+  average to variance $\sigma^2/t$; one computation then feeds every concentration argument.
+\item \textbf{What the corpus showed.} Noisy frequency moments (Section~\ref{sec:est-fp}):
+  unbiased ordered-clique sampling, truncation, H\"older + Chebyshev + a reverse-Markov
+  upper tail, DISJ near-optimality. Expandable sketches (Section~\ref{sec:est-sublime}):
+  epoch-indexed variance recursion, Jensen-bounded encodings, an entropy lower bound.
+  Biharmonic distance (Section~\ref{sec:est-bd}): Kirchhoff identities turn Laplacian
+  entries into tree expectations; Hoeffding inversion outputs $\omega_t =
+  d_v^2\Delta^2\log(2n/\delta)/(2\varepsilon^2)$. Influence blocking
+  (Section~\ref{sec:est-tcim}): unbiased coverage estimators plus Bernstein concentration
+  setting the sample threshold and stopping rule; union bound $\Rightarrow$ $1-3\delta$.
+\item \textbf{Advanced usage.} Anytime-valid betting confidence sequences make estimation a
+  sequential stopping rule; reservoir inclusion-probability lemmas make unbiasedness a
+  property of the sampler (Section~\ref{sec:est-advanced}). Deferred proofs live in the
+  Appendix (Section~\ref{sec:est-appendix}).
+\end{recap}
+
+\section{Appendix}
+\label{sec:est-appendix}
+
+Proofs omitted from the main text are collected here.
+
+\subsubsection*{Proof of Theorem~\ref{thm:est-cr} (Cram\'er--Rao bound)}
+{\itshape Statement (recalled).} For a regular family $p_\theta$ and any unbiased $\hat\theta$
+with finite variance, $\operatorname{Var}_\theta(\hat\theta) \ge 1/I(\theta)$ with
+$I(\theta) = \mathbb{E}_\theta[(\partial_\theta\log p_\theta(X))^2]$.\eop
+
+\begin{proof}
+Write $S(X) = \partial_\theta \log p_\theta(X)$ for the score. Regularity (support independent
+of $\theta$; differentiation under the integral) gives $\mathbb{E}_\theta[S] = \partial_\theta
+\int p_\theta = 0$, and, for unbiased $\hat\theta$,
+\[
+\operatorname{Cov}_\theta(\hat\theta, S)
+= \mathbb{E}_\theta[\hat\theta\,S]
+= \int \hat\theta\,\partial_\theta p_\theta
+= \partial_\theta \mathbb{E}_\theta[\hat\theta]
+= \partial_\theta \theta = 1.
+\]
+Cauchy--Schwarz now gives
+\[
+1 \;=\; \operatorname{Cov}_\theta(\hat\theta,S)^2
+\;\le\; \operatorname{Var}_\theta(\hat\theta)\cdot\operatorname{Var}_\theta(S)
+\;=\; \operatorname{Var}_\theta(\hat\theta)\cdot I(\theta),
+\]
+since $\operatorname{Var}(S) = \mathbb{E}[S^2] = I(\theta)$. Divide by $I(\theta)$.
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:est-fp-trunc} (truncated clique estimator)}
+{\itshape Statement (recalled).} With $I$ uniform on $[m]$, $X = m\,(d_I)^{p-1}$ --- a one-draw
+form of the clique-mass estimator of Lemma~\ref{lem:est-fp-unbiased} --- and $Y = \min\{X,\,
+m\,(d_I^\mu)^{p-1}\}$, we have $(1-2\Lambda_p)F_p(\mu) \le \mathbb{E}[Y] \le F_p(\mu)$ and
+$\operatorname{Var}(Y) \le \mathbb{E}[Y^2] \le m^{1-1/p}F_p(\mu)^2$, where $d_i = |B_i^\sigma|$
+and $d_i^\mu = |B_i^\mu|$.\eop
+
+\begin{proof}
+\emph{Upper expectation.} $Y \le m(d_I^\mu)^{p-1}$ with $I$ uniform, so $\mathbb{E}[Y] \le
+\sum_i (d_i^\mu)^{p-1} = F_p(\mu)$, the last identity being the paper's Fact (ground-truth
+cliques $V_1,\dots,V_{n_\mu}$ of sizes equal to the frequencies).
+
+\emph{Lower expectation.} $\mathbb{E}[X-Y] = \frac1m\sum_i \max\bigl\{(d_i)^{p-1} -
+(d_i^\mu)^{p-1},\,0\bigr\}$, and since $(d_i)^{p-1} \le |B_i^\sigma\cup B_i^\mu|^{p-1}$ while
+$(d_i^\mu)^{p-1} \ge |B_i^\sigma\cap B_i^\mu|^{p-1}$, each summand is at most
+$|B_i^\sigma\cup B_i^\mu|^{p-1} - |B_i^\sigma\cap B_i^\mu|^{p-1}$; summing gives
+$\mathbb{E}[X-Y] \le \Lambda_p F_p(\mu)$, and the same display applied to
+$|(d_i)^{p-1} - (d_i^\mu)^{p-1}|$ gives $\mathbb{E}[X] \ge (1-\Lambda_p)F_p(\mu)$. Hence
+$\mathbb{E}[Y] = \mathbb{E}[X] - \mathbb{E}[X-Y] \ge (1-2\Lambda_p)F_p(\mu)$.
+
+\emph{Second moment.} $Y \le m\max_i (d_i^\mu)^{p-1} = m\max_k |V_k|^{p-1}$, so
+$\mathbb{E}[Y^2] \le m\,F_p^{1-1/p}\cdot\mathbb{E}[Y] \le m\,F_p^{1-1/p}\cdot F_p$, using
+$\max_k|V_k|^{p-1} \le F_p^{1-1/p}$ and $\mathbb{E}[Y] \le F_p$; and H\"older gives
+$m = \sum_k |V_k| \le n_\mu^{1-1/p}F_p^{1/p}$ with $n_\mu \le m$, so $\mathbb{E}[Y^2] \le
+m^{1-1/p}F_p(\mu)^2$ and $\operatorname{Var}(Y) \le \mathbb{E}[Y^2]$. (This already
+suffices for Theorem~\ref{thm:est-fp-upper}: Chebyshev on $t$ copies gives failure
+$m^{1-1/p}/(t\varepsilon^2) \le 10^{-5}$ at $t = \Theta(\varepsilon^{-2}m^{1-1/p})$.)
+\end{proof}
+
+\subsubsection*{Proof of Theorem~\ref{thm:est-bd-fasttree} (tree-sample size)}
+{\itshape Statement (recalled).} With $\omega_t = d_v^2\Delta^2\log(2n/\delta)/(2\varepsilon^2)$,
+the averaged tree estimators satisfy $|\tilde x_a(u) - x_a(u)| \le \varepsilon$ and
+$|\tilde x_b(u) - x_b(u)| \le \varepsilon$ for every node $u$ simultaneously with probability
+$1-\delta$.\eop
+
+\begin{proof}
+The per-tree contributions are bounded: $|\tilde x_b^i(u)| \le 2\Delta$ (paths from $s$ and
+from $t$) and $|\tilde x_a^i(u)| \le d_v\Delta$ (range bounds stated with the estimators,
+Corollary~6.2 of the paper; at most $d_v$ neighbor paths feed $\mathbf{x}_a$), and they are
+i.i.d.\ with means $x_a(u)$, $x_b(u)$. Additive Hoeffding on $\omega_t$ i.i.d.\ copies with
+range widths $r_a = 2d_v\Delta$ and $r_b = 4\Delta$ gives
+\[
+\Pr\bigl[|\tilde x_a(u) - x_a(u)| \ge \varepsilon\bigr] \;\le\;
+2\exp\!\Bigl(-\frac{2\omega_t\varepsilon^2}{4d_v^2\Delta^2}\Bigr) \;\le\; \frac{\delta}{2n},
+\]
+since $\omega_t = d_v^2\Delta^2\log(2n/\delta)/(2\varepsilon^2)$ makes the exponent exactly
+$\log(2n/\delta)$; similarly $\Pr[|\tilde x_b(u) - x_b(u)| \ge \varepsilon] \le
+2\exp(-2\omega_t\varepsilon^2/(16\Delta^2)) \le \delta/(2n)$, absorbing the constant into the
+logarithm. A union bound over the $n$ nodes and the two coordinate families keeps every
+deviation below $\varepsilon$ with probability $1-\delta$. The running time is $\omega_t$ times
+one tree's cost: Wilson's algorithm runs in time proportional to the hitting times from the
+roots $\{s,t\}\cup N(v)$ to $v$.
+\end{proof}
+
+\bibliographystyle{plainnat}
+\bibliography{chapters/estimation-theory-all}
