@@ -1,9 +1,1174 @@
 \chapter{Coresets and Randomized Numerical Linear Algebra}
 \setcounter{section}{-1}   % sections start at 10.0 (see main.tex comment)
-\label{ch:coresets}
+\label{ch:cor}
 
-% ROLLOUT STUB (round 6) -- being written to the pilot spec (CHAPTER-RULES.md).
-% Exemplars per plan.json (merged coresets-geometry + randomized-nla): 289,
-% 053, 303, 349, 052, 127.
-This chapter is being revised; see Chapter~\ref{ch:intro} for the survey
-context in the meantime.
+\begin{objectives}
+\item Recognize when a workload admits a small proxy: a query family plus
+  a cost to preserve for every query.
+\item Prove both ladders: sensitivity sampling $\to$ mergeable
+  $\varepsilon$-coresets; random projections $\to$ sketch-and-solve $\to$
+  subspace embeddings.
+\item Size the proxy by total sensitivity or projection dimension, with
+  per-query failure tuned to $\delta/(\text{queries})$ and union-bounded.
+\item Merge: distributed shards combine without re-reading the full data.
+\end{objectives}
+
+Coresets and randomized numerical linear algebra (RNLA) answer the same
+question from two directions. The object is too big to optimize over ---
+millions of rows, a dense affinity matrix, a plan space for every query
+shape, a join output too large to materialize --- so replace it with a
+\emph{small randomized proxy} on which every query of interest is
+answered within a $(1\pm\varepsilon)$ factor, with probability
+$1-\delta$. The sampling culture (coresets) keeps a subset of the rows
+and reweights it, using \emph{sensitivity} scores to decide who must be
+kept; the projection culture (sketches) mixes coordinates through a
+random matrix, shrinking the object while preserving norms and inner
+products. Both pay the same bill --- per-query failure pushed below
+$\delta/(\text{queries})$ so one union bound certifies \emph{all} queries
+at once --- and both deliver \emph{mergeable} summaries, which is what
+makes them the theory engine of distributed and streaming systems.
+
+In the SIGMOD'26 corpus this book surveys, 8 tagged papers use this
+machinery --- the survey's coresets-geometry tag (5 papers) merged here
+with randomized-nla (3) --- and their pairing is uniform: every exemplar
+couples a proxy construction with a probabilistic-guarantee property,
+from set-outlier clustering over joins and robust query optimization to
+proximity graphs for similarity search. This chapter builds the two
+ladders first (Section~\ref{sec:cor-tool}), dissects four exemplars in
+full (Sections~\ref{sec:cor-soc}--\ref{sec:cor-pg}), and closes with two
+advanced sketches and further reading (Section~\ref{sec:cor-advanced}).
+
+\section{The tool: coresets and randomized NLA}
+\label{sec:cor-tool}
+
+The problem class is uniform: a large object $X$ --- point set, matrix,
+workload, join output --- and a family $\mathcal{F}$ of \emph{queries},
+each $f \in \mathcal{F}$ assigning a nonnegative cost $f(X)$, where
+computing on $X$ directly is the bottleneck. The deliverable is a small
+randomized $\tilde{X}$ with
+\[
+\bigl|\, f(\tilde{X}) - f(X) \,\bigr| \;\le\; \varepsilon\, f(X)
+\quad\text{for every } f \in \mathcal{F},
+\qquad\text{w.p.\ } 1-\delta,
+\]
+built in near-linear time. Everything here varies three choices:
+\emph{what} to keep (rows vs.\ coordinate mixtures), \emph{how} to bias
+the choice (sensitivities vs.\ projection distributions), and \emph{how
+many} samples or dimensions the union bound demands
+(Figure~\ref{fig:cor-proxy}).
+
+\begin{widefigure}[t]
+\begin{tikzpicture}[box/.style={draw, rounded corners=2pt, align=center,
+  font=\scriptsize, inner sep=4pt, text width=8.4em},
+  arr/.style={->, thick}, darr/.style={->, thick, dashed}]
+\node[box] (data) at (0,0) {large object $X$: points $P$, matrix $A$,
+  workload $W$, join output $\Pi(B)$};
+\node[box] (sens) at (3.9,1.35) {sensitivity / importance sampling
+  (rows kept, reweighted)};
+\node[box] (proj) at (3.9,-1.35) {random projection $R$: JL, CountSketch
+  (coordinates mixed)};
+\node[box] (coreset) at (7.8,1.35) {weighted coreset $\tilde{P}$,
+  $|\tilde{P}| \ll |P|$};
+\node[box] (sketch) at (7.8,-1.35) {sketch $RA$ with
+  $O(\varepsilon^{-2}\log n)$ rows};
+\node[box] (solve) at (11.5,0) {solve on the proxy, lift back with the
+  $(1\pm\varepsilon)$, $1-\delta$ certificate};
+\node[box, dashed] (merge) at (7.8,3.5) {merge shards:
+  $\tilde{P}_1 \cup \tilde{P}_2$;\; $RA_1 + RA_2$ --- no re-read};
+\draw[arr] (data) -- (sens);
+\draw[arr] (data) -- (proj);
+\draw[arr] (sens) -- (coreset);
+\draw[arr] (proj) -- (sketch);
+\draw[arr] (coreset.east) -- ++(0.4,0) |- (solve.west);
+\draw[arr] (sketch.east) -- ++(0.4,0) |- (solve.west);
+\draw[darr] (merge) -- (coreset);
+\end{tikzpicture}
+\caption{The two proxy tracks. Sampling keeps rows of the object and
+reweights them by sensitivity; projection mixes coordinates through a
+random matrix. Both end in the same place: solve on the small proxy,
+certify every query at once with one union bound, and merge shards of
+the proxy without revisiting the full object.}
+\label{fig:cor-proxy}
+\end{widefigure}
+
+\begin{remarkbox}[Notation]
+$P = \{x_1,\dots,x_n\}$ is a weighted point set ($w_i$ the weight of
+$x_i$); $\mathcal{F}$ a query family; $f(X)$ the answer of query $f$ on
+$X$. ``$(1\pm\varepsilon)$-accurate'' means relative error at most
+$\varepsilon$; the failure probability is always $\delta$, split across
+events by union bounds. On the RNLA side, $R$ is the random sketch
+matrix, $\|{\cdot}\|_2$ the Euclidean/operator norm, $\|{\cdot}\|_F$ the
+Frobenius norm. For metric exemplars: the \emph{doubling dimension}
+$\lambda$ is the least $\lambda$ such that every ball is covered by
+$2^\lambda$ balls of half the radius; the \emph{aspect ratio} $\Phi$ is
+the diameter divided by the smallest inter-point distance.
+\end{remarkbox}
+
+\subsection{The sampling ladder: from uniform to sensitivity}
+\label{sec:cor-sampling-ladder}
+
+Uniform sampling is the first idea everyone has, and the first casualty
+of skew. Its failure is structural, not an edge case.
+
+\begin{proposition}[Uniform sampling fails on skew]\label{prop:cor-uniform}
+For every $n$ and every sample size $s \le n/2$ there is a weighted set
+of $n+1$ points in $\mathbb{R}$ such that, with probability at least
+$1/2$, a uniform sample of $s$ points --- reweighted by $(n+1)/s$ ---
+estimates the weighted cost of one of the two centers $0,1$ as $0$ when
+its true cost is $n^2$: no $(1\pm\varepsilon)$ guarantee with constant
+$\varepsilon$ is possible. \eop
+\end{proposition}
+
+\begin{proof}
+Take $p_0$ at the origin with weight $n^2$, and $n$ unit-weight points
+at coordinate $1$. For the weighted sum-of-distances cost $f(c) =
+\sum_p w_p |p - c|$ we have $f(0) = n$ and $f(1) = n^2$ (the light
+points sit exactly at $1$ and contribute $0$ there). The sample misses
+$p_0$ with probability $\bigl(1 - \tfrac{1}{n+1}\bigr)^{s} \ge 1 -
+\tfrac{s}{n+1} \ge \tfrac12$, and on that event the estimated cost of
+center $1$ is $0$ against a true cost of $n^2$.
+\end{proof}
+
+Note what failed: not the sample budget but the sampling
+\emph{distribution} --- the heavy point above has sensitivity exactly
+$1$, yet uniform sampling draws it with probability $\tfrac{1}{n+1}$. The
+repair is to sample where the cost concentrates
+\citep{coresets-rnla-bg10,coresets-rnla-bg11}, with each point's
+worst-case share of a query's cost as the bookkeeping device:
+
+\begin{definition}[Sensitivity]\label{def:cor-sens}
+For a weighted set $P$ and a query family $\mathcal{F}$ of cost
+functions $f$, the \emph{sensitivity} of point $x \in P$ is
+\[
+s(x) \;=\; \max_{f \in \mathcal{F}}\ \frac{f(x)}{f(P)},
+\]
+where $f(x)$ is $x$'s contribution to the answer of $f$. The
+\emph{total sensitivity} is $S = \sum_{x \in P} s(x)$.
+\end{definition}
+
+Sampling each $x$ with probability proportional to $s(x)$ and
+reweighting is the workhorse theorem of the coreset culture. We state
+the finite-family version, whose proof is one Hoeffding step plus a
+union bound; sharper analyses replace $\ln|\mathcal{F}|$ by the VC-type
+complexity of $\mathcal{F}$ \citep{coresets-rnla-bg9,coresets-rnla-bg10}.
+
+\begin{theorem}[Sensitivity sampling]\label{thm:cor-sens}
+Let $\mathcal{F}$ be a finite family of nonnegative cost functions on
+$P$ with total sensitivity $S \ge 1$, and $\varepsilon, \delta \in
+(0,1)$. Draw $m$ i.i.d.\ points $x_1,\dots,x_m$, each equal to $x$ with
+probability $s(x)/S$, and give $x_i$ weight $w_i =
+\frac{S}{m}\cdot\frac{1}{s(x_i)}$. If $m =
+O\bigl(\tfrac{S^2}{\varepsilon^2}
+(\ln|\mathcal{F}| + \ln\tfrac{1}{\delta})\bigr)$, then with probability
+at least $1-\delta$, simultaneously for every $f \in \mathcal{F}$,
+\[
+\Bigl|\, \sum_{i=1}^m w_i\, f(x_i) \;-\; f(P) \,\Bigr| \;\le\;
+\varepsilon\, f(P). \eopm
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Fix $f$: the weighted sum is a sum of $m$ i.i.d.\ mean-$f(P)$ variables,
+each in an interval of length $O\bigl(\tfrac{S}{m} f(P)\bigr)$ because
+$f(x) \le s(x) f(P)$ by Definition~\ref{def:cor-sens}. Hoeffding gives
+per-$f$ failure $\exp(-\Omega(m\varepsilon^2/S^2))$, and a union bound
+over $|\mathcal{F}|$ functions absorbs the $\ln|\mathcal{F}|$ term (full
+proof in Section~\ref{sec:cor-appendix}).
+\end{proof}
+
+\sidenote{The sensitivity framework is the general theory of importance
+sampling for geometric objectives: after a bi-criteria approximation,
+the total sensitivity of $k$-median-type objectives is $O(k)$, so
+coreset size is $\operatorname{poly}(k, 1/\varepsilon)$ --- independent
+of $n$ \citep{coresets-rnla-bg9,coresets-rnla-bg10}. Applied to the rows
+of a matrix, the same statistics gives \emph{leverage scores} ---
+sensitivity sampling with $f$ ranging over residual directions
+\citep{coresets-rnla-bg8}.}
+
+What Theorem~\ref{thm:cor-sens} produces has a name and a closure
+property that powers every distributed use.
+
+\begin{definition}[$\varepsilon$-coreset]\label{def:cor-coreset}
+A weighted multiset $C$ is an \emph{$\varepsilon$-coreset} of $P$ for
+$\mathcal{F}$ if for every $f \in \mathcal{F}$,
+$\bigl|\sum_{x \in C} w_x f(x) - f(P)\bigr| \le \varepsilon\, f(P)$.
+\end{definition}
+
+\begin{lemma}[Mergeability]\label{lem:cor-merge}
+If $C_i$ is an $\varepsilon$-coreset of $P_i$ for $\mathcal{F}$,
+$i = 1,2$, then $C_1 \cup C_2$ with summed weights is an
+$\varepsilon$-coreset of $P_1 \cup P_2$. \eop
+\end{lemma}
+
+\begin{proof}
+For every $f$, the two absolute errors add over the disjoint union, and
+each is at most $\varepsilon$ times its own part of $f(P_1 \cup P_2)$;
+the sum is at most $\varepsilon\, f(P_1 \cup P_2)$.
+\end{proof}
+
+Mergeability is why coresets compose across shards of a distributed
+database: each shard builds its proxy locally, the proxies are shipped
+and unioned, and no shard is read twice. Linear sketches summaries of
+the form $RX$ have the same closure by default --- they add across
+shards --- which is the design principle behind mergeable streaming
+summaries, from AMS sketches \citep{coresets-rnla-bg13} through
+CountSketch \citep{coresets-rnla-bg3} to Frequent Directions for
+matrices \citep{coresets-rnla-bg12}.
+
+\subsection{The projection ladder: from JL to subspace embeddings}
+\label{sec:cor-projection-ladder}
+
+The second culture shrinks the \emph{dimension} rather than the row
+count, on the strength of the fact that Euclidean geometry is
+compressible: a random low-dimensional projection preserves all pairwise
+distances of a fixed point set \citep{coresets-rnla-bg1}.
+
+\begin{theorem}[Johnson--Lindenstrauss]\label{thm:cor-jl}
+For every $P = \{p_1,\dots,p_n\} \subset \mathbb{R}^d$ and every
+$\varepsilon, \delta \in (0,1)$ there is a random linear map
+$\Pi\colon \mathbb{R}^d \to \mathbb{R}^{m}$ with
+$m = O\bigl(\varepsilon^{-2}(\ln n + \ln\tfrac1\delta)\bigr)$ such
+that, with probability at least $1-\delta$, simultaneously for all
+pairs $i \ne j$,
+\[
+(1-\varepsilon)\,\|p_i - p_j\|_2^2 \;\le\;
+\|\Pi p_i - \Pi p_j\|_2^2 \;\le\;
+(1+\varepsilon)\,\|p_i - p_j\|_2^2. \eopm
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Take $\Pi$ scaled Gaussian. For a \emph{fixed} unit vector $u$,
+$\|\Pi u\|_2^2$ is chi-square with an exponential tail --- a
+Chernoff-method fact (Chapter~\ref{ch:conc}). Apply this to the
+$\binom{n}{2}$ difference directions $u_{ij} = (p_i -
+p_j)/\|p_i - p_j\|_2$ with per-pair failure $O(\delta/n^2)$ and
+union-bound (full proof in Section~\ref{sec:cor-appendix}).
+\end{proof}
+
+\sidenote{The map need not be Gaussian: $\pm1$ signs suffice
+\citep{coresets-rnla-bg2}, and sparse sign matrices with one nonzero per
+column --- CountSketch \citep{coresets-rnla-bg3} --- make the projection
+cost $O(\operatorname{nnz})$ rather than $O(md)$; ``database-friendly''
+projections are what make JL deployable inside a scan operator. The
+guarantee is also \emph{oblivious}: the same distribution works for
+every $P$, so shards share one $R$ and merge by summation.}
+
+JL preserves a \emph{fixed finite set} of directions; numerical linear
+algebra needs an entire \emph{subspace} --- every direction in the
+column space of a data matrix --- because the optimization variable
+ranges over a continuum of candidates
+\citep{coresets-rnla-bg4,coresets-rnla-bg6}.
+
+\begin{theorem}[Subspace embedding by sparse sketches]\label{thm:cor-embed}
+Let $A \in \mathbb{R}^{n \times d}$ and $\varepsilon \in (0,1)$. There
+is a distribution over CountSketch matrices $R \in \mathbb{R}^{m \times
+n}$ with $m = O(d^2/\varepsilon^2)$ rows such that, with constant
+probability,
+\[
+(1-\varepsilon)\,\|Ax\|_2 \;\le\; \|R A x\|_2 \;\le\;
+(1+\varepsilon)\,\|A x\|_2
+\quad\text{for all } x \in \mathbb{R}^d. \eopm
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+A net argument upgrades a fixed-direction JL guarantee to the whole
+$d$-dimensional column space --- preserve a fine net of the sphere and
+push the distortion through products --- and the heavy-hitter property
+of CountSketch tames the hash collisions; see
+\citep{coresets-rnla-bg5,coresets-rnla-bg6} for the complete argument.
+\end{proof}
+
+Subspace embeddings convert optimization into \emph{sketch-and-solve}
+\citep{coresets-rnla-bg4}: compress, then optimize exactly on the small
+instance.
+
+\begin{corollary}[Sketch-and-solve for least squares]\label{cor:cor-sas}
+Let $R$ be a $(1\pm\varepsilon)$ subspace embedding for the column
+space of $[A \; b]$, where $A \in \mathbb{R}^{n\times d}$, $b \in
+\mathbb{R}^n$, and let $\hat{x} = \operatorname{argmin}_{x} \|RAx -
+Rb\|_2$. Then
+\[
+\|A\hat{x} - b\|_2 \;\le\; \frac{1+\varepsilon}{1-\varepsilon}\,
+\min_{x}\|Ax - b\|_2. \eopm
+\]
+\end{corollary}
+
+\begin{proof}[Proof sketch]
+The embedding preserves \emph{all} residual norms $\|Ax - b\|_2$ at once
+(the residuals live in a $(d{+}1)$-dimensional space), so the minimizer
+of the preserved objective is near-minimal for the true one (full proof
+in Section~\ref{sec:cor-appendix}).
+\end{proof}
+
+The last rung, \emph{iterative refinement}, is the practitioner's
+caveat about Corollary~\ref{cor:cor-sas}: a $(1\pm\varepsilon)$-embedded
+objective solved exactly on the sketch yields only constant-factor
+solutions. The RNLA workflow instead uses the sketch as a
+\emph{preconditioner} --- solve the sketched system once for a
+well-conditioned basis, then a few conjugate-gradient/LSQR iterations on
+the \emph{original} residuals, converging at a rate set by the condition
+number of that basis \citep{coresets-rnla-bg6,coresets-rnla-bg7,
+coresets-rnla-bg14}. Sketch once, refine cheaply.
+
+\subsection{How to choose the proxy}
+\label{sec:cor-choose}
+
+The selection is mechanical once two questions are answered. \emph{What
+is the query family?} Geometric or combinatorial cost evaluations ---
+clustering objectives, covering radii, range-space counts,
+plan-switching risks --- point to the sampling track: bound the
+sensitivities, sample by them, reweight, size by
+Theorem~\ref{thm:cor-sens}. Linear-algebra quantities --- norms, inner
+products, regression, low-rank factors, eigenvectors --- point to the
+projection track: pick the sketch distribution (Gaussian / sign /
+CountSketch), set the dimension by JL or the embedding bound, and
+choose sketch-and-solve (Corollary~\ref{cor:cor-sas}) vs.\
+precondition-and-refine by the accuracy the downstream consumer needs.
+\emph{Where does the object live?} Rows on one machine: either track.
+Rows across shards or a stream: insist on mergeability
+(Lemma~\ref{lem:cor-merge}; linearity for sketches). Updates and
+deletions: linear sketches survive them; row samples generally do not.
+Hybrids are the norm --- leverage scores are sensitivities for residual
+directions and drive row-sampling regression
+\citep{coresets-rnla-bg8}, and the exemplar of
+Section~\ref{sec:cor-mrg} sketches an affinity matrix that a geometric
+routine balances first.
+
+\begin{reachbox}{When to Reach for Coresets and Sketches}
+Reach whenever the cost of a computation is set by the size of an object
+that no consumer needs in full --- materializing a join output,
+factorizing a dense affinity, enumerating a plan space, scanning every
+row per query --- and the analysis tolerates $(1\pm\varepsilon)$ error
+with a probability certificate. Then run the recipe:
+\begin{enumerate}
+\item \textbf{Identify the query family} $\mathcal{F}$: every quantity
+  that must survive the compression, stated as a cost function on the
+  object.
+\item \textbf{Compute sensitivities or pick the projection}: bound each
+  point's worst-case share $s(x)$ of a query (total sensitivity $S$),
+  or fix the sketch distribution and dimension; if only leverage scores
+  are available, that is the same decision for matrices
+  \citep{coresets-rnla-bg8}.
+\item \textbf{Verify the $(\varepsilon,\delta)$ guarantee}: per-query
+  failure $\exp(-\Omega(\text{sample} \cdot \varepsilon^2/S^2))$ or the
+  JL tail; tune the size until it is below
+  $\delta/(\text{queries})$, then union-bound over $\mathcal{F}$ (or
+  its $\varepsilon$-net).
+\item \textbf{Merge if distributed}: union the coresets / sum the
+  sketches; by Lemma~\ref{lem:cor-merge} and linearity the guarantee
+  survives untouched --- no shard is read twice.
+\end{enumerate}
+\end{reachbox}
+
+\section{Set-outlier clustering over relational data}
+\label{sec:cor-soc}
+
+The exemplar is a SIGMOD'26 paper on clustering with set outliers and
+its applications to relational clustering \citep{sigmod26-289}.
+Clustering is made robust by allowing the algorithm to discard up to $z$
+outliers, but the standard model discards individual \emph{points} ---
+the wrong granularity for relational data, where one spurious tuple
+pollutes an entire set of join results and burning the outlier budget
+point by point leaves the damage in place. The paper introduces
+\emph{clustering with set outliers}: exclude up to $z$ sets from a given
+family, cluster what remains, and pay only for points no excluded set
+covers. For the abstract problem it gives LP-based approximation
+algorithms; for hyper-rectangle outlier sets in constant dimension, fast
+geometric algorithms; and for outliers induced by the tuples of an
+acyclic join, a coreset-based algorithm whose cost is near-linear in the
+database size rather than the quadratic-size join output. A
+Unique-Games-conditional hardness theorem shows the trade-offs are
+nearly tight, and the coreset lens catches the two shrinkage steps
+inside: instance reduction, and the relational sample of the join
+output.
+
+\paragraph{Problem.}
+The abstract problem (Section~2 of \citep{sigmod26-289}, notation
+cleaned): given $n$ points $P$ in a metric space, a family
+$\mathcal{H}$ of $m$ subsets covering $P$, and integers $k, z$, choose a
+center set $C \subseteq P$, $|C| \le k$, and an outlier family
+$\mathcal{H}' \subseteq \mathcal{H}$, $|\mathcal{H}'| \le z$, minimizing
+the $k$-center-style cost $\mathrm{cost}\bigl(C,\, P \setminus
+\bigcup_{h \in \mathcal{H}'} h\bigr)$ --- the maximum distance from any
+surviving point to its nearest center. An
+$(\alpha,\beta,\gamma)$-\emph{approximation} returns a solution of cost
+at most $\alpha$ times the optimum using at most $\beta k$ centers and
+$\gamma z$ outlier sets. Two refinements matter: the \emph{geometric}
+case, $P \subset \mathbb{R}^d$ with $\mathcal{H}$ a set of $m$
+hyper-rectangles covering $P$; and the \emph{relational} case, where $P$
+is the output $\Pi(B)$ of an acyclic join over a database $B$ of size
+$N$ and each outlier set is the set of join results that use a given
+tuple. Hardness: assuming the Unique Games conjecture, no
+polynomial-time $(1, f-\varepsilon, \gamma)$-approximation exists for
+$f = o(\log n)$ and $\gamma = o(|\mathcal{H}|)$ (Theorem of the paper,
+via a Set-Cover reduction encoding set-element incidences as points on a
+line and sets as point sets).
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Set-outlier clustering with hyper-rectangles; Theorem of
+\citep{sigmod26-289}, notation cleaned]\label{thm:cor-soc-main}
+Given $P \subset \mathbb{R}^d$ ($d$ constant), $m$ hyper-rectangles
+covering $P$, and parameters $k, z, \varepsilon$, there is a
+$(2+\varepsilon,\,2,\,O(1))$-approximation algorithm whose running time
+is near-linear in $n + m$ once the terms $\beta_1 = \min\{n, km\}$,
+$\beta_2 = \min\{n, kz\}$ and $\beta_3 = \min\{m, kz\}$ are isolated
+(the dependence on $k$ and $z$ lives in the $\beta$'s). \eop
+\end{theorem}
+
+\sidenote{The same LP-plus-rounding skeleton gives a $(2,2,O(1))$%
+-approximation for the abstract problem, and --- for bounded doubling
+dimension and disjoint outlier sets --- a variant whose running time
+drops the $n$ and $m$ terms to the $\beta$'s (Theorem and Corollary of
+the paper): once the $\beta$'s are polylogarithmic the algorithm runs
+in \emph{sublinear} time. That is the coreset dividend --- the proxy,
+not the input, sets the cost.}
+
+\paragraph{How coresets are applied.}
+The engine room is a feasibility LP and its rounding; the coreset lens
+catches two shrinkage steps. \emph{(i) LP feasibility with
+weight-charging rounding.} For a guessed radius $r$, an LP relaxation
+encodes ``every point is $r$-covered by center mass or covered by
+outlier mass''; if $r \ge r^*_{k,z}$ (the optimum) the optimum itself
+witnesses feasibility, and greedy rounding converts feasibility into a
+solution with a charging certificate:
+
+\begin{lemma}[Rounding certificate; Lemma of \citep{sigmod26-289},
+notation cleaned]\label{lem:cor-soc-charge}
+If the feasibility LP is satisfiable for radius $r$, then greedy
+rounding returns $C$ and $\mathcal{H}'$ with
+$\mathrm{cost}\bigl(C, P \setminus \bigcup_{h\in\mathcal{H}'}
+h\bigr) \le 2r$, $|\mathcal{H}'| \le 2fz$ (for LP outlier inflation
+$f$), and $|C| \le 2k$. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Each greedy center is picked where it deactivates all active points
+within $2r$, giving the cost bound; the center count comes from
+charging to each selected center the LP mass of the $r$-ball around it
+--- the balls are disjoint, each carries mass at least $\tfrac12$, and
+the total mass is at most $k$ (full proof in
+Section~\ref{sec:cor-appendix}).
+\end{proof}
+
+\emph{(ii) Instance shrinkage.} The $\beta$ terms in
+Theorem~\ref{thm:cor-soc-main} exist because the algorithm first
+computes a \emph{sub-instance} --- a coreset of the input itself. For a
+feasible radius $r \ge r^*_{k,z}(P,\mathcal{H})$ there are subsets
+$P' \subseteq P$ and $\mathcal{H}' \subseteq \mathcal{H}$ with $|P'| =
+O(\min\{n, k^2z, km\})$ and $|\mathcal{H}'| = O(\min\{m, kz\})$ such
+that the sub-instance's optimum, for adjusted budgets, is at most $18r$
+(Lemma of the paper): beyond the sets the optimum already excludes,
+only cluster boundaries matter, and $O(k^2z)$ points carry them.
+\emph{(iii) The relational coreset.} For an acyclic join with
+$|\Pi(B)|$ results, the paper samples points of $\Pi(B)$ through
+counting/sampling oracles, builds a BBD-tree over the samples, and
+rounds:
+
+\begin{lemma}[Relational coreset; Lemma of \citep{sigmod26-289},
+notation cleaned]\label{lem:cor-soc-rel}
+Let $Q$ be an acyclic join over a database $B$ of size $N$, and
+$\delta = z/|\Pi(B)|$. One can compute $S \subseteq \Pi(B)$ with
+$|S| \le k$ and $T \subseteq \Pi(B)$ with $|T| \le (1+\varepsilon)^2
+\delta\,|\Pi(B)| = (1+\varepsilon)^2 z$ such that
+$\mathrm{cost}\bigl(S, \Pi(B) \setminus T\bigr) \le
+3(1+\varepsilon)^2\, r^*_{k,z}\bigl(\Pi(B)\bigr)$, with probability at
+least $1 - 1/N$ (via counting/sampling oracles over the join). \eop
+\end{lemma}
+
+The probability in Lemma~\ref{lem:cor-soc-rel} is where
+\emph{randomized repetition} enters: a single sample catches all tuples
+generating the optimal centers with probability only about
+$2^{-g(k+z)}$ (each of the $\le g(k+z)$ witness tuples is kept with
+probability $\tfrac12$), so the algorithm repeats
+$\Theta(2^{g(k+z)} \log N)$ times and unions the per-run failure ---
+repetition buying the exponent, exactly the ``push per-event failure
+past $\log(\text{events})$'' accounting used throughout this book.
+Chaining the coreset with the geometric algorithm yields the paper's
+relational theorem: a $(1, 1+\varepsilon, 3+\varepsilon)$-approximation
+with probability $1 - 1/N$.
+
+\paragraph{What it buys.}
+A query engine can answer ``cluster this join, ignoring damaged
+regions'' with cost near-linear in the database size $N$ rather than
+the output size $|\Pi(B)|$: the coreset keeps $k$ centers plus
+$(1+\varepsilon)^2 z$ excluded results, and everything downstream ---
+LP, rounding, binary search --- runs on that proxy. The certified
+$(2+\varepsilon,2,O(1))$ trade-off, with UGC hardness showing the
+center/outlier budgets cannot all be kept at $1+o(1)$, tells the system
+designer exactly which relaxations are free and which are impossible.
+
+\section{Coresets for robust query optimization}
+\label{sec:cor-qo}
+
+The exemplar is a PODS'26 paper on coresets for robust query
+optimization \citep{sigmod26-053}\pods. Query optimizers pick plans
+under cardinality estimates, and estimates are wrong: the plan that
+looks best can be catastrophic on the true cardinalities. Robust query
+optimization hedges by maintaining a \emph{portfolio} of plans such that
+whatever the workload brings, some plan in the portfolio is nearly as
+good as the best plan in the entire plan space. Portfolios cost memory
+and inference time, so the question is how small one can be. The
+paper's answer is a coreset construction in an unusual direction --- the
+object compressed is not the data but the \emph{plan space} itself: a
+risk-aware portfolio $C \subseteq \Pi$ of size
+$O(\kappa^* \log\frac1\delta)$ is computed from only
+$O\bigl(\frac{\kappa^*}{\delta^2}\ln N\ln\frac1\delta\bigr)$ sampled
+queries, with high probability, where $\kappa^*$ is the best possible
+portfolio size. The sizing argument is exactly the recipe of
+Section~\ref{sec:cor-choose}: Hoeffding per candidate portfolio, union
+bound over all of them. (The greedy selection procedure is dissected
+under the exchange-and-greedy lens in Section~\ref{sec:exc-053}; this
+section keeps the coreset lens.)
+
+\paragraph{Problem.}
+Let $\Pi$ be the set of $N$ candidate plans for a query family, $W$ a
+distribution over queries, and each query $Q$ an \emph{uncertainty
+profile}: a distribution $U_Q$ over cardinality vectors $s$. The
+penalty of plan $\pi$ on $s$ is its cost ratio
+$\mathrm{Pnl}(\pi, s) = \mathrm{Cost}(\pi,s)/\mathrm{Cost}^{\star}(s)$
+against the optimal plan for $s$, and the \emph{$\tau$-risk} of $\pi$
+on $Q$ is $\mathrm{Risk}(\pi, Q;\tau) = \Pr_{s \sim
+U_Q}[\mathrm{Pnl}(\pi,s) > \tau]$ --- the probability that $\pi$ blows
+past tolerance $\tau$. Writing $\mathrm{Risk}^{\star}(Q;\tau)$ for the
+best risk over all of $\Pi$, a set $F \subseteq \Pi$ is an
+\emph{$(\varepsilon,\tau,\delta|W)$-coreset for risk} (reconstructed
+from Lemmas 3.1 and 3.3 of the paper, notation cleaned) if
+\[
+\Pr_{Q \sim W}\Bigl[\min_{\pi \in F} \mathrm{Risk}(\pi,Q;\tau) \;>\;
+\mathrm{Risk}^{\star}(Q;\tau) + \varepsilon\Bigr] \;\le\; \delta,
+\]
+i.e., for all but a $\delta$-fraction of the workload some portfolio
+plan is within $\varepsilon$ of the best achievable risk; $\kappa^*$ is
+the size of the smallest such set.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Risk coresets; Theorem 3.5 of \citep{sigmod26-053},
+notation cleaned]\label{thm:cor-qo-main}
+Let $W$ be a workload distribution, $\Pi$ a set of $N$ plans,
+parameters $\varepsilon \in (0,1]$, $\tau \ge 1$, $\delta \in (0,1)$,
+and $\kappa^*$ the size of the smallest
+$(\varepsilon,\tau,\delta|W)$-coreset for risk. For any fixed
+constants $c_1, c_2 > 1$ there is an algorithm that samples
+$O\bigl(\tfrac{\kappa^*}{\delta^2}\ln N \ln\tfrac1\delta\bigr)$ queries
+from $W$ and computes, in time
+$O\bigl(\tfrac{\kappa^*}{\varepsilon^2\delta^2}\,N \ln^3 N
+\ln\tfrac1\delta\bigr)$, a set $C \subseteq \Pi$ of size
+$O\bigl(\kappa^* \ln\tfrac1\delta\bigr)$ that is, with high
+probability, a $(c_1\varepsilon,\,\tau,\,c_2\delta|W)$-coreset for
+risk. \eop
+\end{theorem}
+
+\paragraph{How coresets are applied.}
+The random object is the batch of sampled queries $Q_1, \dots,
+Q_{\mathfrak{n}_r} \sim W$ (plus, per query, an inner sample
+$s_1,\dots, s_{\mathfrak{m}_r} \sim U_Q$ used to estimate risks); the
+query family is, unusually, the family of \emph{all subsets of $\Pi$ up
+to size $b_r$} --- every portfolio the algorithm might output is a
+query whose cost the sample must certify. Sizing is a two-layer
+Hoeffding argument:
+
+\begin{lemma}[Coreset sizing; Lemma 3.1 of \citep{sigmod26-053}, notation
+cleaned]\label{lem:cor-qo-hoeffding}
+Fix $\varepsilon' \in (0,1)$ and round $r \ge 1$. Let
+$\hat{p}_r(\varepsilon', F)$ be the empirical fraction of the
+$\mathfrak{n}_r = \tfrac{c_1 k_r}{\delta^2}\ln N \ln\tfrac1\delta$
+sampled queries on which $F \subseteq \Pi$ fails to be
+$\varepsilon'$-competitive, and $p(\varepsilon',F)$ its expectation.
+Then $\hat{p}$ approximates $p$ within $\delta/4$ simultaneously for
+all $F \subseteq \Pi$ with $|F| \le b_r = c_3 k_r \ln\frac1\delta$,
+with probability at least $1 - N^{-O(1)}$. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+$\hat{p}_r(\varepsilon',F)$ is a mean of i.i.d.\ $[0,1]$ variables, so
+Hoeffding gives failure $2\exp(-\delta^2 \mathfrak{n}_r/8)$ per set;
+the number of candidate portfolios is at most $(b_r+1)N^{b_r}$, and a
+union bound over them turns the exponent into $N^{-O(1)}$ once $c_1$
+dominates $c_3$ (full proof in Section~\ref{sec:cor-appendix}).
+\end{proof}
+
+A companion lemma (Lemma 3.2 of the paper) runs the same
+Hoeffding-plus-union argument over the $\le N\mathfrak{n}_r$ (plan,
+query) pairs for the inner risk estimates, with inner sample size
+$\mathfrak{m}_r = \tfrac{c_2}{\varepsilon^2}\ln N \ln
+\mathfrak{n}_r$; the $\delta$-budgeting is explicit --- accuracy
+$\delta/4$ for the outer fraction, $\varepsilon/10$ for the inner
+risks, constants tuned so both failures are polynomially small in every
+round. The substitution property --- the reason the proxy can replace
+the full plan space at inference time --- is a clean transfer between
+\emph{global} risk (against all of $\Pi$) and \emph{local} risk
+(against the portfolio):
+
+\begin{lemma}[Risk transfer; Lemma 4.2 of \citep{sigmod26-053}, notation
+cleaned]\label{lem:cor-qo-transfer}
+For any $F \subseteq \Pi$, $\pi \in F$ and query $Q$:
+$\mathrm{Risk}(\pi, Q; \tau^2) \le \mathrm{L\text{-}Risk}_{F}(\pi,
+Q;\tau) + \min_{\pi' \in F}\mathrm{Risk}(\pi', Q;\tau)$, where
+$\mathrm{L\text{-}Risk}_F$ measures the penalty of $\pi$ relative to
+the best plan \emph{in $F$}; consequently $\min_{\pi \in
+F}\mathrm{Risk}(\pi,Q;\tau^2) \le 2\min_{\pi\in
+F}\mathrm{Risk}(\pi,Q;\tau)$. \eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Factor the penalty as a product of the local ratio and the reference
+plan's global ratio; the event $\{\mathrm{Pnl} > \tau^2\}$ is then
+contained in the union of the two factor events $\{\cdot > \tau\}$ ---
+a union bound in disguise (full proof in
+Section~\ref{sec:cor-appendix}).
+\end{proof}
+
+Chaining Lemma~\ref{lem:cor-qo-transfer} with an empirical version of
+the local risk (Hoeffding over the inner samples again) gives the
+paper's inference guarantee: the returned plan $\hat{\pi}$ obeys
+$\mathrm{Risk}(\hat{\pi},Q;\tau^2) \le
+2\,\mathrm{Risk}^{\star}(Q;\tau) + 4\varepsilon$ with probability at
+least $1-2\delta$, in $\Theta\bigl(|F|(\ln|F| +
+\ln\tfrac1\delta)/\varepsilon^2\bigr)$ time (Theorem 4.1 of the paper):
+solving on the proxy costs a factor $2$ --- the standard coreset tax ---
+instead of a scan over all $N$ plans.
+
+\paragraph{What it buys.}
+The optimizer carries a portfolio of $O(\kappa^*\log\frac1\delta)$
+plans instead of $N$, built from a logarithmic number of workload
+samples, with a certificate that for all but a $\delta$-fraction of the
+workload some portfolio plan is within $\varepsilon$ of the best
+achievable risk, and inference against the portfolio runs in time
+nearly linear in its size. The sizes adapt to the workload (through
+$\kappa^*$) rather than to the plan space, so easy workloads get tiny
+portfolios for free.
+
+\section{Sketching the affinity before the eigenvalue work}
+\label{sec:cor-mrg}
+
+The exemplar is a SIGMOD'26 paper on effective clustering for large
+multi-relational graphs \citep{sigmod26-303}. A multi-relational graph
+links its nodes through many relation types at once, and partitioning
+the $N$ nodes into $K$ clusters is a standard analytics task that
+existing systems either solve inaccurately (crudely fused relations) or
+expensively (deep models that stall at millions of nodes). The paper's
+pipeline optimizes a normalized-cut-type objective through an affinity
+matrix and refuses to ever form the dense $N \times N$ object: the
+relaxed problem becomes a $k$-means instance after a balancing step,
+the smoothed node embedding behind it is a truncated series of sparse
+matrix products, and the Frobenius norms that calibrate everything are
+estimated from a CountSketch of the data. Chapter~\ref{ch:spec}
+dissects the same paper through the spectral lens (Neumann series,
+eigenvalue confinement $\lambda \le 1$, Sinkhorn balancing); this
+section keeps the randomized-NLA lens: what is compressed, by which
+sketch, and with what probability certificate.
+
+\paragraph{Problem.}
+Let $G$ be a multi-relational graph with $N$ nodes and $R$ relations;
+relation $r$ induces a (row-normalized) affinity block $S^{(r)}$, fused
+into $S = \sum_{r=1}^R \omega_r S^{(r)}$ with $\sum_r \omega_r = 1$.
+The clustering objective is a normalized-cut quantity, equivalent to
+trace maximization $\max_Y \operatorname{trace}(Y^{\!\top} S\,Y)$ over
+node-cluster incidence matrices --- NP-hard, and the standard spectral
+relaxation needs a partial eigendecomposition of the \emph{dense}
+$N \times N$ matrix $S$. The paper replaces this with a two-stage
+program. Stage one computes smoothed node features $Z =
+\frac{1}{1+\alpha}\bigl(I - \tfrac{\alpha}{1+\alpha}S\bigr)^{-1} Z^0$
+(closed form; the inverse is a Neumann series because the spectrum of
+$S$ lies in $[0,1]$ --- Lemma of the paper, proved by Courant--Fischer
+plus the Lidskii inequality $\lambda_{\max}(A+B) \le \lambda_{\max}(A)
++ \lambda_{\max}(B)$). Stage two balances $S$ to doubly stochastic by
+Sinkhorn--Knopp iterative proportional fitting (row and column
+scalings coincide by symmetry and Sinkhorn uniqueness, Theorem of the
+paper), which makes the trace objective \emph{equivalent} to weighted
+$k$-means on the rows of $Z$. The computational obstacle: evaluating
+the objective terms and the truncation error requires Frobenius norms
+of dense $N \times N$ products.
+
+\paragraph{Guarantee.}
+
+\begin{corollary}[Sketched objective; Corollary of \citep{sigmod26-303},
+notation cleaned]\label{cor:cor-mrg-sketch}
+Let $R$ be a CountSketch matrix with
+\[
+m \;=\; O\Bigl(r\,\varepsilon^{-4}\,
+\log\tfrac{r}{\varepsilon\delta}\cdot\bigl(r + \log\tfrac{1}{\varepsilon
+\delta}\bigr)\Bigr)
+\]
+columns, where $r$ is the target rank and $\varepsilon,\delta \in
+(0,1)$. Then the sketched estimate of the squared Frobenius norm of
+the whitened product $\hat{M}^{(r)} = M\,(M - M^{(r)})^{-1/2}$ --- the
+stage-one objective term, whose exact value is the trace quantity
+$\operatorname{trace}\bigl(M\,(M-M^{(r)})^{-1}\bigr)$ by the paper's
+identity --- is within a $(1\pm\varepsilon)^2$ factor of its exact
+value, with probability at least $1-\delta$. \eop
+\end{corollary}
+
+\paragraph{How randomized NLA is applied.}
+The random object is the CountSketch matrix --- each row of the data is
+hashed to one of $m$ buckets with a random sign --- the oblivious
+projection of Theorems~\ref{thm:cor-jl} and~\ref{thm:cor-embed}: the
+same distribution works for every $M$, so shards sketch independently
+and merge by summation. The structure exploited is that every quantity
+the pipeline needs is a squared Frobenius norm, and a squared Frobenius
+norm is a sum of inner products: the paper first converts its trace
+term into $\|\hat{M}^{(r)}\|_F^2$ (identity
+$\operatorname{trace}\bigl(M(M-M^{(r)})^{-1}\bigr) =
+\|\hat{M}^{(r)}\|_F^2$, Lemma of the paper), then estimates it from
+the sketch, because CountSketch preserves pairwise inner products with
+high probability --- for every pair of rows, the sketched inner product
+is within $\varepsilon$ of the true one with probability $1-\delta$
+(the inner-product-preservation property the paper imports). The
+$\delta$-budgeting is familiar: per-relation failure $\delta/R$,
+union-bounded over the $R$ relations, so the fused estimates inherit
+the certificate. Supporting the sketch, the eigenvalue side certifies
+that the sketched pipeline is legal: $\lambda(S^{(r)}) \le 1$
+(Courant--Fischer plus Lidskii) makes the Neumann series converge, and
+truncating after $L$ terms costs at most $\bigl(\tfrac{\alpha}{1+
+\alpha}\bigr)^{L+1} \|Z^0\|_F$ divided by the eigengap quantity
+$\mu_{L,L+j} = \max_i |\lambda_i(S)^{L+j} - \lambda_i(S)^{L}|$ of the
+fused spectrum (Theorem of the paper; the full spectral dissection,
+with proofs, is in Section~\ref{sec:spec-mrg}).
+
+\paragraph{What it buys.}
+The engine clusters graphs with billions of edges in time linear in
+the input instead of quadratic in $N$: no dense $N \times N$ matrix is
+ever formed, the embedding is $L$ sparse products with a certified
+geometric truncation error, and the calibration norms come from a
+mergeable sketch with an $(\varepsilon,\delta)$ certificate. Because
+the balancing step makes the objective exactly $k$-means, the final
+clustering solves the relaxed problem the sketch was built for --- not
+a surrogate of it.
+
+\section{Proximity graphs from covering nets}
+\label{sec:cor-pg}
+
+The exemplar is a SIGMOD'26 paper on proximity graphs for similarity
+search \citep{sigmod26-349}. Graph indexes are how vector databases
+answer nearest-neighbor queries at scale: build a graph over the data
+points and answer a query by \emph{greedy routing} --- start anywhere,
+repeatedly hop to the neighbor closest to the query, stop when no
+neighbor is closer. The graph is a $(1+\varepsilon)$-\emph{proximity
+graph} ($(1+\varepsilon)$-PG) if the walk always ends at a
+$(1+\varepsilon)$-approximate nearest neighbor; the practical questions
+are how many edges it needs, how fast it builds, and how long the walk
+takes. The paper settles the trade-off for doubling metrics:
+$O(\tfrac{1}{\varepsilon^\lambda} n\log\Phi)$ edges are enough and
+constructible in near-linear time, the $\log\Phi$ is \emph{necessary}
+in general (an $\Omega(n\log\Phi)$ lower bound) yet \emph{vanishes} in
+constant-dimensional Euclidean space, and the query analysis is a
+distance-descent lemma on the greedy walk. The construction itself is
+a coreset in metric clothing: a hierarchy of covering nets keeping a
+bounded number of representatives per distance scale.
+
+\paragraph{Problem.}
+Let $(\mathcal{M}, D)$ be a metric space of doubling dimension
+$\lambda$, $P$ an $n$-point subset with aspect ratio $\Phi$, and
+$q \notin P$ a query. A directed graph $G$ on $P$ is a
+$(1+\varepsilon)$-PG if greedy routing --- from any start, hop to the
+out-neighbor closest to $q$, halt when no out-neighbor is closer ---
+terminates at a point $p$ with $D(p,q) \le (1+\varepsilon)\,
+D(p^{\star},q)$ for an exact nearest neighbor $p^{\star}$. The design
+goals: few edges (space), near-linear construction, and short greedy
+walks (query time), where the walk length counts distance evaluations.
+
+\paragraph{Guarantee.}
+
+\begin{theorem}[Proximity graphs for doubling and Euclidean metrics;
+Theorem of \citep{sigmod26-349}, notation cleaned]\label{thm:cor-pg-main}
+(i) For any metric space of constant doubling dimension $\lambda$ and
+any $n$-point set $P$ with aspect ratio $\Phi$, there is a
+$(1+\varepsilon)$-PG with $O\bigl(\tfrac{1}{\varepsilon^\lambda}\,
+n\log\Phi\bigr)$ edges and greedy query time
+$O\bigl(\tfrac{1}{\varepsilon^\lambda}\log^2\Phi\bigr)$,
+constructible in $O\bigl(\tfrac{1}{\varepsilon^\lambda}\,n\log n\bigr)$
+time. (ii) For $P \subset \mathbb{R}^d$ under $L_2$ with $d = O(1)$,
+there is a $(1+\varepsilon)$-PG with only
+$O\bigl(\tfrac{1}{\varepsilon^\lambda}\,n\bigr)$ edges and query time
+$O\bigl(\tfrac{1}{\varepsilon^\lambda}\log^2\Phi +
+\tfrac{1}{\varepsilon^{d-1}}\log n\,\log^2\Phi\bigr)$; w.h.p.\ it is
+built in $O\bigl(\tfrac{1}{\varepsilon^\lambda}\,n\log n\bigr)$ time.
+\eop
+\end{theorem}
+
+The complementary lower bound shows part (i) cannot lose its
+$\log\Phi$:
+
+\begin{theorem}[Size lower bound; Theorem of \citep{sigmod26-349},
+notation cleaned]\label{thm:cor-pg-lb}
+There is a set of $\Theta(n)$ points with aspect ratio $\Phi$ (a power
+of $2$) in a metric space of doubling dimension $1$ such that any
+$2$-PG for it must have $\Omega(n\log\Phi)$ edges, \emph{regardless of
+the query time allowed}. Also, for every $s \ge 2$, $t \ge 1$,
+$d \ge 1$ there is an $n = s^d \cdot t$ point set with doubling
+dimension at most $\log(1+2^d)$ such that any
+$(1+\tfrac{1}{2s})$-PG needs $\Omega(s^d \cdot n)$ edges. \eop
+\end{theorem}
+
+\paragraph{How coresets are applied.}
+The proxy is a \emph{covering-net hierarchy}: nested subsets $Y_h
+\subseteq \dots \subseteq Y_1 \subseteq Y_0 = P$ where $Y_i$ is a
+$2^i$-net --- every point of $P$ is within $2^i$ of some point of
+$Y_i$ --- and $h = \log\Phi$ indexes the scales from the minimum
+inter-point distance to the diameter. The graph keeps, for each point,
+edges to nearby net representatives at every scale; the decomposition
+is a coreset of the metric --- a per-scale sample of the point set that
+preserves every point's distance profile to within the scale
+resolution --- and its sparsity is what sizes the graph.
+
+\begin{lemma}[Net out-neighbors; from the construction and its proof in
+\citep{sigmod26-349}, notation cleaned]\label{lem:cor-pg-net}
+In the covering-net construction, every point $p \in P$ keeps, at each
+scale $i$, an out-neighbor $y \in Y_i$ with $D(p,y) \le 2^i$ (the
+covering property); the per-point out-degree is
+$O\bigl(\tfrac{1}{\varepsilon^\lambda}\log\Phi\bigr)$, and the graph
+has $O\bigl(\tfrac{1}{\varepsilon^\lambda} n\log\Phi\bigr)$ edges.
+\eop
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Covering supplies the per-scale representative; the doubling property
+bounds how many net points matter in $p$'s distance window at each
+scale, and there are $O(\log\Phi)$ scales (full proof in
+Section~\ref{sec:cor-appendix}).
+\end{proof}
+
+The query analysis is where the paper's sharpest lemma lives --- the
+greedy walk descends the net hierarchy, and each ``jackpot'' hop
+shrinks the \emph{logarithm} of the distance to the true nearest
+neighbor:
+
+\begin{lemma}[Greedy descent and log-drop; Lemma of \citep{sigmod26-349},
+notation cleaned]\label{lem:cor-pg-drop}
+Fix a query $q$ and $p \in P$ that is not a $(1+\varepsilon)$-ANN of
+$q$; let $p^+$ be the out-neighbor of $p$ closest to $q$. Then (i)
+$D(p^+, q) < D(p, q)$; and (ii) for any $x \in P$ with $D(x,q) \le
+D(p^+,q)$ that is not a $(1+\varepsilon)$-ANN of $q$,
+\[
+\log D(x, p^{\star}) \;<\; \log D(p, p^{\star})
+\]
+for an exact nearest neighbor $p^{\star}$ of $q$. \eop
+\end{lemma}
+
+Statement (ii) is the workhorse: between two greedy-descent
+configurations the (log) distance to the nearest neighbor strictly
+drops, so after $O(\log\Phi)$ drops the walk is within scale $1$ of
+$p^{\star}$, and each inter-drop segment is short because the walk is
+monotone in distance to $q$ while the net hierarchy has only
+$O(\log\Phi)$ scales (the paper splits the walk into subsequences at
+jackpot hops and charges each subsequence $\Theta(\log n\,\log\Phi)$
+hops). The Euclidean separation of Theorem~\ref{thm:cor-pg-main}(ii)
+removes one $\log\Phi$ from the \emph{space}: in $L_2$, an
+angle-separation lemma (points equidistant from $p$ on nested query
+spheres are separated by angle $> \pi/8$) shows each scale needs only
+a bounded cone of representatives per point, while the adversarial
+metrics of Theorem~\ref{thm:cor-pg-lb} --- recursively nested clusters
+--- prove general doubling metrics enjoy no such savings.
+
+\paragraph{What it buys.}
+The vector-search index gets graphs that are simultaneously sparse
+(affordable memory), near-linearly constructible (affordable builds),
+and certifiably correct under greedy routing with polylogarithmic query
+paths --- and the matching lower bound tells the engineer that pushing
+space below $n\log\Phi$ in general doubling metrics is provably
+impossible, so optimization effort belongs in the Euclidean regime
+where the extra $\log\Phi$ genuinely vanishes.
+
+\section{Advanced usage and further reading}
+\label{sec:cor-advanced}
+
+The four exemplars share one pattern: a coreset or sketch whose size is
+governed by complexity parameters ($k, z$; $\kappa^*$; rank $r$;
+doubling dimension and $\Phi$) rather than by the data size. Two
+further corpus papers use the same machinery in harder combinations;
+each is sketched in one paragraph.
+
+\paragraph{Spanners as distance-preserving proxies on terrains
+\citep{sigmod26-052}.}
+The constrained shortest path problem CPTS asks for a shortest path on
+a terrain surface that visits a set of points of interest, and is
+NP-hard by reduction from Euclidean TSP (Theorem 3.3 of the paper).
+The proxy is a \emph{spanner}: a sparse graph $G$ over the terminal
+points with $d_g(u,v) \le d_G(u,v) \le (1+\varepsilon)\,d_g(u,v)$ for
+all pairs, where $d_g$ is the geodesic distance --- exactly the coreset
+contract of Definition~\ref{def:cor-coreset} with query family
+$\mathcal{F} = \{\text{pairwise distances}\}$, satisfied for
+\emph{every query at once} by a deterministic construction. The spanner
+lemmas are proved by contradiction and induction on an iterative
+geometric procedure (with triangle-inequality charging of the
+per-iteration weights), and the final route is assembled on $G$ by
+Kruskal's MST plus a pre-order traversal, whose edge-weight accounting
+yields a factor-$2$ path over the spanner --- solve on the proxy, lift
+back with a certificate, the signature move of this chapter in a
+deterministic register.
+
+\paragraph{Sketches inside a privacy budget \citep{sigmod26-127}.}
+HeteroFedSyn synthesizes tabular data under differential privacy across
+heterogeneous participants. Its privacy accounting is zCDP composition
+(mechanisms with parameters $\rho_i$ compose to $\rho = \sum_i
+\rho_i$, Definition of the paper) plus post-processing, which turns
+budget allocation across the $O(d^2)$ two-way marginals into an
+optimization problem; and its compression is this chapter's: a random
+projection squeezes the two-way marginal vectors before the Gaussian
+noisy release, so the noise (calibrated to the projected sensitivity)
+covers fewer coordinates. An exact expectation calculation strips the
+projection and noise bias, yielding an unbiased estimator of the
+pairwise dependency measure $\mathrm{InDif}^2$ (Theorem of the paper),
+and a greedy selection spends the budget where dependency error
+dominates noise error. The RNLA lesson: inside a privacy pipeline the
+sketch is not an optimization but a \emph{variance} device --- fewer
+released coordinates means less noise per coordinate at fixed $\rho$.
+
+\subsection{Further reading}
+
+\begin{itemize}
+\item Coresets: the unified sensitivity framework of Feldman and
+  Langberg \citep{coresets-rnla-bg10}; the $k$-means/$k$-median
+  construction of Har-Peled and Mazumdar \citep{coresets-rnla-bg9};
+  the geometric survey of Agarwal, Har-Peled, and Varadarajan
+  \citep{coresets-rnla-bg11}.
+\item Random projections: the original Johnson--Lindenstrauss lemma
+  \citep{coresets-rnla-bg1} and the database-friendly $\pm1$ variant
+  of Achlioptas \citep{coresets-rnla-bg2}.
+\item Sketching for linear algebra: Sarl\'os's projection-based
+  regression \citep{coresets-rnla-bg4}, input-sparsity subspace
+  embeddings of Clarkson and Woodruff \citep{coresets-rnla-bg5},
+  leverage-score sampling \citep{coresets-rnla-bg8}, and Woodruff's
+  monograph \citep{coresets-rnla-bg6}.
+\item The randomized-NLA survey of Mahoney
+  \citep{coresets-rnla-bg7} and the randomized matrix-decomposition
+  treatment of Halko, Martinsson, and Tropp
+  \citep{coresets-rnla-bg14} cover the iterative-refinement mode of
+  Section~\ref{sec:cor-projection-ladder}.
+\item Mergeable summaries: AMS frequency-moment sketches
+  \citep{coresets-rnla-bg13}, CountSketch
+  \citep{coresets-rnla-bg3}, and Frequent Directions for matrix
+  sketches \citep{coresets-rnla-bg12}.
+\end{itemize}
+
+\begin{recap}
+\item \textbf{What the tool is.} A small randomized proxy --- a
+  weighted row sample (coreset) or a random coordinate mixture
+  (sketch) --- that answers every query in a family within
+  $(1\pm\varepsilon)$ with probability $1-\delta$, built in
+  near-linear time and sized by complexity parameters, not data size.
+\item \textbf{Which track when.} Geometric or combinatorial cost
+  queries: sensitivity sampling (Theorem~\ref{thm:cor-sens}) ---
+  uniform sampling fails on skew
+  (Proposition~\ref{prop:cor-uniform}). Linear-algebra queries: JL for
+  finitely many directions (Theorem~\ref{thm:cor-jl}), subspace
+  embeddings for a continuum of candidates
+  (Theorem~\ref{thm:cor-embed}); solve on the sketch for constant
+  factors (Corollary~\ref{cor:cor-sas}), refine iteratively for high
+  accuracy. Distributed or streaming: insist on mergeability
+  (Lemma~\ref{lem:cor-merge}; linearity for sketches).
+\item \textbf{Why it works.} Per-query failure is pushed below
+  $\delta/(\text{queries})$ --- Hoeffding on the weighted sample, or
+  the chi-square tail on the projection --- and one union bound (over
+  the query family, an $\varepsilon$-net, or all candidate portfolios)
+  certifies every query simultaneously.
+\item \textbf{What the corpus showed.} Set-outlier clustering
+  (Section~\ref{sec:cor-soc}): LP-guided instance shrinkage to
+  $O(k^2z)$ points and a $k + (1+\varepsilon)^2 z$-result coreset of
+  the join output, with randomized repetition over samples. Robust
+  query optimization (Section~\ref{sec:cor-qo}): Hoeffding-plus-union
+  sizing of plan portfolios, with global-to-local risk transfer as the
+  substitution property. Multi-relational clustering
+  (Section~\ref{sec:cor-mrg}): CountSketch estimates the objective
+  norms so the dense affinity is never formed. Proximity graphs
+  (Section~\ref{sec:cor-pg}): covering-net hierarchies (metric
+  coresets) with a log-drop lemma bounding greedy query paths, plus
+  $\Omega(n\log\Phi)$ optimality.
+\item \textbf{Advanced usage.} Deterministic distance proxies
+  (spanners) satisfy the coreset contract without randomness; sketches
+  inside privacy pipelines trade coordinates against noise at fixed
+  budget (Section~\ref{sec:cor-advanced}). Deferred proofs live in the
+  Appendix (Section~\ref{sec:cor-appendix}).
+\end{recap}
+
+\section{Appendix}
+\label{sec:cor-appendix}
+
+Proofs omitted from the main text are collected here.
+
+\subsubsection*{Proof of Theorem~\ref{thm:cor-sens} (sensitivity sampling)}
+{\itshape Statement (recalled).} Draw $m$ i.i.d.\ points, each $x$ with
+probability $s(x)/S$, weight $w_i = \tfrac{S}{m}\,\tfrac{1}{s(x_i)}$,
+with $m = \Theta\bigl(\tfrac{S^2}{\varepsilon^2}(\ln|\mathcal{F}| +
+\ln\tfrac1\delta)\bigr)$; then w.h.p.\ every $f \in \mathcal{F}$ has
+$|\sum_i w_i f(x_i) - f(P)| \le \varepsilon f(P)$.\eop
+
+\begin{proof}
+Fix $f$ and let $Z_i = w_i f(x_i)$. Each draw picks $x$ with
+probability $p_x = s(x)/S$, so $\mathbb{E}[Z_i] = \sum_x
+p_x\,\tfrac{S}{m s(x)} f(x) = \tfrac{1}{m}\sum_x f(x) =
+\tfrac{f(P)}{m}$ --- the estimator is unbiased. For the range, $f(x)
+\le s(x) f(P)$ (Definition~\ref{def:cor-sens}) gives $0 \le Z_i \le
+\tfrac{S}{m}\,f(P)$, so the $Z_i$ are i.i.d.\ in an interval of length
+$b = \tfrac{S}{m}f(P)$. Hoeffding (Theorem~\ref{thm:conc-hoeffding})
+yields
+\[
+\Pr\Bigl[\Bigl|\sum_i Z_i - f(P)\Bigr| \ge \varepsilon f(P)\Bigr]
+\;\le\; 2\exp\Bigl(-\,\frac{2m^2\varepsilon^2 f(P)^2}{m b^2}\Bigr)
+\;=\; 2\exp\bigl(-2m\varepsilon^2/S^2\bigr).
+\]
+With $m \ge \tfrac{S^2}{2\varepsilon^2}\bigl(\ln|\mathcal{F}| +
+\ln\tfrac{2}{\delta}\bigr)$ this is at most $\delta/|\mathcal{F}|$ per
+query, and a union bound over all $f \in \mathcal{F}$ completes the
+proof.
+\end{proof}
+
+\subsubsection*{Proof of Theorem~\ref{thm:cor-jl} (Johnson--Lindenstrauss)}
+{\itshape Statement (recalled).} A scaled Gaussian map $\Pi \in
+\mathbb{R}^{m\times d}$ with $m = O(\varepsilon^{-2}(\ln n +
+\ln\tfrac1\delta))$ preserves all $\binom{n}{2}$ pairwise squared
+distances of $P$ to $(1\pm\varepsilon)$ with probability $\ge
+1-\delta$.\eop
+
+\begin{proof}
+Let $\Pi = \tfrac{1}{\sqrt{m}}G$ with $G_{ij} \sim N(0,1)$ i.i.d.\ For
+a fixed unit vector $u$, $Y_u = \|\Pi u\|_2^2 = \tfrac1m\sum_{j=1}^m
+g_j^2$ with $g_j \sim N(0,1)$ i.i.d. The Chernoff method
+(Lemma~\ref{lem:conc-chernoff-method}) applied to
+$\mathbb{E}\,e^{\lambda g^2} = (1-2\lambda)^{-1/2}$, optimized over
+$\lambda$, gives the chi-square tail: for $\varepsilon \in (0,1)$,
+\[
+\Pr\bigl[\,|Y_u - 1| > \varepsilon\,\bigr] \;\le\;
+2\,e^{-m\varepsilon^2/12}.
+\]
+Apply this to each difference direction $u_{ij} = (p_i -
+p_j)/\|p_i-p_j\|_2$: since $\Pi$ is linear, $\|\Pi p_i - \Pi
+p_j\|_2^2 = \|p_i - p_j\|_2^2\,Y_{u_{ij}}$, so
+$(1\pm\varepsilon)$-preservation of $Y_{u_{ij}}$ is preservation of
+the pair. Union-bounding over the $\binom{n}{2} \le n^2/2$ pairs, the
+total failure probability is at most $n^2 e^{-m\varepsilon^2/12} \le
+\delta$ for the stated $m$.
+\end{proof}
+
+\subsubsection*{Proof of Corollary~\ref{cor:cor-sas} (sketch-and-solve)}
+{\itshape Statement (recalled).} If $R$ is a $(1\pm\varepsilon)$
+subspace embedding for the column space of $[A\;b]$ and $\hat{x}$
+minimizes $\|RAx - Rb\|_2$, then $\|A\hat{x}-b\|_2 \le
+\tfrac{1+\varepsilon}{1-\varepsilon}\min_x \|Ax - b\|_2$.\eop
+
+\begin{proof}
+Let $x^{\star}$ minimize $\|Ax - b\|_2$. The embedding hypothesis
+holds for \emph{every} $x$: since $Ax - b$ lies in the column space of
+$[A\;b]$,
+\[
+(1-\varepsilon)\,\|A\hat{x}-b\|_2 \;\le\; \|RA\hat{x}-Rb\|_2 \;\le\;
+\|RAx^{\star}-Rb\|_2 \;\le\; (1+\varepsilon)\|Ax^{\star}-b\|_2,
+\]
+where the middle inequality uses that $\hat{x}$ minimizes the sketched
+objective. Dividing by $1-\varepsilon$ gives the claim.
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:cor-qo-hoeffding} (coreset sizing)}
+{\itshape Statement (recalled).} The empirical failure frequency
+$\hat{p}_r(\varepsilon',F)$ over $\mathfrak{n}_r =
+\tfrac{c_1k_r}{\delta^2}\ln N\ln\tfrac1\delta$ i.i.d.\ queries
+approximates $p(\varepsilon',F)$ within $\delta/4$, simultaneously for
+all $|F| \le b_r = c_3k_r\ln\tfrac1\delta$, with probability
+$1 - N^{-O(1)}$.\eop
+
+\begin{proof}
+For fixed $F$, $\hat{p}_r(\varepsilon',F)$ is a mean of
+$\mathfrak{n}_r$ i.i.d.\ $[0,1]$ indicators with expectation
+$p(\varepsilon',F)$, so Hoeffding gives
+\[
+\Pr\bigl[\,|\hat{p}_r(\varepsilon',F) - p(\varepsilon',F)| >
+\delta/4\,\bigr] \;\le\; 2\exp\bigl(-2\mathfrak{n}_r(\delta/4)^2\bigr)
+\;=\; 2\exp\bigl(-\delta^2\mathfrak{n}_r/8\bigr).
+\]
+The number of subsets of $\Pi$ of size at most $b_r$ is at most
+$(b_r+1)N^{b_r}$, so the probability that \emph{any} $F$ violates the
+accuracy is at most $2(b_r+1)N^{b_r}\exp(-\delta^2\mathfrak{n}_r/8)$.
+Substituting $\mathfrak{n}_r = \tfrac{c_1k_r}{\delta^2}\ln
+N\ln\tfrac1\delta$ and $b_r = c_3k_r\ln\tfrac1\delta$, the exponent
+$\delta^2\mathfrak{n}_r/8 - b_r\ln N$ is $\Theta(c_1 k_r \ln N
+\ln\tfrac1\delta) - \Theta(c_3 k_r \ln\tfrac1\delta\ln N)$, which is
+$\Theta(c_1 k_r \ln N \ln\tfrac1\delta)$ once $c_1$ dominates $c_3$
+--- so the bound is $N^{-O(1)}$ as claimed (proof transcribed from
+Lemma 3.1 of \citep{sigmod26-053}).
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:cor-qo-transfer} (risk transfer)}
+{\itshape Statement (recalled).} For $F \subseteq \Pi$, $\pi \in F$,
+query $Q$: $\mathrm{Risk}(\pi,Q;\tau^2) \le
+\mathrm{L\text{-}Risk}_F(\pi,Q;\tau) +
+\min_{\pi'\in F}\mathrm{Risk}(\pi',Q;\tau)$, hence
+$\min_{\pi\in F}\mathrm{Risk}(\pi,Q;\tau^2) \le
+2\min_{\pi\in F}\mathrm{Risk}(\pi,Q;\tau)$.\eop
+
+\begin{proof}
+Fix $s$ and any $\pi' \in F$. Since the best cost in $F$ is at least
+the best cost overall,
+\[
+\mathrm{Pnl}(\pi,s) \;=\;
+\frac{\mathrm{Cost}(\pi,s)}{\mathrm{Cost}(\pi',s)}\cdot
+\frac{\mathrm{Cost}(\pi',s)}{\mathrm{Cost}^{\star}(s)} \;\le\;
+\mathrm{L\text{-}Pnl}_F(\pi,s)\cdot \mathrm{Pnl}(\pi',s).
+\]
+Define $E_1 = \{s : \mathrm{Pnl}(\pi,s) > \tau^2\}$, $E_2 = \{s :
+\mathrm{L\text{-}Pnl}_F(\pi,s) > \tau\}$, $E_3 = \{s :
+\mathrm{Pnl}(\pi',s) > \tau\}$. If $s \in E_1$ then the product bound
+forces $s \in E_2 \cup E_3$ (both factors $\le \tau$ would give
+$\mathrm{Pnl} \le \tau^2$). Hence, for $s \sim U_Q$,
+\[
+\mathrm{Risk}(\pi,Q;\tau^2) = \Pr[E_1] \le \Pr[E_2] + \Pr[E_3] =
+\mathrm{L\text{-}Risk}_F(\pi,Q;\tau) + \mathrm{Risk}(\pi',Q;\tau),
+\]
+and minimizing the last term over $\pi' \in F$ gives the first claim.
+Applying it to a minimizer $\pi^{\star}_F$ of the $\tau$-risk over
+$F$, and using that the local penalty never exceeds the global one
+($\mathrm{L\text{-}Risk}_F(\pi^{\star}_F,Q;\tau) \le
+\mathrm{Risk}(\pi^{\star}_F,Q;\tau)$), yields the factor-$2$ form
+(proof transcribed from Lemma 4.2 of \citep{sigmod26-053}).
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:cor-soc-charge} (weight charging)}
+{\itshape Statement (recalled).} If the feasibility LP for radius $r$
+is satisfiable, greedy rounding returns $C, \mathcal{H}'$ with cost
+$\le 2r$, $|\mathcal{H}'| \le 2fz$ and $|C| \le 2k$.\eop
+
+\begin{proof}
+\emph{Cost:} the algorithm stops only when no active points remain,
+and each selected center deactivates every active point within $2r$;
+hence all surviving points are within $2r$ of $C$. \emph{Outliers:} if
+more than $2fz$ sets were chosen, the corresponding LP variables would
+each exceed $\tfrac{1}{2f}$ and sum beyond $z$ --- contradicting the
+LP constraint. \emph{Centers:} charge to each selected center $p_i$
+the LP mass $w_{p_i} = \sum_{p \in B(p_i,r)} x^{\star}_p$ of the
+$r$-ball around it. For a point $p_i$ not covered by chosen outlier
+sets, the LP forces $\sum_{p \in B(p_i,r)} x^{\star}_p \ge
+\tfrac12$ (its outlier variables sum to at most $\tfrac12$, so the
+covering constraint must be met by center mass), so $w_{p_i} \ge
+\tfrac12$. The balls of selected centers are pairwise disjoint (each
+selection deactivates everything within $2r$, so two centers are more
+than $2r$ apart), the charges do not overlap, and $\sum_i w_{p_i} \le
+\sum_p x^{\star}_p \le k$; with each charge at least $\tfrac12$,
+$|C| \le 2k$. (Under the $\varepsilon$-approximate range queries the
+relational algorithm uses, the charge degrades to $\tfrac12 -
+\varepsilon$ and the bound to $2k/(1-2\varepsilon)$.) Proof
+transcribed from the rounding lemma of \citep{sigmod26-289}.
+\end{proof}
+
+\subsubsection*{Proof of Lemma~\ref{lem:cor-pg-net} (net out-neighbors)}
+{\itshape Statement (recalled).} Every $p \in P$ keeps, at each scale
+$i$, an out-neighbor $y \in Y_i$ with $D(p,y) \le 2^i$; per-point
+out-degree is $O(\tfrac{1}{\varepsilon^\lambda}\log\Phi)$.\eop
+
+\begin{proof}
+Fix $p$ and scale $i$. By the covering property of the net $Y_i$
+there is $y \in Y_i$ with $D(p,y) \le 2^i$, and the construction
+links $p$ to such $y$ --- routing to $y$ makes progress at scale $i$
+(the covering step the paper's construction proof verifies). There
+are $h = O(\log\Phi)$ scales from the minimum inter-point distance to
+the diameter, and the doubling property bounds the number of relevant
+net points in $p$'s distance window at each scale by $O(2^\lambda)$,
+taken over $(1+\varepsilon)$-shells for the accuracy parameter,
+giving the stated per-point degree (argument follows the construction
+proof of \citep{sigmod26-349}).
+\end{proof}
+
+\bibliographystyle{plainnat}
+\bibliography{chapters/coresets-rnla-all}
