@@ -218,6 +218,20 @@ statement; PODS exemplars marked) + `chapters/<tool>.bib` for classic background
 `main.tex` + `ch0.tex` (scope, stats, figures, chapter index), cats bibs, runs
 pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
 
+### Book runbook (v1.0, 2026-09-15)
+- Build: `cd lecture-notes && ./build.sh main` — loops pdflatex/bibtex until the PDF
+  is byte-stable (the ToC needs the extra pass); prints "N pp, X overfulls".
+  Steady state: 275 pp, 6 known overfull survivors (all ≤4.14pt). NEVER
+  `git add buildstamp.tex` (gitignored per-run stamp).
+- Index back matter: `python3 scripts/11_make_index.py` (any CWD) regenerates
+  `lecture-notes/chapters/index.tex` from main.tex's include order. Re-run after
+  adding/renaming chapters or changing theorem labels, then rebuild.
+- Overfull check: plain grep can miss hits (locale) — use
+  `LC_ALL=C grep -a -n 'Overfull' main.log`.
+- Smoke tests: ToC orphan scan `pdftotext -f 3 -l 9 -layout main.pdf - |
+  grep -nE '^[0-9]+ *$|^\*[0-9]+ *$'` (empty = clean); page renders via
+  `pdftoppm -r 110 -png -f P -l P main.pdf /tmp/pg` + Read for visual checks.
+
 ## Status log
 - 2026-09-13 scaffolded; env probed (dblp ✗, ACM pdf ✗, OpenAlex ✓, arXiv ✓, pdftotext ✓).
 - 2026-09-13 paper list fetched: **257 papers** (PACMMOD Vol 4) -> data/sigmod26/papers.jsonl.
@@ -276,6 +290,18 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       Fixes found by early smoke tests: estimation reachbox needed env form; corpus
       bib titles needed unicode→LaTeX map (ℓ→$\ell$ etc.); newunicodechar safety net
       added to main.tex.
+- 2026-09-14/15 BOOK v1.0 COMPLETE. Grew to ch0 + 13 tool chapters (+ coresets-rnla,
+      information-theory, communication-complexity) per the CHAPTER-RULES.md pilot
+      spec (sections from x.0, 3-box palette, folio-first headers, per-chapter
+      bibliographies, recap-before-appendix); rounds 6–8 user-feedback fixes are
+      documented as comments in main.tex (ToC right-aligned page numbers, parity-free
+      ToC entries, ragged-right wrapped headings, widefigure/widetable captions).
+      2026-09-15 polish queue (user "Go ahead!"): overfull pass 57→6 survivors
+      (2f054f4); stale tool-count refresh to the 228-tagged figures (7a8bd2b);
+      script-generated index back matter — 11_make_index.py → chapters/index.tex,
+      \ref-based (no makeindex): tool map + 219 named results + 65 exemplars,
+      two-round vision-verified (9ce4600); \bookversion{1.0} "First complete
+      edition" (fafeb8e). Final state: 275 pp, Index pp. 265–275.
 
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens
