@@ -87,24 +87,38 @@
 % sits one quad after the title instead of at the right edge (user round-6
 % feedback). Override chapter/section with titletoc's dotted leader +
 % \contentspage (titletoc stretches the leader, so the number lands flush
-% right). Fonts and the fullwidth wrapper are kept identical to tufte's --
-% the wrapper's adjustwidth* parity is why build.sh compiles until
-% byte-stable. Chapter lines: leader + number at \normalsize (the LARGE
-% title survives from the `above' arg).
+% right at \contentsmargin = the text-block right edge).
+% ---- round-8 fix: NO fullwidth wrapper in ToC entries ----------------------
+% tufte's originals wrap every entry in fullwidth (adjustwidth* under the
+% `symmetric' option: overhang flips to the LEFT on even pages). Two
+% problems once the ToC grew to 4 pages: (i) the odd/even test runs while
+% TeX still counts the PREVIOUS page when an entry lands exactly at the top
+% of a fresh even page, so that entry gets the recto overhang -- observed:
+% "2.1 Trimmed statistics" (p.4) and "9.2 Matrix sketches" (p.6) shifted
+% exactly +167.4pt (one overhang) right of every neighbor (user round-8
+% report); (ii) entries alternate left edges between ToC pages, which reads
+% as misalignment in continuous-scroll PDF viewing. Dropping fullwidth makes
+% every ToC line live in the plain text measure -- parity-free, immune to
+% content shifts. [LEFT] argument is the hanging indent: continuation lines
+% of a wrapped title align under the title text, not at the raw left edge.
 \titlecontents{chapter}%
-  [0em] % distance from left margin
-  {\vspace{1.5\baselineskip}\begin{fullwidth}\LARGE\rmfamily\itshape} % above
-  {\hspace*{0em}\contentslabel{2em}} % before w/label (label = ``2'')
-  {\hspace*{0em}} % before w/o label
-  {\rmfamily\upshape\normalsize\titlerule*[0.75em]{.}\contentspage} % filler + page
-  [\end{fullwidth}] % after
-\titlecontents{section}%
-  [0em] % distance from left margin
-  {\vspace{0\baselineskip}\begin{fullwidth}\Large\rmfamily\itshape} % above
-  {\hspace*{2em}\contentslabel{2em}} % before w/label (label = ``2.6'')
+  [2em] % hanging indent: wrapped chapter titles align under the title
+  {\vspace{1.5\baselineskip}\LARGE\rmfamily\itshape} % above
+  {\contentslabel{2em}} % before w/label (label = ``2'')
   {\hspace*{2em}} % before w/o label
-  {\rmfamily\upshape\normalsize\titlerule*[0.75em]{.}\contentspage} % filler + page
-  [\end{fullwidth}] % after
+  {\rmfamily\upshape\normalsize\titlerule*[0.75em]{.}\contentspage} % filler+page
+\titlecontents{section}%
+  [4em] % hanging indent: wrapped titles align under the title text
+  {\vspace{0\baselineskip}\large\rmfamily\itshape} % above
+  % (\large, not \Large: at \Large a title that fills its line exactly --
+  % e.g. 3.1 "Resistance-distance labels on small-treewidth graphs" --
+  % pushes the leader+page-number onto their own line at the hanging
+  % indent, out of the number column. Titles that STILL fill a \large
+  % line exactly (1.4, 9.2, 11.3 so far) get a short optional arg:
+  % \section[short]{long}. Maintenance rule for every future title edit.)
+  {\contentslabel{4em}} % before w/label (label = ``10.4'' fits 4em)
+  {\hspace*{4em}} % before w/o label
+  {\rmfamily\upshape\normalsize\titlerule*[0.75em]{.}\contentspage} % filler+page
 
 % ---- round-7 fix: wrapped headings must be RAGGED-RIGHT --------------------
 % titlesec (tufte's engine) sets [hang]/[display]-shape titles as JUSTIFIED
