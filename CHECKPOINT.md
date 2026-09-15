@@ -1,61 +1,56 @@
-# CHECKPOINT — 2026-09-14 15:45 (wave 1 = 3/4 done; QUOTA TRIPPED, idling)
+# CHECKPOINT — 2026-09-15 (typography fixes done; wave 2a in flight)
 
-Weekly 40% ≥ soft 39.9% (3d bound) at 15:34 → policy enforced: estimation
-agent killed (mid-write, file UNTOUCHED — still pre-pilot 153 lines, builds
-fine), no further subagent launches. Next relief: day 4 completes
-~15:05 9/15 → bound 54.14% (headroom ~14pt).
+## TEMPORARY quota rule (user-granted, 9/15 ONLY)
+User authorized raising today's stop bar to **80% of the weekly quota**.
+`scripts/quota_check.py` is UNMODIFIED (still reports the normal day-bound;
+its STOP verdict is overridden in-session today only). Original governor
+applies on every other day without exception. Snapshot at wave launch:
+weekly 49%, 5h-window 1% → ~31pt headroom under the temporary bar.
+Cron 14:53 gate-check deleted (gate open).
 
-## Cost calibration (IMPORTANT for wave planning)
-Chapter-revision agents cost **~1–1.3pt each** (750–850-line rewrites, 27–37
-tool uses), NOT the 0.4–0.5pt of note batches. Wave 1 (4 agents + master)
-≈ 5pt total (35%→40% in 25 min). Plan around ~5pt/wave + 1pt master.
+## Typography fixes (user round-7 report) — DONE, vision-verified, committed
+- `849e3b3` \eop parfillskip leak: the ungrouped `\parfillskip=0pt` in \eop
+  leaked globally from Ch.1's first text-mode \eop → every later paragraph's
+  last line justified full-width, chapter titles stretched. Fixed by grouping
+  `{\parfillskip=0pt\finalhyphendemerits=0\par}`. Verified pp.33/35/69.
+- `3759316` wrapped headings justified: titlesec [hang]/[display] titles are
+  justified paragraphs → re-asserted tufte's \titleformat for
+  chapter/section/subsection with \raggedright in the before-body arg
+  (same rationale as the subsubsection re-arm). Verified p.69 §4.3.2.
+- Book builds clean: 123pp, 0 errors, 18 overfulls.
 
-## State
-- Committed this round: `82a2550` ToC right-align (vision-verified),
-  `22a74ae` frequency chapter order (reductions = Ch.1), `0613ec7` bib
-  seeding (all 12 chapters' `-all.bib` hold their planned exemplar corpus
-  entries verbatim from refs.bib — agents only add classic bg refs),
-  `9592cb1` reduction, `f16bdc0` induction, `1998330` adversarial-construction.
-- Wave 1 acceptance: 3/3 revised chapters PASS (opener/objectives/boxes/
-  recap/bib-tail/\citep-only/keys-resolve/PODS≤1; anatomy = \paragraph{
-  Problem./Guarantee./How …/What it buys.}). One build error found+fixed:
-  induction had a text-mode `\eopm` → `\eop` (amsmath \tag error).
-- Full book: `./build.sh main` → **123pp, 0 errors, 21 overfulls, 76
-  unresolved citations — ALL in unrevised chapters** (estimation 20,
-  dp-composition 18, online-decisions 12, spectral 11, exchange-greedy 10,
-  amortized 5). Revised chapters resolve 100%. 9 overfulls sit in the 3
-  new chapters (cosmetic; polish pass AFTER all waves, before ch0 refresh).
-- estimation-theory agent was killed mid-rewrite; its context is resumable
-  via SendMessage to its task (don't relaunch fresh — resume is cheaper).
-  If resuming fails: relaunch with the wave-1 prompt (exemplars 115(PODS),
-  231, 102, 373, 293, 377; note the current draft has an env-form reachbox
-  workaround that R3 replaces).
+## Wave 2a IN FLIGHT (4 agents, launched 9/15 after the two fix commits)
+estimation-theory Ch.4 (RELAUNCHED fresh — the killed wave-1 agent did not
+survive session compaction, SendMessage resume impossible): 115(PODS),231,
+102,373 full; 293,377 sketches. dp-composition Ch.6: 298,178(PODS),337,263
+full; 073,214 sketches. exchange-greedy Ch.7: 053(PODS),200,031,009 full;
+224,229 sketches. spectral-matrix Ch.8: 038(PODS),303,235,190 full; 101,265
+sketches. Agent protocol: read CHAPTER-RULES.md + concentration-ineq.tex
+reference + digest/<tool>.md (theory/<id>.md only if digests insufficient),
+full rewrite 750–850 lines, no build, reply ≤5 lines.
 
-## Resume (in order, after quota GO)
-1. `python3 scripts/quota_check.py` — GO when headroom > ~4pt (a full wave
-   + margin). Expected ~15:05 9/15.
-2. Resume/relaunch estimation-theory (Ch.4), THEN wave 2 (dp-composition
-   Ch.6: 298,178(PODS),337,263,073,214; exchange-greedy Ch.7:
-   053(PODS),200,031,009,224,229; spectral-matrix Ch.8:
-   038(PODS),303,235,190,101,265; amortized-potential Ch.9:
-   177(PODS),015,180,363,274,203) — same agent prompt template as wave 1.
-   If headroom < 9pt at wave-2 gate, split: 2 chapters now, 2 on day 5.
-3. Wave 3 (coresets-rnla Ch.10 NEW: 289,053(PODS),303,349,052,127;
-   information-theory Ch.11 NEW: 185(PODS),079,231,279,237;
-   communication-complexity Ch.12 NEW: 115(PODS),243(PODS),357,070 —
-   PODS cap 2; online-decisions Ch.13: 242,094,221,140 hand-picked).
-   New-chapter agents: replace stub file, add `<tool>.bib` bg refs;
-   `-all.bib` corpus entries already seeded.
-4. After each wave: acceptance greps → `./build.sh main` → commit per
-   chapter → fresh quota check.
-5. Post-rollout (LAST): overfull polish pass, ch0 refresh (reconcile
-   §0.3 trinity 52/39 vs table 50/38), Index part, `\bookversion{1.0}`,
-   update CLAUDE.md runbook + memory.
+## Queue after 2a (backfill as agents land; fresh quota check before EACH launch)
+1. amortized-potential Ch.9: 177(PODS),015,180,363 full; 274,203 sketches.
+2. Wave 3 (NEW chapters — replace stub files, ensure <tool>.bib bg refs):
+   coresets-rnla Ch.10: 289,053(PODS),303,349,052,127 — but 053/303 already
+   exemplars in exchange-greedy/spectral (R5 allows recurrence under own
+   lens; prefer non-reused alternates from plan.json if scores allow);
+   information-theory Ch.11: 185(PODS),079,231,279,237 (231 recurs from
+   estimation — same rule); communication-complexity Ch.12: 115(PODS),
+   243(PODS),357,070 — PODS cap 2 for this chapter only; online-decisions
+   Ch.13: 242,094,221,140 hand-picked.
+3. After each wave: acceptance greps (CHAPTER-RULES.md checklist) →
+   `./build.sh main` → per-chapter commits → quota check.
+4. Post-rollout (LAST): overfull polish pass, ch0 refresh (§0.3 trinity
+   52/39 vs table 50/38), Index part, `\bookversion{1.0}`, CLAUDE.md runbook
+   + memory updates.
 
 ## Standing rules (unchanged)
-Byte-stable build (≥4 pdflatex runs after aux wipe; `./build.sh` loops
-until PDF md5 identical twice). Vision loop: pdftoppm → Read →
-analyze_image (per-URL signatures; prefer pdftotext -bbox for geometry).
-Sections from x.0 via per-chapter `\setcounter{section}{-1}`. Exactly 3
-box semantics; no algorithmblock. Master reads only CLAUDE.md/index/
-report + ≤120-line spot checks; theory/ is subagent-only.
+Cost calibration ~1–1.3pt/chapter agent; wave ≈ 5pt + 1pt master. Byte-stable
+build (≥4 pdflatex runs after aux wipe; build.sh loops to identical md5
+twice). Vision loop: pdftoppm -r 110 → Read → analyze_image (per-URL
+signatures; 400 = stale → re-Read). Sections from x.0 via per-chapter
+`\setcounter{section}{-1}`. Exactly 3 box semantics. Master reads only
+CLAUDE.md/index/report + ≤120-line spot checks; theory/ + digests are
+subagent-only. Old chapters' [?] citation warnings are expected until their
+rewrite lands.
