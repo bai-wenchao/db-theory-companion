@@ -228,7 +228,7 @@ composes the same loss in moments and converts back
   % annotation anchored BELOW the box band: clears both boxes vertically, so
   % its width can never collide with a box border (was: node[below] on the
   % m1--m2 arrow, whose text ran into the M2 border when the gap was short)
-  \node[lab, align=center, anchor=north] at (1.6,-0.8)
+  \node[lab, align=center, anchor=north] at (1.4,-0.2)
     {adaptive: sees $y_1$\\sequential: add};
   \draw[arr] (m2) -- (5.2,0) -- (5.2,0.75) -- (p1);
   \draw[arr] (5.2,0) -- (5.2,-0.75) -- (p2);
@@ -349,7 +349,7 @@ the exponential mechanism is itself the paper's workhorse lemma:
 \begin{lemma}[Convex combinations of scores, Lemma of the paper]\label{lem:dp-298-convex}
 For $i = 1,\dots,m$ let $\alpha_i \ge 0$ be scalars and $f_i$ functions of sensitivity
 $\Delta_i$. Then $f = \sum_{i=1}^m \alpha_i f_i$ has sensitivity at most
-$\sum_{i=1}^m \alpha_i \Delta_i$.
+$\sum_{i=1}^m \alpha_i \Delta_i$. \eop
 \end{lemma}
 
 \begin{proof}
@@ -358,7 +358,7 @@ For neighboring $D \sim D'$, the triangle inequality gives
 \bigl|f(D) - f(D')\bigr|
 \;&=\;\Bigl|\textstyle\sum_i \alpha_i f_i(D) - \sum_i \alpha_i f_i(D')\Bigr|\\
 \;&\le\; \sum_i \alpha_i \bigl|f_i(D) - f_i(D')\bigr|
-\;\le\; \sum_i \alpha_i \Delta_i. \eopm
+\;\le\; \sum_i \alpha_i \Delta_i.
 \end{align*}
 \end{proof}
 
