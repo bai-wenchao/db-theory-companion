@@ -106,6 +106,34 @@
   {\rmfamily\upshape\normalsize\titlerule*[0.75em]{.}\contentspage} % filler + page
   [\end{fullwidth}] % after
 
+% ---- round-7 fix: wrapped headings must be RAGGED-RIGHT --------------------
+% titlesec (tufte's engine) sets [hang]/[display]-shape titles as JUSTIFIED
+% paragraphs: a section title long enough to wrap stretches its first line
+% across the measure (user round-7 feedback, e.g. "4.3.2 Unbiased
+% Laplace-noised walk counting ..." on p.69). Re-assert tufte's exact formats
+% with \raggedright in the before-the-body argument, which the paragrapher
+% reads when it breaks the title -- same rationale as the \subsubsection
+% re-arm below. Chapter keeps its fullwidth wrapper verbatim.
+\titleformat{\chapter}%
+  [display]% shape
+  {\relax\ifthenelse{\NOT\boolean{@tufte@symmetric}}{\begin{fullwidth}}{}}
+  {\itshape\huge\thechapter}% label
+  {0pt}% separation
+  {\huge\rmfamily\itshape\raggedright}% before the title body
+  [\ifthenelse{\NOT\boolean{@tufte@symmetric}}{\end{fullwidth}}{}]
+\titleformat{\section}%
+  [hang]% shape
+  {\normalfont\Large\itshape}%
+  {\thesection}%
+  {1em}%
+  {\raggedright}%
+\titleformat{\subsection}%
+  [hang]% shape
+  {\normalfont\large\itshape}%
+  {\thesubsection}%
+  {1em}%
+  {\raggedright}%
+
 % tufte-book deliberately leaves \subsubsection UNDEFINED (class error if
 % used). Re-arm it as an unnumbered, displayed, italic heading --- the
 % per-proof entries of the chapter appendices ("Proof of Theorem 1.4") use it.
