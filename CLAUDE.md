@@ -221,7 +221,7 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
 ### Book runbook (v1.0, 2026-09-15)
 - Build: `cd lecture-notes && ./build.sh main` — loops pdflatex/bibtex until the PDF
   is byte-stable (the ToC needs the extra pass); prints "N pp, X overfulls".
-  Steady state: 272 pp, 6 known overfull survivors (all ≤4.14pt). NEVER
+  Steady state: 273 pp, 6 known overfull survivors (all ≤4.14pt). NEVER
   `git add buildstamp.tex` (gitignored per-run stamp).
 - Index back matter: `python3 scripts/11_make_index.py` (any CWD) regenerates
   `lecture-notes/chapters/index.tex` from main.tex's include order + the
@@ -316,6 +316,16 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       exemplar papers, PODS'26 flagged; 119 corpus-derived results attributed,
       223 total in the alphabetical list) — 2f87db0. Final state: 272 pp,
       Index pp. 263–272, same 6 overfull survivors.
+- 2026-09-15 index layout revision (user report: two-column index wasted the
+      wide margin, comma-crammed entries, unwanted PODS highlighting): both
+      index sections now tufte-fullwidth (text+margin, parity-correct), one
+      result per compactitem line, domain headers carry only the exemplar
+      count (PODS parsing kept for console stats) — a60121c. Final state:
+      273 pp, Index pp. 263–273, same 6 overfull survivors. Build hygiene
+      note: a manual non-build.sh build reported 270 pp from under-converged
+      aux/toc (pre-index content was at 260 pp vs canonical 262) — the
+      canonical page count ALWAYS comes from `./build.sh main` (byte-stable
+      loop), never a bare pdflatex run.
 
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens
