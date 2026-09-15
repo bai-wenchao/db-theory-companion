@@ -7,109 +7,241 @@
 Every entry is a hyperlink to the statement's home chapter. \emph{By paper
 domain} indexes the book from the corpus side: named statements transcribed
 from exemplar papers are grouped under the research area of the source paper,
-so each entry shows which tools (chapters) that area's papers exercise and
-what they prove; PODS'26 exemplars are flagged in the header. Classical
-background statements carry no corpus source and appear only in the
-alphabetical list below. Full references appear in each chapter's
-bibliography.
+one entry per line, so each area shows which tools (chapters) its papers
+exercise and what they prove. Classical background statements carry no
+corpus source and appear only in the alphabetical list below. Full
+references appear in each chapter's bibliography.
 
+% fullwidth = text block + margin (tufte adjustwidth*, parity-correct), one
+% column: two narrow multicols wasted the page's wide margin (user report)
 \section*{By paper domain}
-% columns start on a fresh page: keeps the section heading with its list
-\begin{multicols}{2}
-\RaggedRight
+\begin{fullwidth}
 \begin{itemize}
-  \item \textbf{Graph data and queries} (12 exemplars, 1 of them PODS'26).
-    Ch.~\ref{ch:ind}: Labelling scheme (\mbox{Thm.~\ref{thm:ind-resistance}}), Elimination-state invariant (\mbox{Lem.~\ref{lem:ind-elim-state}})%
-    ; Ch.~\ref{ch:est}: Pivoted reformulation of BD (\mbox{Thm.~\ref{thm:est-bd-reform}}), Pushback invariant (\mbox{Lem.~\ref{lem:est-bd-invariant}}), Tree-sampling accuracy (\mbox{Thm.~\ref{thm:est-bd-fasttree}}), Spanning-tree expression of the inverse (\mbox{Lem.~\ref{lem:est-bd-kirchhoff}}), Approximation guarantee of CBFM (\mbox{Thm.~\ref{thm:est-tcim-main}}), Unbiased coverage estimation (\mbox{Lem.~\ref{lem:est-tcim-unbiased}}), Coverage concentration (\mbox{Lem.~\ref{lem:est-tcim-conc}})%
-    ; Ch.~\ref{ch:adv}: Worst-case optimal enumeration (\mbox{Thm.~\ref{thm:adv-defclique}}), Witness count for defective cliques (\mbox{Lem.~\ref{lem:adv-mmcount}}), Insertion--deletion asymmetry (\mbox{Thm.~\ref{thm:adv-bicore}}), The two-update trap (\mbox{Lem.~\ref{lem:adv-twowupdates}}), Query lower bound for SSPPR-R (\mbox{Thm.~\ref{thm:adv-pprlb}}), Switched-split indistinguishability (\mbox{Lem.~\ref{lem:adv-switch}})%
-    ; Ch.~\ref{ch:dp}: N2E accuracy and privacy (\mbox{Thm.~\ref{thm:dp-337-main}}), SVT over sensitivity-monotonic queries (\mbox{Lem.~\ref{lem:dp-337-svt}}), LP rounding (\mbox{Lem.~\ref{lem:dp-337-lp}}), Clipping distance (\mbox{Lem.~\ref{lem:dp-337-clip}})%
-    ; Ch.~\ref{ch:exc}: AF-BTAS index (\mbox{Thm.~\ref{thm:exc-200-index}}), Modular symmetry is an automorphism (\mbox{Lem.~\ref{lem:exc-009-autom}}), Symmetry breaking is safe (\mbox{Thm.~\ref{thm:exc-009-safe}})%
-    ; Ch.~\ref{ch:spec}: Doubly stochastic affinity gives $k$-means (\mbox{Thm.~\ref{thm:spec-mrg-kmeans}}), Truncation error (\mbox{Lem.~\ref{lem:spec-mrg-trunc}}), Vectorized solution (\mbox{Thm.~\ref{thm:spec-pjsim-closed}}), Spectrum of the Kronecker sum (\mbox{Lem.~\ref{lem:spec-pjsim-spectrum}})%
-    ; Ch.~\ref{ch:cor}: Sketched objective (\mbox{Cor.~\ref{cor:cor-mrg-sketch}})%
-    ; Ch.~\ref{ch:onl}: $\beta$-robustness (\mbox{Def.~\ref{def:onl-oracle-robust}}), Robustness barrier (\mbox{Thm.~\ref{thm:onl-oracle-barrier}}), Recall under oracle errors (\mbox{Thm.~\ref{thm:onl-oracle-robust-thm}}), Competitive ratio (\mbox{Thm.~\ref{thm:onl-oracle-cr}})%
+  \item \textbf{Graph data and queries} (12 exemplars).
+  \begin{compactitem}
+    \item Labelling scheme (Ch.~\ref{ch:ind}, \mbox{Thm.~\ref{thm:ind-resistance}})
+    \item Elimination-state invariant (Ch.~\ref{ch:ind}, \mbox{Lem.~\ref{lem:ind-elim-state}})
+    \item Pivoted reformulation of BD (Ch.~\ref{ch:est}, \mbox{Thm.~\ref{thm:est-bd-reform}})
+    \item Pushback invariant (Ch.~\ref{ch:est}, \mbox{Lem.~\ref{lem:est-bd-invariant}})
+    \item Tree-sampling accuracy (Ch.~\ref{ch:est}, \mbox{Thm.~\ref{thm:est-bd-fasttree}})
+    \item Spanning-tree expression of the inverse (Ch.~\ref{ch:est}, \mbox{Lem.~\ref{lem:est-bd-kirchhoff}})
+    \item Approximation guarantee of CBFM (Ch.~\ref{ch:est}, \mbox{Thm.~\ref{thm:est-tcim-main}})
+    \item Unbiased coverage estimation (Ch.~\ref{ch:est}, \mbox{Lem.~\ref{lem:est-tcim-unbiased}})
+    \item Coverage concentration (Ch.~\ref{ch:est}, \mbox{Lem.~\ref{lem:est-tcim-conc}})
+    \item Worst-case optimal enumeration (Ch.~\ref{ch:adv}, \mbox{Thm.~\ref{thm:adv-defclique}})
+    \item Witness count for defective cliques (Ch.~\ref{ch:adv}, \mbox{Lem.~\ref{lem:adv-mmcount}})
+    \item Insertion--deletion asymmetry (Ch.~\ref{ch:adv}, \mbox{Thm.~\ref{thm:adv-bicore}})
+    \item The two-update trap (Ch.~\ref{ch:adv}, \mbox{Lem.~\ref{lem:adv-twowupdates}})
+    \item Query lower bound for SSPPR-R (Ch.~\ref{ch:adv}, \mbox{Thm.~\ref{thm:adv-pprlb}})
+    \item Switched-split indistinguishability (Ch.~\ref{ch:adv}, \mbox{Lem.~\ref{lem:adv-switch}})
+    \item N2E accuracy and privacy (Ch.~\ref{ch:dp}, \mbox{Thm.~\ref{thm:dp-337-main}})
+    \item SVT over sensitivity-monotonic queries (Ch.~\ref{ch:dp}, \mbox{Lem.~\ref{lem:dp-337-svt}})
+    \item LP rounding (Ch.~\ref{ch:dp}, \mbox{Lem.~\ref{lem:dp-337-lp}})
+    \item Clipping distance (Ch.~\ref{ch:dp}, \mbox{Lem.~\ref{lem:dp-337-clip}})
+    \item AF-BTAS index (Ch.~\ref{ch:exc}, \mbox{Thm.~\ref{thm:exc-200-index}})
+    \item Modular symmetry is an automorphism (Ch.~\ref{ch:exc}, \mbox{Lem.~\ref{lem:exc-009-autom}})
+    \item Symmetry breaking is safe (Ch.~\ref{ch:exc}, \mbox{Thm.~\ref{thm:exc-009-safe}})
+    \item Doubly stochastic affinity gives $k$-means (Ch.~\ref{ch:spec}, \mbox{Thm.~\ref{thm:spec-mrg-kmeans}})
+    \item Truncation error (Ch.~\ref{ch:spec}, \mbox{Lem.~\ref{lem:spec-mrg-trunc}})
+    \item Vectorized solution (Ch.~\ref{ch:spec}, \mbox{Thm.~\ref{thm:spec-pjsim-closed}})
+    \item Spectrum of the Kronecker sum (Ch.~\ref{ch:spec}, \mbox{Lem.~\ref{lem:spec-pjsim-spectrum}})
+    \item Sketched objective (Ch.~\ref{ch:cor}, \mbox{Cor.~\ref{cor:cor-mrg-sketch}})
+    \item $\beta$-robustness (Ch.~\ref{ch:onl}, \mbox{Def.~\ref{def:onl-oracle-robust}})
+    \item Robustness barrier (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-oracle-barrier}})
+    \item Recall under oracle errors (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-oracle-robust-thm}})
+    \item Competitive ratio (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-oracle-cr}})
+  \end{compactitem}
 
-  \item \textbf{Streaming algorithms} (6 exemplars, 3 of them PODS'26).
-    Ch.~\ref{ch:reduction}: Continual-release lower bound (\mbox{Thm.~\ref{thm:red-continual}}), Gadget transfer (\mbox{Lem.~\ref{lem:red-gadget}})%
-    ; Ch.~\ref{ch:conc}: Top-$k$ $F_p$ estimation (\mbox{Thm.~\ref{thm:conc-trimmed}}), Level-size estimation (\mbox{Lem.~\ref{lem:conc-trimmed-level}})%
-    ; Ch.~\ref{ch:est}: $F_p$-mismatch-ambiguity (\mbox{Def.~\ref{def:est-fp-lambda}}), One-pass estimation under mismatch ambiguity (\mbox{Thm.~\ref{thm:est-fp-upper}}), Space lower bound (\mbox{Thm.~\ref{thm:est-fp-lower}}), Unbiased clique-count estimator (\mbox{Lem.~\ref{lem:est-fp-unbiased}}), Truncation controls the variance (\mbox{Lem.~\ref{lem:est-fp-trunc}}), Variance recursion over epochs (\mbox{Lem.~\ref{lem:est-sublime-var}}), Space lower bound for expandable FE sketches (\mbox{Thm.~\ref{thm:est-sublime-lb}})%
-    ; Ch.~\ref{ch:amo}: Tracking matrix sketches (\mbox{Thm.~\ref{thm:amo-aero}}), Batched re-decomposition (\mbox{Lem.~\ref{lem:amo-aero-batch}}), Decomposability (\mbox{Lem.~\ref{lem:amo-aero-decomp}})%
-    ; Ch.~\ref{ch:inf}: Memory footprint (\mbox{Thm.~\ref{thm:inf-sublime-space}}), Space lower bound (\mbox{Thm.~\ref{thm:inf-sublime-lb}}), Counter-array encoding (\mbox{Lem.~\ref{lem:inf-sublime-array}})%
-    ; Ch.~\ref{ch:cc}: Distributed lower bound (\mbox{Thm.~\ref{thm:cc-fp-lb}}), Input reduction (\mbox{Lem.~\ref{lem:cc-fp-embed}}), Pseudodeterminism and representation obliviousness (\mbox{Def.~\ref{def:cc-ropd}}), $F_0$ lower bound (\mbox{Thm.~\ref{thm:cc-ropd-lb}}), Multipass tradeoff (\mbox{Cor.~\ref{cor:cc-ropd-mp}}), Promise-Union lower bound (\mbox{Lem.~\ref{lem:cc-promise-union}})%
+  \item \textbf{Streaming algorithms} (6 exemplars).
+  \begin{compactitem}
+    \item Continual-release lower bound (Ch.~\ref{ch:reduction}, \mbox{Thm.~\ref{thm:red-continual}})
+    \item Gadget transfer (Ch.~\ref{ch:reduction}, \mbox{Lem.~\ref{lem:red-gadget}})
+    \item Top-$k$ $F_p$ estimation (Ch.~\ref{ch:conc}, \mbox{Thm.~\ref{thm:conc-trimmed}})
+    \item Level-size estimation (Ch.~\ref{ch:conc}, \mbox{Lem.~\ref{lem:conc-trimmed-level}})
+    \item $F_p$-mismatch-ambiguity (Ch.~\ref{ch:est}, \mbox{Def.~\ref{def:est-fp-lambda}})
+    \item One-pass estimation under mismatch ambiguity (Ch.~\ref{ch:est}, \mbox{Thm.~\ref{thm:est-fp-upper}})
+    \item Space lower bound (Ch.~\ref{ch:est}, \mbox{Thm.~\ref{thm:est-fp-lower}})
+    \item Unbiased clique-count estimator (Ch.~\ref{ch:est}, \mbox{Lem.~\ref{lem:est-fp-unbiased}})
+    \item Truncation controls the variance (Ch.~\ref{ch:est}, \mbox{Lem.~\ref{lem:est-fp-trunc}})
+    \item Variance recursion over epochs (Ch.~\ref{ch:est}, \mbox{Lem.~\ref{lem:est-sublime-var}})
+    \item Space lower bound for expandable FE sketches (Ch.~\ref{ch:est}, \mbox{Thm.~\ref{thm:est-sublime-lb}})
+    \item Tracking matrix sketches (Ch.~\ref{ch:amo}, \mbox{Thm.~\ref{thm:amo-aero}})
+    \item Batched re-decomposition (Ch.~\ref{ch:amo}, \mbox{Lem.~\ref{lem:amo-aero-batch}})
+    \item Decomposability (Ch.~\ref{ch:amo}, \mbox{Lem.~\ref{lem:amo-aero-decomp}})
+    \item Memory footprint (Ch.~\ref{ch:inf}, \mbox{Thm.~\ref{thm:inf-sublime-space}})
+    \item Space lower bound (Ch.~\ref{ch:inf}, \mbox{Thm.~\ref{thm:inf-sublime-lb}})
+    \item Counter-array encoding (Ch.~\ref{ch:inf}, \mbox{Lem.~\ref{lem:inf-sublime-array}})
+    \item Distributed lower bound (Ch.~\ref{ch:cc}, \mbox{Thm.~\ref{thm:cc-fp-lb}})
+    \item Input reduction (Ch.~\ref{ch:cc}, \mbox{Lem.~\ref{lem:cc-fp-embed}})
+    \item Pseudodeterminism and representation obliviousness (Ch.~\ref{ch:cc}, \mbox{Def.~\ref{def:cc-ropd}})
+    \item $F_0$ lower bound (Ch.~\ref{ch:cc}, \mbox{Thm.~\ref{thm:cc-ropd-lb}})
+    \item Multipass tradeoff (Ch.~\ref{ch:cc}, \mbox{Cor.~\ref{cor:cc-ropd-mp}})
+    \item Promise-Union lower bound (Ch.~\ref{ch:cc}, \mbox{Lem.~\ref{lem:cc-promise-union}})
+  \end{compactitem}
 
-  \item \textbf{Sketching} (6 exemplars, 1 of them PODS'26).
-    Ch.~\ref{ch:conc}: Top-$k$ $F_p$ estimation (\mbox{Thm.~\ref{thm:conc-trimmed}}), Level-size estimation (\mbox{Lem.~\ref{lem:conc-trimmed-level}})%
-    ; Ch.~\ref{ch:est}: Variance recursion over epochs (\mbox{Lem.~\ref{lem:est-sublime-var}}), Space lower bound for expandable FE sketches (\mbox{Thm.~\ref{thm:est-sublime-lb}})%
-    ; Ch.~\ref{ch:amo}: Tracking matrix sketches (\mbox{Thm.~\ref{thm:amo-aero}}), Batched re-decomposition (\mbox{Lem.~\ref{lem:amo-aero-batch}}), Decomposability (\mbox{Lem.~\ref{lem:amo-aero-decomp}}), Rank error (\mbox{Thm.~\ref{thm:amo-spline-error}}), Split budget (\mbox{Lem.~\ref{lem:amo-spline-split}}), Spline midpoint bound (\mbox{Lem.~\ref{lem:amo-spline-midpoint}})%
-    ; Ch.~\ref{ch:inf}: Memory footprint (\mbox{Thm.~\ref{thm:inf-sublime-space}}), Space lower bound (\mbox{Thm.~\ref{thm:inf-sublime-lb}}), Counter-array encoding (\mbox{Lem.~\ref{lem:inf-sublime-array}})%
-    ; Ch.~\ref{ch:cc}: Pseudodeterminism and representation obliviousness (\mbox{Def.~\ref{def:cc-ropd}}), $F_0$ lower bound (\mbox{Thm.~\ref{thm:cc-ropd-lb}}), Multipass tradeoff (\mbox{Cor.~\ref{cor:cc-ropd-mp}}), Promise-Union lower bound (\mbox{Lem.~\ref{lem:cc-promise-union}})%
-    ; Ch.~\ref{ch:onl}: Adapt threshold (\mbox{Thm.~\ref{thm:onl-ski-thm1}}), Cheap adaptation (\mbox{Thm.~\ref{thm:onl-ski-thm5}})%
+  \item \textbf{Sketching} (6 exemplars).
+  \begin{compactitem}
+    \item Top-$k$ $F_p$ estimation (Ch.~\ref{ch:conc}, \mbox{Thm.~\ref{thm:conc-trimmed}})
+    \item Level-size estimation (Ch.~\ref{ch:conc}, \mbox{Lem.~\ref{lem:conc-trimmed-level}})
+    \item Variance recursion over epochs (Ch.~\ref{ch:est}, \mbox{Lem.~\ref{lem:est-sublime-var}})
+    \item Space lower bound for expandable FE sketches (Ch.~\ref{ch:est}, \mbox{Thm.~\ref{thm:est-sublime-lb}})
+    \item Tracking matrix sketches (Ch.~\ref{ch:amo}, \mbox{Thm.~\ref{thm:amo-aero}})
+    \item Batched re-decomposition (Ch.~\ref{ch:amo}, \mbox{Lem.~\ref{lem:amo-aero-batch}})
+    \item Decomposability (Ch.~\ref{ch:amo}, \mbox{Lem.~\ref{lem:amo-aero-decomp}})
+    \item Rank error (Ch.~\ref{ch:amo}, \mbox{Thm.~\ref{thm:amo-spline-error}})
+    \item Split budget (Ch.~\ref{ch:amo}, \mbox{Lem.~\ref{lem:amo-spline-split}})
+    \item Spline midpoint bound (Ch.~\ref{ch:amo}, \mbox{Lem.~\ref{lem:amo-spline-midpoint}})
+    \item Memory footprint (Ch.~\ref{ch:inf}, \mbox{Thm.~\ref{thm:inf-sublime-space}})
+    \item Space lower bound (Ch.~\ref{ch:inf}, \mbox{Thm.~\ref{thm:inf-sublime-lb}})
+    \item Counter-array encoding (Ch.~\ref{ch:inf}, \mbox{Lem.~\ref{lem:inf-sublime-array}})
+    \item Pseudodeterminism and representation obliviousness (Ch.~\ref{ch:cc}, \mbox{Def.~\ref{def:cc-ropd}})
+    \item $F_0$ lower bound (Ch.~\ref{ch:cc}, \mbox{Thm.~\ref{thm:cc-ropd-lb}})
+    \item Multipass tradeoff (Ch.~\ref{ch:cc}, \mbox{Cor.~\ref{cor:cc-ropd-mp}})
+    \item Promise-Union lower bound (Ch.~\ref{ch:cc}, \mbox{Lem.~\ref{lem:cc-promise-union}})
+    \item Adapt threshold (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-ski-thm1}})
+    \item Cheap adaptation (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-ski-thm5}})
+  \end{compactitem}
 
-  \item \textbf{Differential privacy} (7 exemplars, 2 of them PODS'26).
-    Ch.~\ref{ch:reduction}: Continual-release lower bound (\mbox{Thm.~\ref{thm:red-continual}}), Gadget transfer (\mbox{Lem.~\ref{lem:red-gadget}})%
-    ; Ch.~\ref{ch:conc}: Error of the sampled truncation (\mbox{Thm.~\ref{thm:conc-s4s}})%
-    ; Ch.~\ref{ch:dp}: Privacy of the global explanation (\mbox{Thm.~\ref{thm:dp-298-main}}), Convex combinations of scores (\mbox{Lem.~\ref{lem:dp-298-convex}}), Jensen--Shannon sensitivity (\mbox{Prop.~\ref{prop:dp-298-jsd}}), Private sparse histogram (\mbox{Thm.~\ref{thm:dp-178-main}}), N2E accuracy and privacy (\mbox{Thm.~\ref{thm:dp-337-main}}), SVT over sensitivity-monotonic queries (\mbox{Lem.~\ref{lem:dp-337-svt}}), LP rounding (\mbox{Lem.~\ref{lem:dp-337-lp}}), Clipping distance (\mbox{Lem.~\ref{lem:dp-337-clip}}), General framework (\mbox{Thm.~\ref{thm:dp-263-main}}), PrDP parallel composition (\mbox{Lem.~\ref{lem:dp-263-parallel}})%
-    ; Ch.~\ref{ch:inf}: RDP-S4S for scalar SJA (\mbox{Cor.~\ref{cor:inf-s4s-rdp}}), Gaussian R\'enyi divergence (\mbox{Lem.~\ref{lem:inf-gauss-renyi}}), Estimation ordering (\mbox{Thm.~\ref{thm:inf-dpsynth-order}}), KL convexity (\mbox{Lem.~\ref{lem:inf-dpsynth-convex}})%
+  \item \textbf{Differential privacy} (7 exemplars).
+  \begin{compactitem}
+    \item Continual-release lower bound (Ch.~\ref{ch:reduction}, \mbox{Thm.~\ref{thm:red-continual}})
+    \item Gadget transfer (Ch.~\ref{ch:reduction}, \mbox{Lem.~\ref{lem:red-gadget}})
+    \item Error of the sampled truncation (Ch.~\ref{ch:conc}, \mbox{Thm.~\ref{thm:conc-s4s}})
+    \item Privacy of the global explanation (Ch.~\ref{ch:dp}, \mbox{Thm.~\ref{thm:dp-298-main}})
+    \item Convex combinations of scores (Ch.~\ref{ch:dp}, \mbox{Lem.~\ref{lem:dp-298-convex}})
+    \item Jensen--Shannon sensitivity (Ch.~\ref{ch:dp}, \mbox{Prop.~\ref{prop:dp-298-jsd}})
+    \item Private sparse histogram (Ch.~\ref{ch:dp}, \mbox{Thm.~\ref{thm:dp-178-main}})
+    \item N2E accuracy and privacy (Ch.~\ref{ch:dp}, \mbox{Thm.~\ref{thm:dp-337-main}})
+    \item SVT over sensitivity-monotonic queries (Ch.~\ref{ch:dp}, \mbox{Lem.~\ref{lem:dp-337-svt}})
+    \item LP rounding (Ch.~\ref{ch:dp}, \mbox{Lem.~\ref{lem:dp-337-lp}})
+    \item Clipping distance (Ch.~\ref{ch:dp}, \mbox{Lem.~\ref{lem:dp-337-clip}})
+    \item General framework (Ch.~\ref{ch:dp}, \mbox{Thm.~\ref{thm:dp-263-main}})
+    \item PrDP parallel composition (Ch.~\ref{ch:dp}, \mbox{Lem.~\ref{lem:dp-263-parallel}})
+    \item RDP-S4S for scalar SJA (Ch.~\ref{ch:inf}, \mbox{Cor.~\ref{cor:inf-s4s-rdp}})
+    \item Gaussian R\'enyi divergence (Ch.~\ref{ch:inf}, \mbox{Lem.~\ref{lem:inf-gauss-renyi}})
+    \item Estimation ordering (Ch.~\ref{ch:inf}, \mbox{Thm.~\ref{thm:inf-dpsynth-order}})
+    \item KL convexity (Ch.~\ref{ch:inf}, \mbox{Lem.~\ref{lem:inf-dpsynth-convex}})
+  \end{compactitem}
 
-  \item \textbf{Sampling} (3 exemplars, 2 of them PODS'26).
-    Ch.~\ref{ch:est}: $F_p$-mismatch-ambiguity (\mbox{Def.~\ref{def:est-fp-lambda}}), One-pass estimation under mismatch ambiguity (\mbox{Thm.~\ref{thm:est-fp-upper}}), Space lower bound (\mbox{Thm.~\ref{thm:est-fp-lower}}), Unbiased clique-count estimator (\mbox{Lem.~\ref{lem:est-fp-unbiased}}), Truncation controls the variance (\mbox{Lem.~\ref{lem:est-fp-trunc}})%
-    ; Ch.~\ref{ch:exc}: Lazy-greedy representative sampling (\mbox{Thm.~\ref{thm:exc-031-gre}}), Submodularity of the fidelity objective (\mbox{Lem.~\ref{lem:exc-031-sub}})%
-    ; Ch.~\ref{ch:cc}: Distributed lower bound (\mbox{Thm.~\ref{thm:cc-fp-lb}}), Input reduction (\mbox{Lem.~\ref{lem:cc-fp-embed}}), Output-optimal matrix query (\mbox{Thm.~\ref{thm:cc-jp-matrix}}), Matrix-query counting bound (\mbox{Lem.~\ref{lem:cc-243-reduction}})%
+  \item \textbf{Sampling} (3 exemplars).
+  \begin{compactitem}
+    \item $F_p$-mismatch-ambiguity (Ch.~\ref{ch:est}, \mbox{Def.~\ref{def:est-fp-lambda}})
+    \item One-pass estimation under mismatch ambiguity (Ch.~\ref{ch:est}, \mbox{Thm.~\ref{thm:est-fp-upper}})
+    \item Space lower bound (Ch.~\ref{ch:est}, \mbox{Thm.~\ref{thm:est-fp-lower}})
+    \item Unbiased clique-count estimator (Ch.~\ref{ch:est}, \mbox{Lem.~\ref{lem:est-fp-unbiased}})
+    \item Truncation controls the variance (Ch.~\ref{ch:est}, \mbox{Lem.~\ref{lem:est-fp-trunc}})
+    \item Lazy-greedy representative sampling (Ch.~\ref{ch:exc}, \mbox{Thm.~\ref{thm:exc-031-gre}})
+    \item Submodularity of the fidelity objective (Ch.~\ref{ch:exc}, \mbox{Lem.~\ref{lem:exc-031-sub}})
+    \item Distributed lower bound (Ch.~\ref{ch:cc}, \mbox{Thm.~\ref{thm:cc-fp-lb}})
+    \item Input reduction (Ch.~\ref{ch:cc}, \mbox{Lem.~\ref{lem:cc-fp-embed}})
+    \item Output-optimal matrix query (Ch.~\ref{ch:cc}, \mbox{Thm.~\ref{thm:cc-jp-matrix}})
+    \item Matrix-query counting bound (Ch.~\ref{ch:cc}, \mbox{Lem.~\ref{lem:cc-243-reduction}})
+  \end{compactitem}
 
-  \item \textbf{Query optimization} (3 exemplars, 2 of them PODS'26).
-    Ch.~\ref{ch:ind}: Width-1 plans and their enumeration (\mbox{Thm.~\ref{thm:ind-succinct}}), Batch ear removal (\mbox{Prop.~\ref{prop:ind-ears}}), Ears with equal outer parts (\mbox{Lem.~\ref{lem:ind-equal-outer}})%
-    ; Ch.~\ref{ch:exc}: Risk coreset via greedy cover (\mbox{Thm.~\ref{thm:exc-053-main}}), Greedy termination (\mbox{Lem.~\ref{lem:exc-053-term}})%
-    ; Ch.~\ref{ch:cor}: Risk coresets (\mbox{Thm.~\ref{thm:cor-qo-main}}), Coreset sizing (\mbox{Lem.~\ref{lem:cor-qo-hoeffding}}), Risk transfer (\mbox{Lem.~\ref{lem:cor-qo-transfer}})%
-    ; Ch.~\ref{ch:inf}: PANDAExpress (\mbox{Thm.~\ref{thm:inf-panda-main}}), Measures from inequalities (\mbox{Lem.~\ref{lem:inf-panda-measures}})%
+  \item \textbf{Query optimization} (3 exemplars).
+  \begin{compactitem}
+    \item Width-1 plans and their enumeration (Ch.~\ref{ch:ind}, \mbox{Thm.~\ref{thm:ind-succinct}})
+    \item Batch ear removal (Ch.~\ref{ch:ind}, \mbox{Prop.~\ref{prop:ind-ears}})
+    \item Ears with equal outer parts (Ch.~\ref{ch:ind}, \mbox{Lem.~\ref{lem:ind-equal-outer}})
+    \item Risk coreset via greedy cover (Ch.~\ref{ch:exc}, \mbox{Thm.~\ref{thm:exc-053-main}})
+    \item Greedy termination (Ch.~\ref{ch:exc}, \mbox{Lem.~\ref{lem:exc-053-term}})
+    \item Risk coresets (Ch.~\ref{ch:cor}, \mbox{Thm.~\ref{thm:cor-qo-main}})
+    \item Coreset sizing (Ch.~\ref{ch:cor}, \mbox{Lem.~\ref{lem:cor-qo-hoeffding}})
+    \item Risk transfer (Ch.~\ref{ch:cor}, \mbox{Lem.~\ref{lem:cor-qo-transfer}})
+    \item PANDAExpress (Ch.~\ref{ch:inf}, \mbox{Thm.~\ref{thm:inf-panda-main}})
+    \item Measures from inequalities (Ch.~\ref{ch:inf}, \mbox{Lem.~\ref{lem:inf-panda-measures}})
+  \end{compactitem}
 
   \item \textbf{Vector search and ANN indexes} (3 exemplars).
-    Ch.~\ref{ch:adv}: Size lower bound (\mbox{Thm.~\ref{thm:adv-proxlb}})%
-    ; Ch.~\ref{ch:exc}: Lazy-greedy representative sampling (\mbox{Thm.~\ref{thm:exc-031-gre}}), Submodularity of the fidelity objective (\mbox{Lem.~\ref{lem:exc-031-sub}})%
-    ; Ch.~\ref{ch:spec}: Ordering preservation (\mbox{Thm.~\ref{thm:spec-taco-order}}), Eigensystem allocation is optimal (\mbox{Thm.~\ref{thm:spec-taco-alloc}})%
-    ; Ch.~\ref{ch:cor}: Proximity graphs for doubling and Euclidean metrics (\mbox{Thm.~\ref{thm:cor-pg-main}}), Size lower bound (\mbox{Thm.~\ref{thm:cor-pg-lb}}), Net out-neighbors (\mbox{Lem.~\ref{lem:cor-pg-net}}), Greedy descent and log-drop (\mbox{Lem.~\ref{lem:cor-pg-drop}})%
+  \begin{compactitem}
+    \item Size lower bound (Ch.~\ref{ch:adv}, \mbox{Thm.~\ref{thm:adv-proxlb}})
+    \item Lazy-greedy representative sampling (Ch.~\ref{ch:exc}, \mbox{Thm.~\ref{thm:exc-031-gre}})
+    \item Submodularity of the fidelity objective (Ch.~\ref{ch:exc}, \mbox{Lem.~\ref{lem:exc-031-sub}})
+    \item Ordering preservation (Ch.~\ref{ch:spec}, \mbox{Thm.~\ref{thm:spec-taco-order}})
+    \item Eigensystem allocation is optimal (Ch.~\ref{ch:spec}, \mbox{Thm.~\ref{thm:spec-taco-alloc}})
+    \item Proximity graphs for doubling and Euclidean metrics (Ch.~\ref{ch:cor}, \mbox{Thm.~\ref{thm:cor-pg-main}})
+    \item Size lower bound (Ch.~\ref{ch:cor}, \mbox{Thm.~\ref{thm:cor-pg-lb}})
+    \item Net out-neighbors (Ch.~\ref{ch:cor}, \mbox{Lem.~\ref{lem:cor-pg-net}})
+    \item Greedy descent and log-drop (Ch.~\ref{ch:cor}, \mbox{Lem.~\ref{lem:cor-pg-drop}})
+  \end{compactitem}
 
-  \item \textbf{Indexing} (2 exemplars, 2 of them PODS'26).
-    Ch.~\ref{ch:spec}: Metzler variant (\mbox{Cor.~\ref{cor:spec-metzler}}), Deferred even split fullness (\mbox{Thm.~\ref{thm:spec-btree-fullness}}), Convergence of the matrix recurrence (\mbox{Thm.~\ref{thm:spec-btree-recurrence}}), Scalar product bound (\mbox{Lem.~\ref{lem:spec-btree-prod}})%
-    ; Ch.~\ref{ch:amo}: Optimal enumeration (\mbox{Thm.~\ref{thm:amo-enum}}), Embedding counting bound (\mbox{Lem.~\ref{lem:amo-embed-count}})%
+  \item \textbf{Indexing} (2 exemplars).
+  \begin{compactitem}
+    \item Metzler variant (Ch.~\ref{ch:spec}, \mbox{Cor.~\ref{cor:spec-metzler}})
+    \item Deferred even split fullness (Ch.~\ref{ch:spec}, \mbox{Thm.~\ref{thm:spec-btree-fullness}})
+    \item Convergence of the matrix recurrence (Ch.~\ref{ch:spec}, \mbox{Thm.~\ref{thm:spec-btree-recurrence}})
+    \item Scalar product bound (Ch.~\ref{ch:spec}, \mbox{Lem.~\ref{lem:spec-btree-prod}})
+    \item Optimal enumeration (Ch.~\ref{ch:amo}, \mbox{Thm.~\ref{thm:amo-enum}})
+    \item Embedding counting bound (Ch.~\ref{ch:amo}, \mbox{Lem.~\ref{lem:amo-embed-count}})
+  \end{compactitem}
 
-  \item \textbf{Join algorithms} (3 exemplars, 2 of them PODS'26).
-    Ch.~\ref{ch:ind}: RPT evaluation (\mbox{Thm.~\ref{thm:ind-rpt}}), Cache invariant (\mbox{Lem.~\ref{lem:ind-rpt-cache}})%
-    ; Ch.~\ref{ch:inf}: PANDAExpress (\mbox{Thm.~\ref{thm:inf-panda-main}}), Measures from inequalities (\mbox{Lem.~\ref{lem:inf-panda-measures}})%
-    ; Ch.~\ref{ch:cc}: Output-optimal matrix query (\mbox{Thm.~\ref{thm:cc-jp-matrix}}), Matrix-query counting bound (\mbox{Lem.~\ref{lem:cc-243-reduction}})%
+  \item \textbf{Join algorithms} (3 exemplars).
+  \begin{compactitem}
+    \item RPT evaluation (Ch.~\ref{ch:ind}, \mbox{Thm.~\ref{thm:ind-rpt}})
+    \item Cache invariant (Ch.~\ref{ch:ind}, \mbox{Lem.~\ref{lem:ind-rpt-cache}})
+    \item PANDAExpress (Ch.~\ref{ch:inf}, \mbox{Thm.~\ref{thm:inf-panda-main}})
+    \item Measures from inequalities (Ch.~\ref{ch:inf}, \mbox{Lem.~\ref{lem:inf-panda-measures}})
+    \item Output-optimal matrix query (Ch.~\ref{ch:cc}, \mbox{Thm.~\ref{thm:cc-jp-matrix}})
+    \item Matrix-query counting bound (Ch.~\ref{ch:cc}, \mbox{Lem.~\ref{lem:cc-243-reduction}})
+  \end{compactitem}
 
   \item \textbf{Approximate query processing} (1 exemplar).
-    Ch.~\ref{ch:conc}: Error of the sampled truncation (\mbox{Thm.~\ref{thm:conc-s4s}})%
-    ; Ch.~\ref{ch:inf}: RDP-S4S for scalar SJA (\mbox{Cor.~\ref{cor:inf-s4s-rdp}}), Gaussian R\'enyi divergence (\mbox{Lem.~\ref{lem:inf-gauss-renyi}})%
+  \begin{compactitem}
+    \item Error of the sampled truncation (Ch.~\ref{ch:conc}, \mbox{Thm.~\ref{thm:conc-s4s}})
+    \item RDP-S4S for scalar SJA (Ch.~\ref{ch:inf}, \mbox{Cor.~\ref{cor:inf-s4s-rdp}})
+    \item Gaussian R\'enyi divergence (Ch.~\ref{ch:inf}, \mbox{Lem.~\ref{lem:inf-gauss-renyi}})
+  \end{compactitem}
 
   \item \textbf{Provenance} (1 exemplar).
-    Ch.~\ref{ch:reduction}: Shapley value of a fact (\mbox{Def.~\ref{def:red-shapley}}), Tractability frontier (\mbox{Thm.~\ref{thm:red-shapley}}), \#Set-Cover transfer (\mbox{Lem.~\ref{lem:red-shapley}})%
+  \begin{compactitem}
+    \item Shapley value of a fact (Ch.~\ref{ch:reduction}, \mbox{Def.~\ref{def:red-shapley}})
+    \item Tractability frontier (Ch.~\ref{ch:reduction}, \mbox{Thm.~\ref{thm:red-shapley}})
+    \item \#Set-Cover transfer (Ch.~\ref{ch:reduction}, \mbox{Lem.~\ref{lem:red-shapley}})
+  \end{compactitem}
 
   \item \textbf{Benchmarks and evaluation} (1 exemplar).
-    Ch.~\ref{ch:inf}: Estimation ordering (\mbox{Thm.~\ref{thm:inf-dpsynth-order}}), KL convexity (\mbox{Lem.~\ref{lem:inf-dpsynth-convex}})%
+  \begin{compactitem}
+    \item Estimation ordering (Ch.~\ref{ch:inf}, \mbox{Thm.~\ref{thm:inf-dpsynth-order}})
+    \item KL convexity (Ch.~\ref{ch:inf}, \mbox{Lem.~\ref{lem:inf-dpsynth-convex}})
+  \end{compactitem}
 
   \item \textbf{Caching and scheduling} (1 exemplar).
-    Ch.~\ref{ch:onl}: Adapt threshold (\mbox{Thm.~\ref{thm:onl-ski-thm1}}), Cheap adaptation (\mbox{Thm.~\ref{thm:onl-ski-thm5}})%
+  \begin{compactitem}
+    \item Adapt threshold (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-ski-thm1}})
+    \item Cheap adaptation (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-ski-thm5}})
+  \end{compactitem}
 
   \item \textbf{Data cleaning and repair} (1 exemplar).
-    Ch.~\ref{ch:onl}: Offline optimality (\mbox{Thm.~\ref{thm:onl-shclean-dag}}), Online regret (\mbox{Thm.~\ref{thm:onl-shclean-regret}})%
+  \begin{compactitem}
+    \item Offline optimality (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-shclean-dag}})
+    \item Online regret (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-shclean-regret}})
+  \end{compactitem}
 
   \item \textbf{Entity resolution} (1 exemplar).
-    Ch.~\ref{ch:ind}: Tight-interval generation (\mbox{Thm.~\ref{thm:ind-lsh}}), Skyline update (\mbox{Lem.~\ref{lem:ind-skyline}})%
+  \begin{compactitem}
+    \item Tight-interval generation (Ch.~\ref{ch:ind}, \mbox{Thm.~\ref{thm:ind-lsh}})
+    \item Skyline update (Ch.~\ref{ch:ind}, \mbox{Lem.~\ref{lem:ind-skyline}})
+  \end{compactitem}
 
   \item \textbf{Spatial data} (1 exemplar).
-    Ch.~\ref{ch:conc}: Static MaxRS (\mbox{Thm.~\ref{thm:conc-maxrs}}), Sampling concentration (\mbox{Lem.~\ref{lem:conc-maxrs-sample}})%
+  \begin{compactitem}
+    \item Static MaxRS (Ch.~\ref{ch:conc}, \mbox{Thm.~\ref{thm:conc-maxrs}})
+    \item Sampling concentration (Ch.~\ref{ch:conc}, \mbox{Lem.~\ref{lem:conc-maxrs-sample}})
+  \end{compactitem}
 
   \item \textbf{Time series} (1 exemplar).
-    Ch.~\ref{ch:onl}: Offline optimality (\mbox{Thm.~\ref{thm:onl-shclean-dag}}), Online regret (\mbox{Thm.~\ref{thm:onl-shclean-regret}})%
+  \begin{compactitem}
+    \item Offline optimality (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-shclean-dag}})
+    \item Online regret (Ch.~\ref{ch:onl}, \mbox{Thm.~\ref{thm:onl-shclean-regret}})
+  \end{compactitem}
 
 \end{itemize}
-\end{multicols}
+\end{fullwidth}
 
-% columns start on a fresh page: keeps the section heading with its list
 \clearpage
 \section*{Named theorems, lemmas, and definitions}
-\begin{multicols}{2}
-\RaggedRight
-\begin{itemize}
+\begin{fullwidth}
+\begin{compactitem}
   \item Accounting / banker's method, \mbox{Theorem~\ref{thm:amo-accounting}}
   \item Adapt threshold, \mbox{Theorem~\ref{thm:onl-ski-thm1}}
   \item Advanced composition, \mbox{Theorem~\ref{thm:dp-advanced}}
@@ -329,5 +461,5 @@ bibliography.
   \item Witness counting, \mbox{Proposition~\ref{prop:adv-output}}
   \item Worst-case optimal enumeration, \mbox{Theorem~\ref{thm:adv-defclique}}
   \item Yao's minimax principle, \mbox{Theorem~\ref{thm:adv-yao}}, \mbox{Theorem~\ref{thm:cc-yao}}
-\end{itemize}
-\end{multicols}
+\end{compactitem}
+\end{fullwidth}

@@ -179,48 +179,42 @@ def main() -> int:
     w("Every entry is a hyperlink to the statement's home chapter. \\emph{By paper")
     w("domain} indexes the book from the corpus side: named statements transcribed")
     w("from exemplar papers are grouped under the research area of the source paper,")
-    w("so each entry shows which tools (chapters) that area's papers exercise and")
-    w("what they prove; PODS'26 exemplars are flagged in the header. Classical")
-    w("background statements carry no corpus source and appear only in the")
-    w("alphabetical list below. Full references appear in each chapter's")
-    w("bibliography.")
+    w("one entry per line, so each area shows which tools (chapters) its papers")
+    w("exercise and what they prove. Classical background statements carry no")
+    w("corpus source and appear only in the alphabetical list below. Full")
+    w("references appear in each chapter's bibliography.")
     w("")
+    w("% fullwidth = text block + margin (tufte adjustwidth*, parity-correct), one")
+    w("% column: two narrow multicols wasted the page's wide margin (user report)")
     w("\\section*{By paper domain}")
-    w("% columns start on a fresh page: keeps the section heading with its list")
-    w("\\begin{multicols}{2}")
-    w("\\RaggedRight")   # narrow columns: no justification squeeze
+    w("\\begin{fullwidth}")
     w("\\begin{itemize}")
     for d in sorted(dom_res, key=dom_key):
-        np, npods = len(dom_pids[d]), len(dom_pids[d] & pods)
+        np = len(dom_pids[d])
         ex = f"{np} exemplar" + ("" if np == 1 else "s")
-        if npods:
-            ex += f", {npods} of them PODS'26"
         w(f"  \\item \\textbf{{{DOMAIN_NAMES.get(d, d)}}} ({ex}).")
-        ch_order = [c for _, _, c in chapters if c in dom_res[d]]
-        for i, c in enumerate(ch_order):
-            refs = ", ".join(
-                "%s (\\mbox{%s~\\ref{%s}})" % (r["name"], r["abbr"], r["label"])
-                for r in dom_res[d][c])
-            lead = "Ch.~\\ref{%s}: " % c if i == 0 else "; Ch.~\\ref{%s}: " % c
-            w(f"    {lead}{refs}%")  # % kills the newline space before "; Ch."
+        w("  \\begin{compactitem}")
+        for _, _, c in chapters:
+            for r in dom_res[d].get(c, ()):
+                w(f"    \\item {r['name']} (Ch.~\\ref{{{c}}}, "
+                  f"\\mbox{{{r['abbr']}~\\ref{{{r['label']}}}}})")
+        w("  \\end{compactitem}")
         w("")
     w("\\end{itemize}")
-    w("\\end{multicols}")
+    w("\\end{fullwidth}")
     w("")
-    w("% columns start on a fresh page: keeps the section heading with its list")
     w("\\clearpage")
     w("\\section*{Named theorems, lemmas, and definitions}")
-    w("\\begin{multicols}{2}")
-    w("\\RaggedRight")
-    w("\\begin{itemize}")
+    w("\\begin{fullwidth}")
+    w("\\begin{compactitem}")
     merged = defaultdict(list)
     for r in results:
         merged[r["name"]].append((r["kw"], r["label"]))
     for name in sorted(merged, key=tex_sort_key):
         refs_str = ", ".join(f"\\mbox{{{kw}~\\ref{{{lab}}}}}" for kw, lab in merged[name])
         w(f"  \\item {name}, {refs_str}")
-    w("\\end{itemize}")
-    w("\\end{multicols}")
+    w("\\end{compactitem}")
+    w("\\end{fullwidth}")
     w("")
 
     (LN / "chapters" / "index.tex").write_text("\n".join(out))
