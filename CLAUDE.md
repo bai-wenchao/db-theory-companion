@@ -353,6 +353,14 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       minX 61.4-72.0, formerly invisible entries back) + vision on 269/271 —
       43b7389. Final state: 273 pp, Index pp. 263-273, same 6 overfulls.
 
+- 2026-09-16 repo cleanup + public release: github.com/bai-wenchao/db-theory-companion
+      (renamed from db-theoretical-companion). Tracked set = sources only (scripts,
+      lecture-notes tex/bib/cls + docs); data/, index/, notes/, report/, CHECKPOINT.md
+      are gitignored local artifacts (.gitignore documents the regeneration chain).
+      Book retitled "A Theoretical Companion to Database Research"; author credit
+      "Wenchao Bai and GLM5.3 (harnessed by Claude Code)" (title page, verso, running
+      heads, PDF metadata). Rebuild verified: 273 pp, same 6 overfull survivors.
+
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens
 - producer agent: ~200k (88 tool uses: downloads, 2 script fixes, spot-checks)

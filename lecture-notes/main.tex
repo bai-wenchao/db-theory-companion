@@ -2,7 +2,7 @@
 \PassOptionsToPackage{colorlinks=true}{hyperref}
 \documentclass[symmetric,justified]{tufte-book}
 % ------------------------------------------------------------------
-% Theoretical Tools in Database Systems Research
+% A Theoretical Companion to Database Research
 % Lecture notes distilled from the SIGMOD 2026 full-corpus survey
 % (385 papers, 228 tagged; PODS'26-issue exemplars marked with \pods)
 % Template: panbook's tufte-book side (boazbk/panbook, MIT) — class files
@@ -180,7 +180,7 @@
 %   odd  pages: <page#>  chapter name (flush right)
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 \fancyhf{}
-\fancyhead[LE]{\small\thepage\enspace\itshape Theoretical Tools in DB research}
+\fancyhead[LE]{\small\thepage\enspace\itshape A Theoretical Companion to Database Research}
 \fancyhead[RO]{\small\thepage\enspace\itshape\nouppercase{\leftmark}}
 % chapter-opening pages use the `plain' style, where tufte leaves the folio
 % unexpressed; re-arm it in the lower OUTSIDE corner (tufte-common.def's own
@@ -260,8 +260,10 @@
 \newunicodechar{→}{\ensuremath{\rightarrow}}
 \newunicodechar{∼}{\ensuremath{\sim}}
 
-\title{Theoretical Tools in DB research}
-\author{Wenchao Bai}
+\title{A Theoretical Companion to Database Research}
+% optional arg = plain-text author for PDF metadata (tufte-common.def);
+% stacked display: human author, then the model credit one size down
+\author[Wenchao Bai and GLM5.3 (harnessed by Claude Code)]{Wenchao Bai\\[0.6ex]{\large GLM5.3 (harnessed by Claude Code)}}
 \date{September 2026}
 
 % book version, printed on the verso-of-title page (bump at milestones):
@@ -279,7 +281,7 @@
 \thispagestyle{empty}
 \null\vfill
 \begin{center}
-{\Large\itshape Theoretical Tools in DB research}\\[3ex]
+{\Large\itshape A Theoretical Companion to Database Research}\\[3ex]
 {\large Lecture notes distilled from the SIGMOD~2026 full-corpus survey}\\[7ex]
 {\small
 Version \bookversion{} --- \bookstatus.\\
