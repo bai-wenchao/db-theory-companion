@@ -228,11 +228,15 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
   `domain:` tags in notes/sigmod26/batch_*.md ("By paper domain" view + the
   alphabetical list). Re-run after adding/renaming chapters, changing theorem
   labels, or editing domain tags, then rebuild. Layout note: entries are
-  plain unbreakable paragraphs at the full text+margin measure — entry
-  parity (odd/even leftskip) comes from the previous run's aux
-  (\gdef\idxpg<roman> written by an in-line probe), so it ALWAYS needs the
-  build.sh convergence loop; never judge index layout from a bare pdflatex
-  run (same trap as the ToC).
+  plain unbreakable paragraphs (\interlinepenalty 10000) at the normal TEXT
+  measure — the wide-margin convention (margin column free on every page,
+  odd right / even left, like the body chapters). No parity machinery at
+  all: the earlier full-measure + aux-probe/\leftskip schemes (fullwidth,
+  adjustwidth*, \gdef\idxpg) were all superseded — the text measure is
+  parity-independent, so a bare pdflatex run lays the index out correctly
+  (the build.sh loop is still needed for the ToC). Entries carry a local
+  \emergencystretch=6em: long names + unbreakable \mbox{Thm.~n.m} tails
+  can exhaust the global 3em at the narrower measure.
 - Overfull check: plain grep can miss hits (locale) — use
   `LC_ALL=C grep -a -n 'Overfull' main.log`.
 - Smoke tests: ToC orphan scan `pdftotext -f 3 -l 9 -layout main.pdf - |
@@ -352,6 +356,23 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       bbox+ink scans of all 11 index pages (zero words outside 58-556pt,
       minX 61.4-72.0, formerly invisible entries back) + vision on 269/271 —
       43b7389. Final state: 273 pp, Index pp. 263-273, same 6 overfulls.
+- 2026-09-16 index wide-margin revision (user report: the "Named theorems"
+      section read as full-page mode): measurement showed BOTH sections
+      actually shared the full text+margin measure — odd pages filled the
+      right margin on long lines (p263 ink to 550pt), even pages started
+      every entry at x≈62 in the left margin; the domain section only
+      LOOKED conforming because its entries are shorter. Fix in
+      11_make_index.py: entries now set at the plain TEXT measure — margin
+      column free on every page, like the body chapters. The whole
+      parity/aux-probe machinery (\idxpg probes, \leftskip, idxprobe
+      counter) is GONE (text measure is parity-independent), plus a local
+      \emergencystretch=6em in entries (one 6.8pt overfull from a long
+      name + \mbox tail at the narrower measure, now resolved). Verified:
+      bbox scan of all 11 index pages (body ink strictly within
+      [72,384] odd / [229,541] even; sole exception = the chapter-opener
+      footer folio, book-wide convention) + vision on 264/269 (wide empty
+      margins both parities, zero protrusion). Final state: 273 pp,
+      Index pp. 263-273 ('Named theorems' starts p268), same 6 overfulls.
 
 - 2026-09-16 repo cleanup + public release: github.com/bai-wenchao/db-theory-companion
       (renamed from db-theoretical-companion). Tracked set = sources only (scripts,
