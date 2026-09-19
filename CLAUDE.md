@@ -394,7 +394,9 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       LICENSE (MIT, scripts) + LICENSE-CC-BY-4.0 (book content); .gitignore covers
       main-*.tex / main-*.pdf subset jobs. `./build.sh main` also emits the
       distributable copy lecture-notes/A-Theoretical-Companion-to-Database-Research.pdf
-      (gitignored; the release asset).
+      (gitignored; the release asset). Released: commits 3f0ee8a + 4f0e44c pushed;
+      GitHub release v1.0 (matches \bookversion) created with the title-named PDF
+      attached — github.com/bai-wenchao/db-theory-companion/releases/tag/v1.0.
 
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens
