@@ -223,6 +223,10 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
   is byte-stable (the ToC needs the extra pass); prints "N pp, X overfulls".
   Steady state: 273 pp, 6 known overfull survivors (all ≤4.14pt). NEVER
   `git add buildstamp.tex` (gitignored per-run stamp).
+  Other modes (2026-09-19): `./build.sh chapter <name>` builds main-<name>.pdf =
+  ch0 + chapters/<name>.tex (default target is now `main`, not `pilot`);
+  `./build.sh clean` removes aux artifacts (aux/bbl/toc/log/..., buildstamp.tex,
+  generated main-* subset sources) but keeps every .pdf.
 - Index back matter: `python3 scripts/11_make_index.py` (any CWD) regenerates
   `lecture-notes/chapters/index.tex` from main.tex's include order + the
   `domain:` tags in notes/sigmod26/batch_*.md ("By paper domain" view + the
@@ -381,6 +385,16 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       Book retitled "A Theoretical Companion to Database Research"; author credit
       "Wenchao Bai and GLM5.3 (harnessed by Claude Code)" (title page, verso, running
       heads, PDF metadata). Rebuild verified: 273 pp, same 6 overfull survivors.
+- 2026-09-19 build.sh modes + public-repo docs: `clean` target (aux artifacts only,
+      every .pdf kept) and `chapter <name>` subset builds (main-<name>.tex = ch0 +
+      one chapter, exact-name include filtering, name validated [a-z0-9-]+); default
+      target now `main`. Tested: chapter reduction = 29 pp/0 overfulls, clean keeps
+      main.pdf + subset PDFs, full main = 273 pp/6 overfulls (canonical). Added
+      README.md (survey+book overview, pipeline, build, license, citation) and
+      LICENSE (MIT, scripts) + LICENSE-CC-BY-4.0 (book content); .gitignore covers
+      main-*.tex / main-*.pdf subset jobs. `./build.sh main` also emits the
+      distributable copy lecture-notes/A-Theoretical-Companion-to-Database-Research.pdf
+      (gitignored; the release asset).
 
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens
