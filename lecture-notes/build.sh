@@ -3,7 +3,8 @@
 #   ./build.sh main                build the full book (all includes)  [default];
 #                                  also refreshes the distributable copy
 #                                  A-Theoretical-Companion-to-Database-Research.pdf
-#   ./build.sh chapter <name>      build main-<name>.tex = ch0 + chapters/<name>.tex only
+#   ./build.sh chapter <name>      build main-<name>.tex = chapters/<name>.tex ONLY
+#                                  (no cover/license/ToC/ch0; book numbering kept)
 #   ./build.sh clean               remove aux-generated files (aux/bbl/toc/log/... and the
 #                                  generated main-* subset sources) — every .pdf is KEPT
 # Build targets always: write buildstamp.tex, wipe aux/toc/out, run pdflatex + per-chapter
@@ -18,16 +19,28 @@ cd "$(dirname "$0")"
 # LaTeX byproducts a build can leave behind, for every job (never .pdf).
 AUX_EXT="aux toc out bbl blg log fls fdb_latexmk lof lot synctex.gz"
 
-# gen_subset <job> <chapter>...: write <job>.tex = main.tex with every
-# \include{chapters/...} stripped except the named ones (exact-name match).
+# gen_subset <job> <chapter>: write <job>.tex = main.tex with ONLY
+# chapters/<chapter>.tex kept -- the front matter (\maketitle, the verso
+# license page, \tableofcontents) and every other \include are stripped.
+# The chapter KEEPS its full-book numbering (Theorem 2.3 here = Theorem 2.3
+# in main.pdf): the target's position in main.tex's include order IS its
+# book chapter number (ch0 = 0, counter starts at -1), so the
+# \setcounter{chapter}{-1} that precedes ch0 is rewritten to <position-1>.
 gen_subset() {
-  local job="$1"; shift
-  python3 - "$job" "$@" <<'EOF'
+  local job="$1" name="$2"
+  python3 - "$job" "$name" <<'EOF'
 import re, sys
-job, names = sys.argv[1], sys.argv[2:]
-alts = '|'.join(re.escape(n) + r'\}' for n in names)
+job, name = sys.argv[1], sys.argv[2]
 src = open('main.tex').read()
-out = re.sub(r'\\include\{chapters/(?!' + alts + r')[^}]+\}\n?', '', src)
+includes = re.findall(r'\\include\{chapters/([^}]+)\}', src)
+if name not in includes:
+    sys.exit('chapter not \\include-d in main.tex: ' + name)
+num = includes.index(name)
+pat = re.compile(r'\\maketitle.*?\\setcounter\{chapter\}\{-1\}\n', re.S)
+if not pat.search(src):
+    sys.exit('front-matter anchor (\\maketitle .. \\setcounter{chapter}{-1}) not found in main.tex')
+out = pat.sub(lambda m: '\\setcounter{chapter}{%d}\n' % (num - 1), src, count=1)
+out = re.sub(r'\\include\{chapters/(?!' + re.escape(name) + r'\})[^}]+\}\n?', '', out)
 open(job + '.tex', 'w').write(out)
 EOF
 }
@@ -50,7 +63,7 @@ case "$TARGET" in
     fi
     grep -Fq "\\include{chapters/$NAME}" main.tex || {
       echo "chapter: '$NAME' is not \\include'd in main.tex" >&2; exit 2; }
-    gen_subset "main-$NAME" ch0 "$NAME"
+    gen_subset "main-$NAME" "$NAME"
     JOB="main-$NAME" ;;
   clean)
     rm -f buildstamp.tex

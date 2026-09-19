@@ -133,8 +133,10 @@ chapter-agent prompts.
 
 ## R9. Build and verification (master-run; agents build nothing)
 
-- `./build.sh chapter <tool>` builds `main-<tool>.tex/pdf` (ch0 + that
-  chapter only) for fast checks; `./build.sh main` builds the full book.
+- `./build.sh chapter <tool>` builds `main-<tool>.tex/pdf` with ONLY that
+  chapter (no cover/license/ToC/ch0; book numbering kept — Theorem 2.3 here
+  = Theorem 2.3 in main.pdf) for fast checks; `./build.sh main` builds the
+  full book.
 - **Byte-stable rule**: after wiping aux, run pdflatex until the PDF is
   byte-identical twice in a row (≥4 runs). tufte's `\titlecontents` wraps
   every ToC entry in `fullwidth` = `adjustwidth*` (changepage), which

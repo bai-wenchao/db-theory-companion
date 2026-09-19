@@ -223,8 +223,11 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
   is byte-stable (the ToC needs the extra pass); prints "N pp, X overfulls".
   Steady state: 273 pp, 6 known overfull survivors (all ≤4.14pt). NEVER
   `git add buildstamp.tex` (gitignored per-run stamp).
-  Other modes (2026-09-19): `./build.sh chapter <name>` builds main-<name>.pdf =
-  ch0 + chapters/<name>.tex; `./build.sh clean` removes aux artifacts
+  Other modes (2026-09-19; chapter semantics fixed in round 4 same day):
+  `./build.sh chapter <name>` builds main-<name>.pdf = chapters/<name>.tex
+  ONLY — no cover/license page/ToC/ch0; the chapter KEEPS its book numbering
+  (gen_subset rewrites the pre-ch0 \setcounter{chapter}{-1} to the target's
+  include position - 1). `./build.sh clean` removes aux artifacts
   (aux/bbl/toc/log/..., buildstamp.tex, generated main-* subset sources) but
   keeps every .pdf. The legacy `pilot` target was removed the same day (the
   `chapter` mode subsumes it); default target is `main`.
@@ -421,6 +424,17 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       raster images on the verso per pdfimages — badge is vector paths, no
       extra fonts). v1.0 refreshed in place again: tag moved to this commit,
       asset clobbered (1,427,644 bytes), release notes updated.
+- 2026-09-19 round 4 (user feedback): `./build.sh chapter <name>` now
+      exports ONLY the named chapter — gen_subset strips the front matter
+      (\maketitle, verso license page, \tableofcontents) and every include
+      except the target (ch0 dropped) while keeping book numbering: the
+      target's position in main.tex's include order is its book chapter
+      number, so the pre-ch0 \setcounter{chapter}{-1} is rewritten to
+      position-1 (subset Theorem 2.3 = main.pdf Theorem 2.3). Tested:
+      chapter reduction = 19 pp / 0 overfulls, opens directly on the
+      "1 Reductions" chapter page; zero text hits for verso/ToC/ch0.
+      Docs updated (build.sh header, README, CHAPTER-RULES R9, runbook).
+      Book content unchanged -> v1.0 release + tag untouched.
 
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens

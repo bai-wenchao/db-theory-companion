@@ -95,7 +95,7 @@ the tracked `cc-by.svg` to vector `cc-by.pdf`), and poppler's `pdfinfo`
 ```bash
 cd lecture-notes
 ./build.sh main               # full book (default) → main.pdf
-./build.sh chapter reduction  # main-reduction.pdf = ch0 + one chapter (fast iterate)
+./build.sh chapter reduction  # main-reduction.pdf = ONLY chapter 1 (no cover/license/ToC/ch0)
 ./build.sh clean              # remove aux artifacts (aux/bbl/toc/log/... + generated
                               # main-* subset sources) — every .pdf is kept
 ```
