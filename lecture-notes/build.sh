@@ -4,7 +4,6 @@
 #                                  also refreshes the distributable copy
 #                                  A-Theoretical-Companion-to-Database-Research.pdf
 #   ./build.sh chapter <name>      build main-<name>.tex = ch0 + chapters/<name>.tex only
-#   ./build.sh pilot               regenerate main-pilot.tex (ch0 + concentration-ineq), build it
 #   ./build.sh clean               remove aux-generated files (aux/bbl/toc/log/... and the
 #                                  generated main-* subset sources) — every .pdf is KEPT
 # Build targets always: write buildstamp.tex, wipe aux/toc/out, run pdflatex + per-chapter
@@ -36,9 +35,6 @@ EOF
 TARGET="${1:-main}"
 case "$TARGET" in
   main) JOB=main ;;
-  pilot)
-    gen_subset main-pilot ch0 concentration-ineq
-    JOB=main-pilot ;;
   chapter)
     NAME="${2:-}"
     if [ -z "$NAME" ]; then
@@ -59,13 +55,13 @@ case "$TARGET" in
   clean)
     rm -f buildstamp.tex
     for ext in $AUX_EXT; do rm -f main."$ext" main-*."$ext"; done
-    rm -f main-*.tex            # generated subset sources (main-pilot.tex, main-<name>.tex)
+    rm -f main-*.tex            # generated subset sources (main-<name>.tex)
     rm -f chapters/*.aux chapters/*.bbl chapters/*.blg
     echo "[clean] aux artifacts removed; PDFs kept:"
     ls -1 *.pdf 2>/dev/null | sed 's/^/  /' || echo "  (none)"
     exit 0 ;;
   *)
-    echo "usage: $0 [main|chapter <name>|pilot|clean]" >&2; exit 2 ;;
+    echo "usage: $0 [main|chapter <name>|clean]" >&2; exit 2 ;;
 esac
 
 printf '%s\n' "\\newcommand{\\buildstamp}{$(date '+%Y-%m-%d %H:%M %Z')}" > buildstamp.tex

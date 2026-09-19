@@ -224,9 +224,10 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
   Steady state: 273 pp, 6 known overfull survivors (all ≤4.14pt). NEVER
   `git add buildstamp.tex` (gitignored per-run stamp).
   Other modes (2026-09-19): `./build.sh chapter <name>` builds main-<name>.pdf =
-  ch0 + chapters/<name>.tex (default target is now `main`, not `pilot`);
-  `./build.sh clean` removes aux artifacts (aux/bbl/toc/log/..., buildstamp.tex,
-  generated main-* subset sources) but keeps every .pdf.
+  ch0 + chapters/<name>.tex; `./build.sh clean` removes aux artifacts
+  (aux/bbl/toc/log/..., buildstamp.tex, generated main-* subset sources) but
+  keeps every .pdf. The legacy `pilot` target was removed the same day (the
+  `chapter` mode subsumes it); default target is `main`.
 - Index back matter: `python3 scripts/11_make_index.py` (any CWD) regenerates
   `lecture-notes/chapters/index.tex` from main.tex's include order + the
   `domain:` tags in notes/sigmod26/batch_*.md ("By paper domain" view + the
@@ -397,6 +398,15 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       (gitignored; the release asset). Released: commits 3f0ee8a + 4f0e44c pushed;
       GitHub release v1.0 (matches \bookversion) created with the title-named PDF
       attached — github.com/bai-wenchao/db-theory-companion/releases/tag/v1.0.
+- 2026-09-19 round 2 (user feedback): legacy `pilot` target REMOVED from
+      build.sh (chapter mode subsumes it) + every active doc (README, .gitignore,
+      CHAPTER-RULES R9, main.tex header; REVISION-PLAN/old status entries keep
+      their historical mentions). README citation drops the "GLM5.3 harnessed by
+      Claude Code" note (author field keeps GLM5.3). Book verso license corrected
+      CC BY-NC 4.0 → CC BY 4.0 (was inconsistent with LICENSE-CC-BY-4.0) + CC BY
+      88x31 badge (lecture-notes/cc-by-88x31.png, tracked) + tcs-style
+      "Text available on <repo> — post issues there" line. THIRD-PARTY-NOTICES.md
+      was already cited on the verso (no change needed).
 
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens

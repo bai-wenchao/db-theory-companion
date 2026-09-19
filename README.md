@@ -94,7 +94,6 @@ and poppler's `pdfinfo` (optional — used only to print the page count).
 cd lecture-notes
 ./build.sh main               # full book (default) → main.pdf
 ./build.sh chapter reduction  # main-reduction.pdf = ch0 + one chapter (fast iterate)
-./build.sh pilot              # main-pilot.pdf = ch0 + concentration-ineq (legacy smoke job)
 ./build.sh clean              # remove aux artifacts (aux/bbl/toc/log/... + generated
                               # main-* subset sources) — every .pdf is kept
 ```
@@ -126,8 +125,7 @@ run Stage B (or drop in your own equivalents) before `./build.sh main`.
 @book{bai2026companion,
   title  = {A Theoretical Companion to Database Research},
   author = {Bai, Wenchao and GLM5.3},
-  note   = {Lecture notes distilled from a full-corpus survey of SIGMOD 2026;
-            GLM5.3 harnessed by Claude Code},
+  note   = {Lecture notes distilled from a full-corpus survey of SIGMOD 2026},
   year   = {2026},
   url    = {https://github.com/bai-wenchao/db-theory-companion}
 }
