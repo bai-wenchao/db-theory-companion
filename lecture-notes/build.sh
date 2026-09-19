@@ -64,6 +64,21 @@ case "$TARGET" in
     echo "usage: $0 [main|chapter <name>|clean]" >&2; exit 2 ;;
 esac
 
+# License badge: pdflatex cannot read SVG -- convert the tracked cc-by.svg
+# to cc-by.pdf (VECTOR, not raster) when missing or stale; main.tex includes
+# it extensionless (\includegraphics prefers .pdf). cc-by.pdf is gitignored
+# like the other generated assets.
+if [ ! "cc-by.pdf" -nt "cc-by.svg" ]; then
+  if command -v rsvg-convert >/dev/null 2>&1; then
+    rsvg-convert -f pdf -o cc-by.pdf cc-by.svg
+  elif command -v inkscape >/dev/null 2>&1; then
+    inkscape cc-by.svg --export-type=pdf --export-filename=cc-by.pdf
+  elif [ ! -f cc-by.pdf ]; then
+    echo "cc-by.pdf missing and no SVG converter found (install librsvg's rsvg-convert or Inkscape)" >&2
+    exit 2
+  fi
+fi
+
 printf '%s\n' "\\newcommand{\\buildstamp}{$(date '+%Y-%m-%d %H:%M %Z')}" > buildstamp.tex
 
 rm -f "$JOB".aux "$JOB".toc "$JOB".out "$JOB".bbl "$JOB".blg "$JOB".pdf

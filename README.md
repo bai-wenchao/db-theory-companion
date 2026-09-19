@@ -88,7 +88,9 @@ ACM-only papers are fetched through a CDP-driven Chrome instance
 
 Requirements: a full-ish TeX Live (pdflatex with pgfplots, tcolorbox, chapterbib,
 caption, microtype, newunicodechar), Python 3 with matplotlib for the figures,
-and poppler's `pdfinfo` (optional — used only to print the page count).
+`rsvg-convert` (librsvg) or Inkscape for the license badge (`build.sh` converts
+the tracked `cc-by.svg` to vector `cc-by.pdf`), and poppler's `pdfinfo`
+(optional — used only to print the page count).
 
 ```bash
 cd lecture-notes

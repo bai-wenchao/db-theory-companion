@@ -410,6 +410,17 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       per user choice the v1.0 release was REFRESHED IN PLACE: tag moved
       4f0e44c -> badca81, asset clobbered with the rebuilt PDF (1,427,032 bytes),
       release notes note the verso correction.
+- 2026-09-19 round 3 (user feedback): license badge went VECTOR — tracked
+      cc-by.svg (official CC button, 120x42, paths-only, no <text>) replaces
+      the 88x31 PNG (deleted). pdflatex cannot read SVG, so build.sh converts
+      cc-by.svg -> cc-by.pdf (VECTOR, not raster) via rsvg-convert (Inkscape
+      fallback; clear error if neither and no cached pdf) before the first
+      pdflatex pass, staleness-checked (-nt); cc-by.pdf gitignored with the
+      other generated assets; main.tex includes it extensionless. Rebuild:
+      273 pp / 6 overfulls; p2 verified (badge sharp, block centered; ZERO
+      raster images on the verso per pdfimages — badge is vector paths, no
+      extra fonts). v1.0 refreshed in place again: tag moved to this commit,
+      asset clobbered (1,427,644 bytes), release notes updated.
 
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens
