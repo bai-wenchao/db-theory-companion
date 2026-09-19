@@ -406,7 +406,10 @@ pdflatex+bibtex, and finalizes the Ch0 index LAST (user spec).
       CC BY-NC 4.0 → CC BY 4.0 (was inconsistent with LICENSE-CC-BY-4.0) + CC BY
       88x31 badge (lecture-notes/cc-by-88x31.png, tracked) + tcs-style
       "Text available on <repo> — post issues there" line. THIRD-PARTY-NOTICES.md
-      was already cited on the verso (no change needed).
+      was already cited on the verso (no change needed). Shipped as badca81 (pushed);
+      per user choice the v1.0 release was REFRESHED IN PLACE: tag moved
+      4f0e44c -> badca81, asset clobbered with the rebuilt PDF (1,427,032 bytes),
+      release notes note the verso correction.
 
 ## Token ledger (est; input+output, excludes master context)
 - script stage: ~0 LLM tokens
